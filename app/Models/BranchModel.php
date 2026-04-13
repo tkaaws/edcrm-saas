@@ -48,6 +48,32 @@ class BranchModel extends BaseModel
     }
 
     /**
+     * Return tenant branches for the admin grid.
+     *
+     * @return array<int, object>
+     */
+    public function getAdminGrid(int $tenantId): array
+    {
+        return $this->withoutTenantScope()
+                    ->where('tenant_id', $tenantId)
+                    ->orderBy('name', 'ASC')
+                    ->findAll();
+    }
+
+    public function codeExistsForTenant(string $code, int $tenantId, ?int $ignoreBranchId = null): bool
+    {
+        $builder = $this->withoutTenantScope()
+                        ->where('tenant_id', $tenantId)
+                        ->where('code', $code);
+
+        if ($ignoreBranchId !== null) {
+            $builder->where('id !=', $ignoreBranchId);
+        }
+
+        return $builder->countAllResults() > 0;
+    }
+
+    /**
      * Resolve effective timezone for a branch.
      * Falls back to tenant default if branch has no override.
      */

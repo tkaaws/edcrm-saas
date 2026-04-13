@@ -30,4 +30,10 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->get('users/(:num)/edit', 'Users::edit/$1');
     $routes->post('users/(:num)', 'Users::update/$1');
     $routes->post('users/(:num)/status', 'Users::updateStatus/$1');
+    $routes->get('branches', 'Branches::index');
+    $routes->get('branches/create', 'Branches::create');
+    $routes->post('branches', 'Branches::store');
+    $routes->get('branches/(:num)/edit', 'Branches::edit/$1');
+    $routes->post('branches/(:num)', 'Branches::update/$1');
+    $routes->post('branches/(:num)/status', 'Branches::updateStatus/$1');
 });
