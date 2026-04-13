@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/admin.css') ?>">
 </head>
 <body class="shell-body">
+    <?php
+    $activeNav = $activeNav ?? 'dashboard';
+    $navItems = [
+        ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => site_url('dashboard'), 'meta' => 'Live', 'enabled' => true],
+        ['key' => 'users', 'label' => 'Users', 'href' => site_url('users'), 'meta' => 'Live', 'enabled' => true],
+        ['key' => 'branches', 'label' => 'Branches', 'href' => null, 'meta' => 'Next', 'enabled' => false],
+        ['key' => 'roles', 'label' => 'Roles', 'href' => null, 'meta' => 'Next', 'enabled' => false],
+        ['key' => 'settings', 'label' => 'Settings', 'href' => null, 'meta' => 'Next', 'enabled' => false],
+    ];
+    ?>
     <div class="shell">
         <aside class="shell-sidebar">
             <div class="shell-brand">
@@ -18,26 +28,20 @@
             </div>
 
             <nav class="shell-nav" aria-label="Primary">
-                <a class="shell-nav__item shell-nav__item--active" href="<?= site_url('dashboard') ?>">
-                    <span>Dashboard</span>
-                    <small>Live</small>
-                </a>
-                <span class="shell-nav__item">
-                    <span>Users</span>
-                    <small>Next</small>
-                </span>
-                <span class="shell-nav__item">
-                    <span>Branches</span>
-                    <small>Next</small>
-                </span>
-                <span class="shell-nav__item">
-                    <span>Roles</span>
-                    <small>Next</small>
-                </span>
-                <span class="shell-nav__item">
-                    <span>Settings</span>
-                    <small>Next</small>
-                </span>
+                <?php foreach ($navItems as $item): ?>
+                    <?php $classes = 'shell-nav__item' . ($activeNav === $item['key'] ? ' shell-nav__item--active' : ''); ?>
+                    <?php if ($item['enabled']): ?>
+                        <a class="<?= esc($classes) ?>" href="<?= esc($item['href']) ?>">
+                            <span><?= esc($item['label']) ?></span>
+                            <small><?= esc($item['meta']) ?></small>
+                        </a>
+                    <?php else: ?>
+                        <span class="<?= esc($classes) ?>">
+                            <span><?= esc($item['label']) ?></span>
+                            <small><?= esc($item['meta']) ?></small>
+                        </span>
+                    <?php endif; ?>
+                <?php endforeach; ?>
             </nav>
 
             <section class="shell-sidebar__section">

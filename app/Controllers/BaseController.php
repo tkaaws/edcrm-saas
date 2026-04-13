@@ -42,4 +42,35 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
         // $this->session = service('session');
     }
+
+    /**
+     * Shared shell context for authenticated admin pages.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     */
+    protected function buildShellViewData(array $data = []): array
+    {
+        $firstName = session()->get('user_first_name');
+        $lastName  = session()->get('user_last_name');
+        $roleCode  = session()->get('user_role_code');
+        $tenantId  = session()->get('tenant_id');
+        $branchId  = session()->get('branch_id');
+
+        return array_merge([
+            'title'           => 'EDCRM SaaS',
+            'pageTitle'       => 'Operations Workspace',
+            'activeNav'       => 'dashboard',
+            'tenantId'        => $tenantId,
+            'branchId'        => $branchId,
+            'roleCode'        => $roleCode,
+            'tenantLabel'     => $tenantId ? 'Tenant #' . $tenantId : 'Tenant not loaded',
+            'branchLabel'     => $branchId ? 'Branch #' . $branchId : 'Branch not assigned',
+            'roleLabel'       => $roleCode ?: 'Role pending',
+            'userDisplayName' => trim((string) $firstName . ' ' . (string) $lastName) ?: 'EDCRM User',
+            'userEmail'       => session()->get('user_email'),
+            'firstName'       => $firstName,
+        ], $data);
+    }
 }

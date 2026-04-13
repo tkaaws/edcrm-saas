@@ -22,3 +22,12 @@ $routes->group('auth', static function (RouteCollection $routes): void {
 $routes->get('dashboard', 'Dashboard::index', [
     'filter' => ['auth', 'tenant', 'suspension'],
 ]);
+
+$routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static function (RouteCollection $routes): void {
+    $routes->get('users', 'Users::index');
+    $routes->get('users/create', 'Users::create');
+    $routes->post('users', 'Users::store');
+    $routes->get('users/(:num)/edit', 'Users::edit/$1');
+    $routes->post('users/(:num)', 'Users::update/$1');
+    $routes->post('users/(:num)/status', 'Users::updateStatus/$1');
+});

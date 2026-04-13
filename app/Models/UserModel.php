@@ -162,6 +162,49 @@ class UserModel extends BaseModel
     }
 
     /**
+     * Return tenant users for the admin grid with role and primary branch.
+     *
+     * @return array<int, object>
+     */
+    public function getAdminGrid(int $tenantId): array
+    {
+        return $this->withoutTenantScope()
+                    ->select('users.*, tenant_roles.name as role_name, tenant_roles.code as role_code, tenant_branches.name as primary_branch_name')
+                    ->join('tenant_roles', 'tenant_roles.id = users.role_id', 'left')
+                    ->join('user_branches', 'user_branches.user_id = users.id AND user_branches.is_primary = 1', 'left')
+                    ->join('tenant_branches', 'tenant_branches.id = user_branches.branch_id', 'left')
+                    ->where('users.tenant_id', $tenantId)
+                    ->orderBy('users.first_name', 'ASC')
+                    ->findAll();
+    }
+
+    public function emailExistsForTenant(string $email, int $tenantId, ?int $ignoreUserId = null): bool
+    {
+        $builder = $this->withoutTenantScope()
+                        ->where('tenant_id', $tenantId)
+                        ->where('email', $email);
+
+        if ($ignoreUserId !== null) {
+            $builder->where('id !=', $ignoreUserId);
+        }
+
+        return $builder->countAllResults() > 0;
+    }
+
+    public function usernameExistsForTenant(string $username, int $tenantId, ?int $ignoreUserId = null): bool
+    {
+        $builder = $this->withoutTenantScope()
+                        ->where('tenant_id', $tenantId)
+                        ->where('username', $username);
+
+        if ($ignoreUserId !== null) {
+            $builder->where('id !=', $ignoreUserId);
+        }
+
+        return $builder->countAllResults() > 0;
+    }
+
+    /**
      * Remove user from branch.
      */
     public function removeFromBranch(int $userId, int $branchId): void
