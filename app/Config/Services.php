@@ -7,6 +7,7 @@ use App\Services\TenantResolver;
 use App\Services\BranchContextResolver;
 use App\Services\PermissionService;
 use App\Services\CurrentUserContext;
+use App\Services\AuthService;
 
 /**
  * Services Configuration
@@ -63,5 +64,16 @@ class Services extends BaseService
             return static::getSharedInstance('userContext');
         }
         return new CurrentUserContext();
+    }
+
+    /**
+     * Handles login, logout, forgot/reset password, password history.
+     */
+    public static function auth(bool $getShared = true): AuthService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('auth');
+        }
+        return new AuthService();
     }
 }

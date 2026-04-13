@@ -1,4 +1,4 @@
-# EDCRM SaaS Phase 1A / 1B Product Architecture Plan
+﻿# EDCRM SaaS Phase 1A / 1B Product Architecture Plan
 
 ## 1. Executive Summary
 
@@ -165,33 +165,41 @@ Instead:
 ## 4. Phase 1A - Multi-Tenant Foundation
 
 ### 4.0 Implementation Status
-
 Last updated: 2026-04-13
-
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| 1 | Schema design | ✅ Done | All 15 tables defined in plan |
-| 2 | Migrations | ✅ Done | 15 migration files, run on production and local |
-| 3 | Seeders | ✅ Done | 63 privileges, 9 system roles, demo tenant/branch/user |
-| 4 | BaseModel (tenant scoping) | ✅ Done | app/Models/BaseModel.php |
-| 5 | Domain models | ✅ Done | TenantModel, BranchModel, UserModel, RoleModel, PrivilegeModel |
-| 6 | TenantResolver service | ✅ Done | app/Services/TenantResolver.php |
-| 7 | BranchContextResolver service | ✅ Done | app/Services/BranchContextResolver.php |
-| 8 | PermissionService | ✅ Done | app/Services/PermissionService.php — session-cached privilege codes |
-| 9 | CurrentUserContext service | ✅ Done | app/Services/CurrentUserContext.php — single context object for controllers/views |
-| 10 | LocaleContextResolver | ✅ Done | Merged into BranchContextResolver (resolveTimezone, resolveCurrency) |
-| 11 | Auth (login/logout/forgot/reset) | ⏳ Pending | — |
-| 12 | Filters (Auth, Tenant, Suspension) | ⏳ Pending | — |
-| 13 | Admin shell (layout, sidebar, topbar) | ⏳ Pending | — |
-| 14 | User management CRUD | ⏳ Pending | — |
-| 15 | Branch management CRUD | ⏳ Pending | — |
-| 16 | Role management CRUD | ⏳ Pending | — |
-| 17 | Tenant settings (SMTP, WhatsApp) | ⏳ Pending | — |
-
-**Demo credentials (production + local):**
-- URL: `http://143.110.247.79` (production) / `http://localhost/edcrm-saas/public` (local)
-- Login: `demo@edcrm.in` / `Demo@1234`
-
+| 1 | Schema design | Done | 15 Phase 1A tables defined and aligned to multi-tenant naming |
+| 2 | Migrations | Done | 15 migration files exist in app/Database/Migrations |
+| 3 | Seeders | Done | DatabaseSeeder, PrivilegesSeeder, and DemoDataSeeder exist |
+| 4 | BaseModel (tenant scoping) | Done | app/Models/BaseModel.php |
+| 5 | Domain models | Done | TenantModel, BranchModel, UserModel, RoleModel, PrivilegeModel |
+| 6 | TenantResolver service | Done | app/Services/TenantResolver.php |
+| 7 | BranchContextResolver service | Done | app/Services/BranchContextResolver.php |
+| 8 | PermissionService | Done | app/Services/PermissionService.php |
+| 9 | CurrentUserContext service | Done | app/Services/CurrentUserContext.php |
+| 10 | Locale and currency resolution | Done | handled through tenant and branch context services |
+| 11 | Auth service and controller | In Progress | AuthService and Auth controller exist; seeded login validation still pending |
+| 12 | Filters (Auth, Tenant, Suspension) | Done | filter classes exist and are registered in Filters.php |
+| 13 | Auth and dashboard routes | Done | Routes.php exposes auth routes and protected /dashboard |
+| 14 | Auth and dashboard starter views | Done | starter views added for login, forgot, reset, change password, and dashboard |
+| 15 | Admin shell (layout, sidebar, topbar) | Pending | not started |
+| 16 | User management CRUD | Pending | not started |
+| 17 | Branch management CRUD | Pending | not started |
+| 18 | Role management CRUD | Pending | not started |
+| 19 | Tenant settings (SMTP, WhatsApp) | Pending | schema ready, UI and workflows pending |
+| 20 | TenantAccessPolicy / subscription policy integration | Pending | needed before full Phase 1B restriction enforcement |
+### 4.0.1 Handoff note
+This table tracks repository implementation status, not just planning intent.
+- Done means code/files exist and basic verification has been performed
+- In Progress means the building blocks exist, but end-to-end validation is still pending
+- Pending means not yet started or not yet ready for handoff
+Current verified runtime facts:
+- DigitalOcean droplet deployment pipeline is live
+- Nginx + PHP-FPM are serving the app on http://143.110.247.79
+- GitHub Actions deploy flow is working
+- php spark routes succeeds locally with auth and dashboard routes registered
+Current caution:
+- do not assume demo credentials or migration execution state on every environment without re-checking seed and environment data first
 ---
 
 ### 4.1 Objectives
@@ -1118,12 +1126,18 @@ UI automation is not part of Phase 1A or 1B.
 
 ## 11. Recommendation For Next Step
 
-After review of this document:
+Immediate execution order from current repo state:
 
-1. freeze Phase 1A schema
-2. freeze Phase 1B billing catalog
-3. freeze feature codes and limit codes
-4. freeze subscription state machine
-5. begin migration design and implementation
+1. verify `.env` database settings on local and droplet
+2. run migrations and seeders in the target environment
+3. validate login with seeded tenant owner credentials
+4. confirm protected `/dashboard` flow through `auth + tenant + suspension`
+5. build Admin shell
+6. build User management CRUD
+7. build Branch management CRUD
+8. build Role management CRUD
+9. complete tenant settings UI for SMTP and WhatsApp
+10. begin Phase 1B billing catalog and policy services
 
-Only after Phase 1A and 1B are stable should commerce expansion and business modules begin.
+Only after these foundation items are stable should enquiry, admissions, service, placement, and student portal module work begin.
+
