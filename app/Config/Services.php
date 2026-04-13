@@ -8,6 +8,7 @@ use App\Services\BranchContextResolver;
 use App\Services\PermissionService;
 use App\Services\CurrentUserContext;
 use App\Services\AuthService;
+use App\Services\TenantProvisioningService;
 
 /**
  * Services Configuration
@@ -75,5 +76,16 @@ class Services extends BaseService
             return static::getSharedInstance('auth');
         }
         return new AuthService();
+    }
+
+    /**
+     * Provisions a new tenant with branch, owner user, roles, and defaults.
+     */
+    public static function tenantProvisioning(bool $getShared = true): TenantProvisioningService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('tenantProvisioning');
+        }
+        return new TenantProvisioningService();
     }
 }

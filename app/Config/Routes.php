@@ -47,4 +47,7 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->post('settings/preferences', 'Settings::updatePreferences');
     $routes->post('settings/email', 'Settings::updateEmailConfig');
     $routes->post('settings/whatsapp', 'Settings::updateWhatsappConfig');
+    $routes->get('platform/tenants', 'PlatformTenants::index');
+    $routes->get('platform/tenants/create', 'PlatformTenants::create');
+    $routes->post('platform/tenants', 'PlatformTenants::store');
 });

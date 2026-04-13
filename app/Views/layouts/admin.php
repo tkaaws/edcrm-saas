@@ -15,6 +15,7 @@
         ['key' => 'branches', 'label' => 'Branches', 'href' => site_url('branches'), 'meta' => 'Live', 'enabled' => true],
         ['key' => 'roles', 'label' => 'Roles', 'href' => site_url('roles'), 'meta' => 'Live', 'enabled' => true],
         ['key' => 'settings', 'label' => 'Settings', 'href' => site_url('settings'), 'meta' => 'Live', 'enabled' => true],
+        ['key' => 'tenants', 'label' => 'Tenants', 'href' => site_url('platform/tenants'), 'meta' => 'Live', 'enabled' => true],
     ];
     ?>
     <div class="shell">

@@ -188,6 +188,7 @@ Last updated: 2026-04-13
 | 18 | Role management CRUD | In Progress | list, create, edit, status toggle, and privilege assignment wired |
 | 19 | Tenant settings (SMTP, WhatsApp) | In Progress | profile defaults, visibility modes, SMTP, and WhatsApp settings wired |
 | 20 | TenantAccessPolicy / subscription policy integration | Pending | needed before full Phase 1B restriction enforcement |
+| 21 | Platform tenant onboarding | In Progress | tenant list and tenant provisioning flow wired |
 ### 4.0.1 Handoff note
 This table tracks repository implementation status, not just planning intent.
 - Done means code/files exist and basic verification has been performed
