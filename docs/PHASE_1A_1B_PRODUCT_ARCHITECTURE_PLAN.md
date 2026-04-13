@@ -186,7 +186,7 @@ Last updated: 2026-04-13
 | 16 | User management CRUD | In Progress | list, create, edit, role assignment, branch assignment, and status toggle wired |
 | 17 | Branch management CRUD | In Progress | list, create, edit, and status toggle wired |
 | 18 | Role management CRUD | In Progress | list, create, edit, status toggle, and privilege assignment wired |
-| 19 | Tenant settings (SMTP, WhatsApp) | Pending | schema ready, UI and workflows pending |
+| 19 | Tenant settings (SMTP, WhatsApp) | In Progress | profile defaults, visibility modes, SMTP, and WhatsApp settings wired |
 | 20 | TenantAccessPolicy / subscription policy integration | Pending | needed before full Phase 1B restriction enforcement |
 ### 4.0.1 Handoff note
 This table tracks repository implementation status, not just planning intent.

@@ -42,4 +42,9 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->get('roles/(:num)/edit', 'Roles::edit/$1');
     $routes->post('roles/(:num)', 'Roles::update/$1');
     $routes->post('roles/(:num)/status', 'Roles::updateStatus/$1');
+    $routes->get('settings', 'Settings::index');
+    $routes->post('settings/profile', 'Settings::updateProfile');
+    $routes->post('settings/preferences', 'Settings::updatePreferences');
+    $routes->post('settings/email', 'Settings::updateEmailConfig');
+    $routes->post('settings/whatsapp', 'Settings::updateWhatsappConfig');
 });
