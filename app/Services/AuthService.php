@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\UserModel;
 use App\Models\TenantModel;
+use CodeIgniter\Database\BaseConnection;
 
 /**
  * AuthService
@@ -36,6 +37,7 @@ class AuthService
     protected TenantResolver $tenantResolver;
     protected BranchContextResolver $branchResolver;
     protected PermissionService $permissionService;
+    protected BaseConnection $db;
 
     public function __construct()
     {
@@ -44,6 +46,7 @@ class AuthService
         $this->tenantResolver    = new TenantResolver();
         $this->branchResolver    = new BranchContextResolver();
         $this->permissionService = new PermissionService();
+        $this->db                = db_connect();
     }
 
     // ---------------------------------------------------------------
@@ -168,7 +171,7 @@ class AuthService
         }
 
         // Invalidate any existing unused tokens for this user
-        db()->table('password_reset_tokens')
+        $this->db->table('password_reset_tokens')
              ->where('user_id', $user->id)
              ->where('used_at', null)
              ->update(['used_at' => date('Y-m-d H:i:s')]);
@@ -178,7 +181,7 @@ class AuthService
         $tokenHash  = hash('sha256', $plainToken);
         $expiresAt  = date('Y-m-d H:i:s', strtotime('+' . self::RESET_TOKEN_EXPIRY_MINS . ' minutes'));
 
-        db()->table('password_reset_tokens')->insert([
+        $this->db->table('password_reset_tokens')->insert([
             'user_id'    => $user->id,
             'token_hash' => $tokenHash,
             'expires_at' => $expiresAt,
@@ -209,7 +212,7 @@ class AuthService
     {
         $tokenHash = hash('sha256', $plainToken);
 
-        $record = db()->table('password_reset_tokens')
+        $record = $this->db->table('password_reset_tokens')
                       ->where('token_hash', $tokenHash)
                       ->where('used_at', null)
                       ->where('expires_at >=', date('Y-m-d H:i:s'))
@@ -249,7 +252,7 @@ class AuthService
         $this->archivePassword($user->id, $user->password_hash);
 
         // Update password and clear reset flag
-        db()->table('users')->where('id', $user->id)->update([
+        $this->db->table('users')->where('id', $user->id)->update([
             'password_hash'       => $newHash,
             'must_reset_password' => 0,
             'updated_at'          => date('Y-m-d H:i:s'),
@@ -257,7 +260,7 @@ class AuthService
 
         // Mark token as used — single-use enforcement
         $tokenHash = hash('sha256', $plainToken);
-        db()->table('password_reset_tokens')
+        $this->db->table('password_reset_tokens')
             ->where('token_hash', $tokenHash)
             ->update(['used_at' => date('Y-m-d H:i:s')]);
 
@@ -289,7 +292,7 @@ class AuthService
         $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
         $this->archivePassword($userId, $user->password_hash);
 
-        db()->table('users')->where('id', $userId)->update([
+        $this->db->table('users')->where('id', $userId)->update([
             'password_hash'       => $newHash,
             'must_reset_password' => 0,
             'updated_at'          => date('Y-m-d H:i:s'),
@@ -309,7 +312,7 @@ class AuthService
      */
     protected function isPasswordReused(int $userId, string $plainPassword): bool
     {
-        $history = db()->table('user_password_histories')
+        $history = $this->db->table('user_password_histories')
                        ->where('user_id', $userId)
                        ->orderBy('created_at', 'DESC')
                        ->limit(self::PASSWORD_HISTORY_DEPTH)
@@ -330,7 +333,7 @@ class AuthService
      */
     protected function archivePassword(int $userId, string $hash): void
     {
-        db()->table('user_password_histories')->insert([
+        $this->db->table('user_password_histories')->insert([
             'user_id'       => $userId,
             'password_hash' => $hash,
             'created_at'    => date('Y-m-d H:i:s'),
@@ -342,7 +345,7 @@ class AuthService
      */
     protected function writeAudit(int $tenantId, ?int $userId, string $action, string $summary): void
     {
-        db()->table('audit_logs')->insert([
+        $this->db->table('audit_logs')->insert([
             'tenant_id'   => $tenantId,
             'user_id'     => $userId,
             'entity_type' => 'auth',
@@ -371,7 +374,7 @@ class AuthService
      */
     protected function getRoleForUser(object $user): ?object
     {
-        return db()->table('tenant_roles')
+        return $this->db->table('tenant_roles')
                    ->where('id', $user->role_id)
                    ->get()
                    ->getRow();
