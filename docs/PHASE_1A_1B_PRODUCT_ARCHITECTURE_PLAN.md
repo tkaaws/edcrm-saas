@@ -182,7 +182,7 @@ Last updated: 2026-04-13
 | 12 | Filters (Auth, Tenant, Suspension) | Done | filter classes exist and are registered in Filters.php |
 | 13 | Auth and dashboard routes | Done | Routes.php exposes auth routes and protected /dashboard |
 | 14 | Auth and dashboard starter views | Done | starter views added for login, forgot, reset, change password, and dashboard |
-| 15 | Admin shell (layout, sidebar, topbar) | Pending | not started |
+| 15 | Admin shell (layout, sidebar, topbar) | In Progress | responsive shell, sidebar, header, and dashboard layout added |
 | 16 | User management CRUD | Pending | not started |
 | 17 | Branch management CRUD | Pending | not started |
 | 18 | Role management CRUD | Pending | not started |
