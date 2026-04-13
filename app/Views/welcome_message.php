@@ -227,7 +227,7 @@
 
         <h1>EDCRM SaaS Deploy Test</h1>
 
-        <h2>If this text appears after a push, the deployment pipeline is working.</h2>
+        <h2>Auto deploy check: version 2 from GitHub Actions.</h2>
 
     </div>
 
@@ -239,7 +239,7 @@
 
     <h1>Deployment Check</h1>
 
-    <p>This page is being used to verify GitHub-to-droplet deployment for the EDCRM SaaS project.</p>
+    <p>This page is being used to verify GitHub Actions deployment for the EDCRM SaaS project.</p>
 
     <p>If you would like to edit this page you will find it located at:</p>
 
