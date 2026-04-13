@@ -1,12 +1,11 @@
-# EDCRM SaaS Phase 1A / 1B / 1C Product Architecture Plan
+# EDCRM SaaS Phase 1A / 1B Product Architecture Plan
 
 ## 1. Executive Summary
 
-This document defines the formal execution plan for the first three platform phases of `edcrm-saas`.
+This document defines the formal execution plan for the first two platform phases of `edcrm-saas`.
 
 - **Phase 1A** establishes the multi-tenant SaaS foundation
 - **Phase 1B** establishes billing catalog, entitlements, limits, and subscription enforcement engine
-- **Phase 1C** establishes subscription commerce — self-service signup, module marketplace, payment gateway, invoicing, and automated renewal/suspension pipeline
 
 The platform is intended for multiple institutes, each with one or more branches, each branch operating its own leads, admissions, service, and placement workflows. The product must scale beyond small institutes and support regionally distributed operations, including different timezone and currency requirements.
 
@@ -109,7 +108,7 @@ Although v1 is shared DB, code should be structured so larger customers can late
 That means:
 
 - tenant resolution must be centralized
-- repositories/services must be tenant-aware
+- repositories and services must be tenant-aware
 - product logic must not directly assume one physical database forever
 - no raw module code should bypass tenant scoping
 
@@ -127,7 +126,17 @@ Effective access is:
 
 **tenant entitlement AND user privilege**
 
-### 3.4 Global standards
+### 3.4 Platform admin rule
+
+Platform admins do not automatically bypass tenant entitlements inside tenant workflows.
+
+Rules:
+
+- platform admins have full access in platform-management surfaces
+- tenant operations still respect tenant subscription entitlements
+- explicit support impersonation may be added later if tenant support requires controlled bypass behavior
+
+### 3.5 Global standards
 
 The platform must not assume India-only usage.
 
@@ -141,9 +150,9 @@ Global standards to support from the foundation:
 - globally safe naming conventions
 - future internationalization readiness
 
-### 3.5 Configuration strategy
+### 3.6 Configuration strategy
 
-Do not copy `jbkcrm`’s giant `settings` table model.
+Do not copy `jbkcrm`'s giant `settings` table model.
 
 Instead:
 
@@ -153,7 +162,7 @@ Instead:
 
 ---
 
-## 4. Phase 1A — Multi-Tenant Foundation
+## 4. Phase 1A - Multi-Tenant Foundation
 
 ### 4.1 Objectives
 
@@ -479,11 +488,12 @@ Build these shared services before module work:
 - `PermissionService`
 - `CurrentUserContext`
 - `LocaleContextResolver`
+- `TenantAccessPolicy`
 
 Responsibilities:
 
-- determine current tenant
-- determine current active branch
+- resolver layer determines current tenant and branch identity
+- policy layer decides whether tenant status allows access
 - resolve effective timezone
 - resolve effective currency
 - resolve effective privileges
@@ -539,12 +549,12 @@ Phase 1A is complete when:
 - branch-aware access context works
 - tenant SMTP config can be saved
 - tenant WhatsApp config can be saved
-- tenant/branch timezone and currency resolution works
-- no tenant can access another tenant’s records
+- tenant and branch timezone and currency resolution works
+- no tenant can access another tenant's records
 
 ---
 
-## 5. Phase 1B — Billing, Plans, Entitlements, and Restriction Engine
+## 5. Phase 1B - Billing, Plans, Entitlements, and Restriction Engine
 
 ### 5.1 Objectives
 
@@ -555,7 +565,8 @@ By the end of Phase 1B, the system must support:
 - feature entitlements by plan
 - add-ons
 - active user limits
-- branch-aware but tenant-owned subscription control
+- branch limits
+- tenant-owned subscription control
 - subscription status transitions
 - grace period handling
 - suspension restrictions
@@ -564,72 +575,71 @@ By the end of Phase 1B, the system must support:
 
 ### 5.2 Billing model
 
-Recommended v1 model: **base plan + module add-ons + capacity tiers + billing cycle discount**
+Recommended v1 model:
 
-This is a module marketplace model, not a preset bundle model. It lets each institute pay only for what they need and naturally upsells as they grow.
+- base plan
+- optional add-ons
+- capacity tiers
+- monthly or yearly billing
 
-#### Base Plan (always included — the CRM foundation)
+This is a configurable commercial model without forcing every institute into the same package.
 
-Every subscription includes the following at the base price:
+#### Base plan
 
-- Enquiry capture and followup (core CRM engine)
-- Branch management
-- User management
-- Basic dashboard and reports
+Every subscription includes the CRM base foundation:
+
+- enquiry capture and followup
+- branch management
+- user management
+- basic dashboard and reports
 - SMTP notification config
 
-The base plan is not sold without a capacity tier.
+#### Capacity tiers
 
-#### Capacity Tiers (user count — the primary revenue driver)
+Primary monetization dimension:
 
-| Tier | Active Users | Branches |
-|------|-------------|----------|
-| Starter | up to 5 | 1 |
-| Basic | 6–10 | 2 |
-| Growth | 11–25 | 5 |
-| Scale | 26–50 | 10 |
-| Enterprise | 50+ | unlimited (custom contract) |
+- active user count
+- branch count
 
-Rules:
-- Active user count determines tier
-- When user count crosses a tier boundary, tenant is prompted to upgrade
-- Soft block on adding new users when at tier limit (no hard system lockout)
-- Enterprise tier is not self-service — platform admin creates these manually
+Recommended structure:
 
-#### Module Add-ons (tenant picks only what they need)
-
-| Module Code | What it covers |
-|------------|---------------|
-| `admissions` | Admissions conversion, fee structure, installments, payments |
-| `service_tickets` | Support ticket / service request workflow |
-| `placement` | Placement workflow, jobs, mock interviews, college connect |
-| `batch_management` | Batch / course management, faculty, attendance |
-| `whatsapp` | WhatsApp integration (provider config + messaging) |
-| `advanced_reports` | Full reporting suite beyond basic dashboard |
-| `student_portal` | Student self-service portal (Phase 4+) |
+- Starter
+- Basic
+- Growth
+- Scale
+- Enterprise
 
 Rules:
-- Modules can be added or removed at subscription renewal
-- Adding a module mid-cycle is prorated from today to the next billing date
-- Removing a module takes effect at next renewal (data retained, access gated)
 
-#### Bundle Deal
+- active users determine user tier enforcement
+- branches are controlled only by `max_branches`
+- do not create a separate `multi_branch` feature flag
+- enterprise contracts may be manually managed by platform admin
 
-A tenant that subscribes to all available modules in one go receives a discount (recommended: 20% off a la carte total). Platform admin configures bundle pricing.
+#### Module add-ons
 
-#### Billing Cycles
+Recommended add-on module codes:
 
-| Cycle | Pricing |
-|-------|---------|
-| Monthly | Standard rate |
-| Yearly | 15–20% discount (encourages annual commitment and reduces churn) |
+- `admissions`
+- `service_tickets`
+- `placement`
+- `batch_management`
+- `whatsapp`
+- `advanced_reports`
+- `student_portal`
 
-#### Example pricing combinations
+Rules:
 
-- Small counselling centre: Starter + Admissions → low entry barrier
-- Growing institute: Growth + Admissions + Placement + WhatsApp → natural upsell
-- Large multi-branch institute: Scale + All Modules → bundle deal applies
-- Enterprise: custom contract, platform admin managed
+- modules can be enabled via plan or add-on
+- adding modules mid-cycle is future commerce behavior, not required for 1B implementation
+- removal policy can be renewal-based later
+
+#### Billing cycles
+
+Support from day one:
+
+- monthly
+- yearly
 
 ### 5.3 Subscription principles
 
@@ -674,24 +684,22 @@ Suggested fields:
 - `created_at`
 - `updated_at`
 
-Seed feature codes — module group codes (what is sold and gated):
+Seed feature codes - module group codes:
 
-- `crm_core` — enquiry capture + followup (included in all base plans, not sold separately)
-- `admissions` — admissions conversion, fee structure, installments, payments
-- `service_tickets` — ticket and support workflow
-- `placement` — placement workflow, jobs, mock interviews, college connect
-- `batch_management` — batch/course management, faculty, attendance
-- `whatsapp` — WhatsApp integration (provider config + outbound messaging)
-- `advanced_reports` — full reporting suite beyond base dashboard
-- `student_portal` — student self-service portal (future)
+- `crm_core`
+- `admissions`
+- `service_tickets`
+- `placement`
+- `batch_management`
+- `whatsapp`
+- `advanced_reports`
+- `student_portal`
 
-Seed feature codes — capacity codes (limits, not module flags):
+Seed limit codes - capacity controls:
 
-- `max_users` — maximum active users allowed
-- `max_branches` — maximum branches allowed
-- `max_whatsapp_messages_per_month` — future metered billing readiness
-
-Note: capacity codes are stored in `plan_limits`, not `plan_features`. Feature codes are stored in `plan_features`.
+- `max_users`
+- `max_branches`
+- `max_whatsapp_messages_per_month`
 
 #### `plans`
 
@@ -721,7 +729,7 @@ Suggested fields:
 #### `plan_features`
 
 Purpose:
-- which module features are included in a plan (feature entitlement, not capacity)
+- feature entitlements only
 
 Suggested fields:
 - `id`
@@ -731,25 +739,24 @@ Suggested fields:
 - `created_at`
 - `updated_at`
 
-Note: capacity limits (max users, max branches) are in `plan_limits`, not here. Do not mix entitlements with limits.
-
 #### `plan_limits`
 
 Purpose:
-- capacity limits per plan, separate from feature entitlements
+- capacity limits only
 
 Suggested fields:
 - `id`
 - `plan_id`
-- `limit_code` — `max_users`, `max_branches`, `max_whatsapp_messages_per_month`
-- `limit_value` — numeric
+- `limit_code`
+- `limit_value`
 - `created_at`
 - `updated_at`
 
 Rules:
-- one row per limit_code per plan
-- limit_value of `-1` means unlimited
-- limits are additive with add-ons (e.g. Growth plan has max_users=25, add-on grants +10 → effective limit=35)
+
+- one row per limit code per plan
+- `-1` means unlimited
+- effective limit may be increased by add-ons later
 
 #### `subscriptions`
 
@@ -799,7 +806,7 @@ Suggested fields:
 #### `billing_customers`
 
 Purpose:
-- billing identity and invoicing metadata for tenant owner/legal entity
+- billing identity and invoicing metadata for tenant owner or legal entity
 
 #### `billing_invoices`
 
@@ -829,7 +836,7 @@ Supported statuses:
 
 Rules:
 
-- `trial` becomes `active` on activation/payment
+- `trial` becomes `active` on activation or payment
 - `active` becomes `grace` after expiry if grace is enabled
 - `grace` becomes `suspended` after grace end
 - `cancelled` means no renewal, but service may continue until term end
@@ -840,269 +847,106 @@ Default grace recommendation:
 
 ### 5.7 Restriction model
 
-Do not fully lock the system immediately on expiry. Use a graduated restriction model.
+Do not fully lock the system immediately on expiry.
 
-#### Day-by-day restriction schedule
+#### Active
+- access allowed according to plan and privilege
 
-| Day | State | Restriction applied |
-|-----|-------|-------------------|
-| Expiry day | Grace begins | Warning banner for owner and admin only. All operations continue normally |
-| Grace day 1–3 | Grace | Daily warning banner escalates in urgency. No operational restriction |
-| Grace day 4–7 | Grace (late) | Warning banners for all users. Billing nag shown on every page for owner |
-| Grace day 8 | Suspended | Operational staff enter read-only mode — can view records, cannot create/edit/delete |
-| Suspended | — | Owner retains access to billing, support, and data export surfaces only |
-| Cancelled (30 days post) | Cancelled | Data export window. Owner can download data |
-| Cancelled (30+ days) | Expired | Data deletion scheduled per retention policy |
+#### Grace
+- access still allowed
+- owner and admin warning banners
+- billing reminders visible
 
-#### State-by-state detail
+#### Suspended
+- owner and tenant admin may access billing and support surfaces
+- standard operational users blocked
+- create and update business operations blocked
 
-**Active**
-- access allowed according to plan entitlement + user privilege
-
-**Grace**
-- access still allowed for all users
-- owner and admin see billing warning banner on every page
-- warning severity escalates daily (yellow → orange → red)
-
-**Suspended**
-- operational users (counsellor, accounts, operations, placement, faculty) are in read-only mode
-- no new enquiries, admissions, fees, or tickets can be created
-- existing records can be viewed
-- owner and tenant_admin retain access to billing and support pages
-- platform admin retains full access
-
-**Cancelled**
-- 30-day data export window begins
-- all operational users blocked
-- owner can download full data export
-- platform admin can extend this window manually
-
-**Expired / Data deleted**
-- no access
-- data deleted per retention policy
-
-This must be enforced server-side on every request, not only in the UI menu.
+This must be enforced server-side.
 
 ### 5.8 Entitlement enforcement
 
-Feature availability must be decided by:
+Feature availability is decided by:
 
 `subscription status` + `plan/add-on entitlements` + `user privilege`
 
 Examples:
 
-- no placement entitlement -> placement module hidden and blocked for all users in tenant
-- entitlement exists but user lacks privilege -> blocked for that user
+- no placement entitlement -> placement hidden and blocked for tenant
+- entitlement exists but user lacks privilege -> blocked for user
 - suspended tenant -> normal operations blocked regardless of privilege
 
 ### 5.9 Usage limits
 
 V1 enforced limits:
 
-- **active user count** (primary limit — blocks new user creation at tier ceiling)
-- **branch count** (secondary limit — blocks new branch creation at tier ceiling)
-
-Schema is also ready for future limits:
-
-- whatsapp messages per month (metered billing, Phase 4+)
-- enquiry volume limits (for future lower-tier restrictions)
+- active user count
+- branch count
 
 Counting rules:
-- active users (`is_active = 1`) count toward `max_users` limit
-- inactive/deactivated users do not count
-- branches with `status = active` count toward `max_branches` limit
-- add-on quantities are additive to the plan base limit (e.g. Growth plan `max_users=25` + extra-users add-on `quantity=10` → effective limit = 35)
 
-Enforcement behavior:
-- **Soft block at 100%**: tenant admin sees warning, can view but cannot add more users/branches
-- **No hard lockout for existing data**: existing users and branches are never auto-deactivated by a limit change
+- active users count toward plan limit
+- inactive users do not count
+- branches are counted per tenant
 
 ### 5.10 Billing UI scope
 
 Platform admin needs:
 
-- plan management (create/edit plans, set capacity tiers)
-- plan pricing management (monthly/yearly prices per currency)
-- feature entitlement assignment per plan
-- capacity limit assignment per plan
-- subscription management (view all tenant subscriptions, override, extend)
-- billing event visibility and audit
-- manual payment recording for enterprise/bank transfer customers
-- revenue summary dashboard (MRR, ARR, churn)
+- plan management
+- plan pricing management
+- feature entitlement management
+- plan limit management
+- subscription management
+- billing event visibility
 
 Tenant owner needs:
 
-- current plan and capacity tier visibility
-- module add-ons enabled summary
-- active user count vs limit ("12 of 25 users")
-- branch count vs limit ("3 of 5 branches")
-- renewal/expiry date and next billing amount
-- grace period warning banners
-- upgrade prompt when approaching limits
-- invoice history (download PDF)
-- add-on management (add a module, request upgrade)
-
-Note: full self-service checkout (payment gateway, plan selection flow) is Phase 1C scope, not Phase 1B.
+- current plan visibility
+- renewal and expiry visibility
+- grace period warnings
+- enabled module summary
+- active user usage summary
+- branch usage summary
+- add-on summary
+- invoice history placeholder
 
 ### 5.11 Runtime services required
 
 Build:
 
-- `SubscriptionPolicyService` — resolve current subscription state, grace window, suspension status
-- `FeatureGateService` — decide if a module feature is enabled for the current tenant
-- `UsageLimitService` — check current usage vs plan limits (users, branches)
+- `SubscriptionPolicyService`
+- `FeatureGateService`
+- `UsageLimitService`
 
 Responsibilities:
 
-- decide if feature is enabled for tenant (plan entitlement + add-on overrides)
-- decide if current action should be blocked (suspension state)
-- decide if tenant is over user/branch limit
-- expose billing status and warning level to UI and route guards
-- return structured gate result: `allowed | blocked | warning | read_only`
+- decide if feature is enabled for tenant
+- decide if current action should be blocked
+- decide if tenant is over limit
+- expose billing status to UI and route guards
 
-### 5.12 Tenant onboarding flows
-
-Two distinct onboarding paths must be supported:
-
-#### Flow A — Platform admin creates tenant (v1 default, enterprise)
-
-1. Platform admin creates tenant record with plan and modules assigned
-2. Sets trial start date and trial duration
-3. Tenant owner receives welcome email with login credentials
-4. Owner logs in, completes company profile, configures SMTP/WhatsApp
-5. Trial period begins
-
-This is the only required flow for Phase 1A/1B. Implement this first.
-
-#### Flow B — Self-service signup (Phase 1C)
-
-1. Prospect visits public pricing page
-2. Selects capacity tier + module add-ons
-3. Fills company info (institute name, owner name, email, phone)
-4. Trial starts automatically (14 days, no payment required)
-5. Trial nearing end → payment prompt via payment gateway
-6. Payment captured → subscription activates
-
-Flow B is Phase 1C scope. The schema designed in Phase 1B must support both flows from day one.
-
-### 5.13 Subscription lifecycle — upgrade, downgrade, module changes
-
-These policies must be defined before Phase 1C implementation:
-
-| Scenario | Policy |
-|---------|--------|
-| Upgrade capacity tier mid-cycle | Prorate remaining days, charge difference immediately |
-| Add a module mid-cycle | Prorate from today to next billing date, charge immediately |
-| Downgrade capacity tier | Apply at next renewal date. No mid-cycle downgrade |
-| Remove a module | Apply at next renewal. Data retained, access gated immediately after renewal |
-| User count exceeds current tier | Soft block on adding new users. Banner prompts upgrade. Existing users unaffected |
-| Yearly to monthly switch | Apply at next renewal. No mid-cycle billing cycle change |
-| Monthly to yearly upgrade | Apply immediately. Credit remaining monthly days as prorated discount |
-| Cancel subscription | Subscription remains active until period end. Grace/suspension does not apply. Data retention window begins after period end |
-
-### 5.14 Payment gateway
-
-Phase 1C requires a payment gateway. Recommended selection:
-
-**Primary: Razorpay**
-- INR support, UPI, auto-debit mandates for recurring billing
-- Subscription object model maps to our subscription state machine
-- Good India-first developer experience
-
-**Secondary: Stripe (future)**
-- Required if international customers need credit card billing
-- Design payment abstraction layer so gateway is swappable
-
-**Manual payment support (always required):**
-- Platform admin can record a manual payment (bank transfer, cheque)
-- Manual payment advances the subscription state same as gateway payment
-- Required for enterprise customers who pay via invoice
-
-### 5.15 Phase 1B acceptance criteria
+### 5.12 Phase 1B acceptance criteria
 
 Phase 1B is complete when:
 
-- plans can be created with capacity tiers
-- module features can be assigned to plans
-- capacity limits (max_users, max_branches) can be defined per plan
-- monthly and yearly pricing can be defined per plan per currency
-- subscriptions can be attached to tenants by platform admin
-- module add-ons can be applied to a subscription
-- tenant module access is calculated correctly from plan + add-ons
-- active user count vs limit is calculated correctly
-- branch count vs limit is calculated correctly
-- grace period transition triggers automatically (cron or event)
-- day-by-day restriction levels are enforced correctly
-- suspension read-only enforcement works server-side
-- owner and tenant_admin retain billing access during suspension
-- blocked modules are hidden from menus and denied server-side
-- tenant owner billing summary page is functional
-- platform admin billing management pages are functional
+- plans can be created
+- monthly and yearly pricing can be defined
+- features can be assigned to plans
+- limits can be assigned to plans
+- subscriptions can be attached to tenants
+- add-ons can be applied structurally
+- tenant feature access is calculated correctly
+- tenant limit access is calculated correctly
+- grace period transition works
+- suspension restriction works
+- owner and tenant admin retain billing access during suspension
+- blocked modules are hidden from menus
+- blocked module routes are denied server-side
 
 ---
 
-## 6. Phase 1C — Subscription Commerce
-
-### 6.1 Objectives
-
-By the end of Phase 1C the system must support:
-
-- public pricing page
-- self-service tenant signup with trial (Flow B from section 5.12)
-- module marketplace UI for tenant owners
-- payment gateway integration (Razorpay)
-- invoice PDF generation
-- upgrade / module add flow with proration
-- automated renewal, payment failure, grace, and suspension pipeline
-- yearly vs monthly plan switch with discount display
-- usage dashboard (users and branches vs limit)
-- platform admin revenue and churn dashboard
-
-### 6.2 Phase 1C scope items
-
-| # | Item |
-|---|------|
-| 1 | Public pricing page — capacity tiers + module add-ons, monthly/yearly toggle |
-| 2 | Self-service signup form — institute name, owner details, tier + module selection |
-| 3 | Trial-to-paid conversion flow — reminder emails + payment prompt |
-| 4 | Module marketplace UI — tenant sees enabled modules and can request/purchase more |
-| 5 | Capacity usage widget — "12 of 25 users used. Upgrade for more." |
-| 6 | Razorpay integration — subscription object, auto-debit mandate |
-| 7 | Invoice PDF generation on each billing event |
-| 8 | Proration engine — mid-cycle upgrade and module add cost calculation |
-| 9 | Plan upgrade / downgrade flows |
-| 10 | Yearly ↔ monthly switch flows |
-| 11 | Manual payment recording (platform admin) |
-| 12 | Automated cron pipeline: payment failure → grace → suspension → expiry |
-| 13 | Platform admin revenue dashboard (MRR, ARR, active subscriptions, churn list) |
-| 14 | Data export flow for cancelled tenants |
-
-### 6.3 Phase 1C dependencies
-
-Phase 1C depends on Phase 1B being fully stable:
-
-- subscription state machine must work
-- entitlement resolution must work
-- grace/suspension enforcement must work
-- billing entities schema must be in production
-
-### 6.4 Phase 1C acceptance criteria
-
-Phase 1C is complete when:
-
-- a new institute can sign up without platform admin intervention
-- trial starts automatically and reminder emails fire at day 7 and day 12
-- payment is captured via Razorpay and subscription activates
-- a tenant can add a module and be charged the prorated amount
-- invoices are generated and downloadable as PDF
-- payment failure triggers grace period automatically
-- grace expiry triggers suspension automatically
-- cancelled tenant receives 30-day data export window
-- platform admin can see MRR, active tenants, and churn in a dashboard
-
----
-
-## 7. Implementation Order
+## 6. Implementation Order
 
 ### Phase 1A implementation order
 
@@ -1110,69 +954,55 @@ Phase 1C is complete when:
 2. seeders for privileges, roles, demo tenant, demo branch, demo owner
 3. tenant-aware models and repositories
 4. auth and session foundation
-5. tenant/branch/locale context services
-6. role/privilege management
-7. user + branch + hierarchy management
+5. tenant, branch, locale context services
+6. role and privilege management
+7. user, branch, hierarchy management
 8. admin shell
-9. tenant config (SMTP/WhatsApp/settings)
+9. tenant config (SMTP, WhatsApp, settings)
 
 ### Phase 1B implementation order
 
-1. billing catalog schema (feature_catalog, plans, plan_prices, plan_features, plan_limits)
-2. plan and feature seed data (module codes, capacity tier plans, monthly/yearly prices)
-3. subscription state machine (trial → active → grace → suspended → cancelled → expired)
-4. entitlement resolution service (FeatureGateService)
-5. usage limit service (UsageLimitService)
-6. suspension/grace enforcement (SubscriptionPolicyService, server-side middleware)
-7. billing UI for platform admin (plan management, subscription assignment)
-8. billing summary for tenant owner (plan, modules, usage, renewal)
-9. final route and menu gating (entitlement + suspension enforcement)
-
-### Phase 1C implementation order
-
-1. public pricing page (static with monthly/yearly toggle)
-2. self-service signup flow and trial activation
-3. Razorpay integration (subscription object + webhook handler)
-4. proration engine
-5. module marketplace UI for tenant owners
-6. invoice PDF generation
-7. upgrade/downgrade/module-change flows
-8. automated cron pipeline (renewal, failure, grace, suspension)
-9. trial reminder email pipeline
-10. platform admin revenue dashboard
-11. data export flow for cancelled tenants
+1. billing catalog schema
+2. plan and feature seed data
+3. subscription state machine
+4. entitlement resolution service
+5. usage limit service
+6. suspension and grace enforcement
+7. billing UI for platform admin
+8. billing summary for tenant owner
+9. final route and menu gating
 
 ---
 
-## 8. Cross-Cutting Standards
+## 7. Cross-Cutting Standards
 
-### 8.1 Security
+### 7.1 Security
 
 - encrypted storage for external provider secrets
 - password reset tokens stored separately
 - session regeneration on login
 - no credential blobs mixed into generic settings
 
-### 8.2 Auditability
+### 7.2 Auditability
 
 - actor fields on all mutable records
 - domain audit log for sensitive changes
 - billing event log for subscription changes
 
-### 8.3 Performance
+### 7.3 Performance
 
 - tenant and branch indexes from day one
 - code paths must always scope by tenant
 - menus and entitlement checks should use cached resolved context where safe
 
-### 8.4 Scalability
+### 7.4 Scalability
 
 - no tenant-specific branching in core code
 - no hardcoded institute assumptions
 - no reliance on numeric role constants
 - no global branch or global settings assumptions
 
-### 8.5 Product maintainability
+### 7.5 Product maintainability
 
 - structured config tables
 - reusable policy services
@@ -1181,7 +1011,7 @@ Phase 1C is complete when:
 
 ---
 
-## 9. Known Mapping From `jbkcrm`
+## 8. Known Mapping From `jbkcrm`
 
 Reference-only source tables:
 
@@ -1205,13 +1035,13 @@ Mapping direction:
 - `jbk_user_branch` -> `user_branches`
 - `jbk_user_head` -> `user_hierarchy`
 - `jbk_settings` + `jbk_settings_meta` -> `tenant_settings` + `tenant_setting_values`
-- WhatsApp config/logging to dedicated tenant-specific integration tables
+- WhatsApp config and logging to dedicated tenant-specific integration tables
 
 The intent is domain continuity with better SaaS structure.
 
 ---
 
-## 10. Risks To Avoid
+## 9. Risks To Avoid
 
 Do not allow these anti-patterns into implementation:
 
@@ -1221,300 +1051,49 @@ Do not allow these anti-patterns into implementation:
 - billing access based only on subscription without role consideration
 - global branches
 - global tenant-shared roles
-- India-only timezone/currency assumptions
+- India-only timezone and currency assumptions
 - raw copied schema from `jbkcrm`
 
 ---
 
-## 11. Overall Phase Roadmap
+## 10. Test Strategy
 
-```
-Phase 1A  — Multi-tenant foundation, users, branches, roles, auth, SMTP/WA config
-Phase 1B  — Billing catalog, module entitlements, capacity limits, subscription engine, gates
-Phase 1C  — Self-service signup, module marketplace, Razorpay, invoicing, automation pipeline
-Phase 2   — Core modules: Enquiry → Followup → Admission → Fees
-Phase 3   — Placement, Service Tickets, Batch / Course Management
-Phase 4   — WhatsApp messaging, Advanced Reports, Student Portal
-```
+### 10.1 Scope
 
-## 12. Test Strategy
+Automated tests are required from the start for service layer, model scoping, auth, subscription state machine, entitlement logic, and usage limit logic.
 
-### 12.1 Approach
+UI automation is not part of Phase 1A or 1B.
 
-Automated service layer tests are written alongside development from Phase 1A onward. No UI testing in Phase 1. UI/browser automation is deferred to a later phase when screens stabilise.
+### 10.2 Must-test areas
 
-Framework: **PHPUnit** (already available in CodeIgniter 4 via `phpunit.xml.dist`).
+- tenant isolation
+- branch isolation
+- role and privilege resolution
+- auth flows
+- tenant status policy enforcement
+- timezone and currency resolution
+- subscription state transitions
+- entitlement checks
+- active-user and branch limit checks
+- suspension behavior
 
-### 12.2 What is tested and what is not
+### 10.3 Key behavior rules to test
 
-| Layer | Automated now | Deferred |
-|-------|--------------|---------|
-| Service layer (resolvers, gates, policy services) | Yes — Phase 1A/1B/1C | — |
-| Model query scoping (tenant isolation) | Yes — Phase 1A | — |
-| Auth flows (login, logout, session, password reset) | Yes — Phase 1A | — |
-| Subscription state machine | Yes — Phase 1B | — |
-| Entitlement and gate logic | Yes — Phase 1B | — |
-| Proration and billing calculations | Yes — Phase 1C | — |
-| Payment webhook handling | Yes — Phase 1C | — |
-| Invoice generation logic | Yes — Phase 1C | — |
-| Controller responses / HTTP layer | Minimal (happy-path only) | Full coverage later |
-| UI, forms, views, JavaScript | No | Phase 4+ |
-| Report outputs and PDF rendering | No | Phase 4+ |
-| Email content and template rendering | No | Phase 4+ |
-
-### 12.3 Test naming convention
-
-```
-{ServiceName}Test.php
-  test_{scenario}_{expectedOutcome}
-
-Example:
-  FeatureGateServiceTest.php
-    test_moduleEnabled_returnsAllowed()
-    test_moduleDisabled_returnsBlocked()
-    test_suspendedTenant_returnsBlocked()
-```
-
-### 12.4 CI integration
-
-Run full test suite on every commit. A failing test blocks merge. No exceptions.
+- resolver layer resolves identity and context only
+- policy layer decides whether `draft`, `suspended`, `cancelled`, or `expired` tenants may access the requested surface
+- platform admin may manage tenants from platform surfaces
+- tenant operations still respect entitlements unless explicit support impersonation exists
 
 ---
 
-## 13. Automated Test Cases — Phase 1
-
----
-
-### 13.1 TenantResolver
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| TR-01 | Valid tenant slug in request → resolve tenant | Returns correct Tenant object |
-| TR-02 | Unknown slug in request | Throws TenantNotFoundException |
-| TR-03 | Tenant with status `suspended` | Returns tenant (resolver does not block — policy layer does) |
-| TR-04 | Tenant with status `cancelled` | Returns tenant with cancelled flag |
-| TR-05 | Tenant with status `draft` (not yet active) | Returns tenant — caller must check status |
-| TR-06 | Empty slug | Throws TenantNotFoundException |
-
----
-
-### 13.2 BranchContextResolver
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| BC-01 | User assigned to branch, branch is active | Returns correct Branch object |
-| BC-02 | User not assigned to requested branch | Throws BranchAccessDeniedException |
-| BC-03 | Branch has timezone set | Returns branch timezone |
-| BC-04 | Branch has no timezone set | Falls back to tenant default timezone |
-| BC-05 | Branch has currency set | Returns branch currency |
-| BC-06 | Branch has no currency set | Falls back to tenant default currency |
-| BC-07 | User assigned to multiple branches, switches branch | Session updates to new branch context |
-| BC-08 | User switches to branch from different tenant | Throws BranchAccessDeniedException |
-
----
-
-### 13.3 Tenant Isolation (critical)
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| TI-01 | Query branches scoped to Tenant A | Returns only Tenant A's branches |
-| TI-02 | Query branches scoped to Tenant B | Returns only Tenant B's branches, never Tenant A's |
-| TI-03 | Direct branch ID lookup — branch belongs to Tenant B, request from Tenant A | Returns null / throws NotFoundException |
-| TI-04 | Direct user ID lookup — user belongs to Tenant B, request from Tenant A | Returns null / throws NotFoundException |
-| TI-05 | Role created under Tenant A | Not visible to Tenant B |
-| TI-06 | Model base scope always injects tenant_id | SQL WHERE clause contains tenant_id |
-| TI-07 | Bypass attempt: raw query without tenant scope | Should not exist — enforced at repository base level |
-
----
-
-### 13.4 PermissionService
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| PM-01 | User's role has privilege X assigned | `hasPrivilege(user, 'X')` returns true |
-| PM-02 | User's role does not have privilege X | `hasPrivilege(user, 'X')` returns false |
-| PM-03 | Platform admin user | Bypasses all privilege checks, returns true for any check |
-| PM-04 | Role has no privileges assigned | All privilege checks return false |
-| PM-05 | Privilege from different tenant's role | Not visible, returns false |
-| PM-06 | Inactive user attempts privilege check | Returns false (inactive users have no effective permissions) |
-
----
-
-### 13.5 Auth Flow
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| AF-01 | Correct email + password for active user | Login succeeds, session created with tenant_id and branch_id |
-| AF-02 | Correct email + wrong password | Login fails, error returned |
-| AF-03 | Correct email + password but user is inactive | Login blocked with inactive-account message |
-| AF-04 | Login as user from Tenant A via Tenant B's subdomain | Login blocked — tenant mismatch |
-| AF-05 | Logout | Session destroyed, redirect to login |
-| AF-06 | Session contains tenant_id | Verified on every request by middleware |
-| AF-07 | Session contains branch_id | Verified on first branch-aware request |
-| AF-08 | Session regeneration on login | Session ID changes after successful login |
-| AF-09 | Forgot password — valid email | Token generated, stored in password_reset_tokens, email sent |
-| AF-10 | Forgot password — unknown email | No error disclosed, silent success response |
-| AF-11 | Password reset — valid token, not expired | Password updated, token marked used |
-| AF-12 | Password reset — expired token | Reset blocked with expired message |
-| AF-13 | Password reset — already-used token | Reset blocked with invalid-token message |
-| AF-14 | Password reset — token belongs to different tenant | Reset blocked |
-| AF-15 | must_reset_password flag set on user | User is forced to reset password before accessing any page |
-
----
-
-### 13.6 User and Branch Assignment
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| UB-01 | Create user under Tenant A | User has tenant_id = Tenant A |
-| UB-02 | Assign user to branch | user_branches row created with is_primary flag |
-| UB-03 | Assign user to branch from different tenant | Blocked |
-| UB-04 | User with multiple branches | Returns list of assigned branches correctly |
-| UB-05 | Remove user from branch | user_branches row soft-deleted or removed |
-| UB-06 | Set primary branch | is_primary = 1 for one branch only, others set to 0 |
-
----
-
-### 13.7 User Hierarchy
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| UH-01 | Create manager relationship within same tenant | Hierarchy created |
-| UH-02 | Create manager relationship across tenants | Blocked — tenant_id mismatch |
-| UH-03 | Assign manager and acting manager | Both stored correctly |
-| UH-04 | Remove manager relationship | Row deleted or nulled |
-
----
-
-### 13.8 LocaleContextResolver
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| LC-01 | Tenant default timezone = Asia/Kolkata, branch has no override | Resolved timezone = Asia/Kolkata |
-| LC-02 | Tenant default timezone = Asia/Kolkata, branch timezone = America/New_York | Resolved timezone = America/New_York |
-| LC-03 | Tenant default currency = INR, branch has no override | Resolved currency = INR |
-| LC-04 | Tenant default currency = INR, branch currency = USD | Resolved currency = USD |
-
----
-
-### 13.9 SubscriptionPolicyService
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| SP-01 | Subscription status = trial, trial_ends_at in future | Returns `trial`, no restriction |
-| SP-02 | Subscription status = trial, trial_ends_at in past, no payment | Returns `grace` (trial expired) |
-| SP-03 | Subscription status = active, expires_at in future | Returns `active`, no restriction |
-| SP-04 | Subscription status = active, expires_at = today | Returns `grace`, grace_ends_at set |
-| SP-05 | Subscription status = grace, grace_ends_at in future (day 1–7) | Returns `grace`, access allowed |
-| SP-06 | Subscription status = grace, grace_ends_at in past (day 8+) | Transitions to `suspended` |
-| SP-07 | Subscription status = suspended | Returns `suspended`, write operations blocked |
-| SP-08 | Subscription status = cancelled, within term end | Returns `cancelled`, read-only access |
-| SP-09 | Subscription status = expired | Returns `expired`, full block |
-| SP-10 | Grace ends at calculation = expires_at + 7 days | Correct date computed |
-| SP-11 | Payment received during grace | Status transitions to `active`, grace cleared |
-| SP-12 | No subscription row exists for tenant | Treated as `expired` |
-
----
-
-### 13.10 FeatureGateService
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| FG-01 | Module `admissions` enabled in plan, subscription active | Gate returns `allowed` |
-| FG-02 | Module `admissions` not in plan, subscription active | Gate returns `blocked` |
-| FG-03 | Module `placement` not in base plan but enabled via add-on | Gate returns `allowed` |
-| FG-04 | Module `placement` in base plan but disabled via subscription_feature_override | Gate returns `blocked` |
-| FG-05 | Any module, subscription = suspended | Gate returns `blocked` regardless of plan |
-| FG-06 | Any module, subscription = expired | Gate returns `blocked` |
-| FG-07 | Module `crm_core`, subscription active | Always `allowed` — cannot be disabled |
-| FG-08 | Platform admin checks any module gate | Always `allowed` — bypasses entitlement |
-| FG-09 | Tenant owner checks billing gate during suspension | Returns `allowed` — owner retains billing access |
-| FG-10 | Operational user checks any module during suspension | Returns `blocked` |
-| FG-11 | Entitlement allowed but user lacks privilege | PermissionService blocks — gate is not the only check |
-
----
-
-### 13.11 UsageLimitService
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| UL-01 | Active user count = 10, plan max_users = 25 | Returns `under_limit`, new user allowed |
-| UL-02 | Active user count = 25, plan max_users = 25 | Returns `at_limit`, new user blocked |
-| UL-03 | Active user count = 26, plan max_users = 25 | Returns `over_limit` (data integrity guard) |
-| UL-04 | Inactive users not counted in active user count | Count excludes is_active = 0 rows |
-| UL-05 | Add-on `extra_users` quantity = 10, base max_users = 25 | Effective limit = 35 |
-| UL-06 | Plan max_users = -1 (unlimited) | Always returns `allowed`, no cap |
-| UL-07 | Branch count = 3, plan max_branches = 5 | Returns `under_limit`, new branch allowed |
-| UL-08 | Branch count = 5, plan max_branches = 5 | Returns `at_limit`, new branch blocked |
-| UL-09 | Plan max_branches = -1 (unlimited) | Always returns `allowed` |
-| UL-10 | Deactivating a user reduces active count | Count decrements after is_active set to 0 |
-
----
-
-### 13.12 Phase 1C — Proration Engine
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| PE-01 | Add module, 30 days remaining in 30-day month | Full module month price charged |
-| PE-02 | Add module, 15 days remaining in 30-day month | 50% of module month price charged |
-| PE-03 | Add module, 1 day remaining | 1/30 of module month price charged |
-| PE-04 | Add module, 0 days remaining (renewal day) | Nothing charged — next cycle billing handles it |
-| PE-05 | Upgrade capacity tier, 15 days remaining | Difference between tiers × (15/30) charged |
-| PE-06 | Yearly billing, add module mid-year | Prorate over remaining days in 365-day year |
-| PE-07 | Proration amount rounded to 2 decimal places | No floating point errors in final charge |
-
----
-
-### 13.13 Phase 1C — Razorpay Webhook Handler
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| RZ-01 | `payment.captured` event, valid signature | Subscription status → active, billing_payment record created |
-| RZ-02 | `payment.failed` event, valid signature | Subscription grace period triggered, billing_event logged |
-| RZ-03 | `subscription.charged` event | renews_at and expires_at extended, invoice created |
-| RZ-04 | `subscription.cancelled` event | Subscription status → cancelled, billing_event logged |
-| RZ-05 | Invalid webhook signature | Request rejected with 400, not processed |
-| RZ-06 | Duplicate webhook (same payment_id received twice) | Idempotent — second event ignored, no duplicate payment record |
-| RZ-07 | Webhook for unknown tenant subscription | Logged as anomaly, not processed |
-
----
-
-### 13.14 Phase 1C — Invoice Generation
-
-| ID | Scenario | Expected |
-|----|---------|---------|
-| IV-01 | Subscription activated | Invoice created with correct plan + module line items |
-| IV-02 | Subscription renewed | New invoice created for renewal period |
-| IV-03 | Module added mid-cycle | Invoice created for prorated amount |
-| IV-04 | Invoice amount = plan price + add-on prices | Line item totals match header total |
-| IV-05 | Invoice number | Sequential per tenant (e.g. INV-0001, INV-0002) |
-| IV-06 | Invoice for yearly billing | Correct annual amount, billing_period_months = 12 |
-| IV-07 | Manual payment recorded by platform admin | Invoice marked paid, billing_payment created with `manual` source |
-
----
-
-### 13.15 Total test count estimate per phase
-
-| Phase | Service / unit tests | Integration tests | Total |
-|-------|--------------------|--------------------|-------|
-| Phase 1A | ~50 | ~15 | ~65 |
-| Phase 1B | ~45 | ~10 | ~55 |
-| Phase 1C | ~30 | ~10 | ~40 |
-| **Total Phase 1** | **~125** | **~35** | **~160** |
-
-This is the regression baseline. Every Phase 2 module commit runs all 160 tests before merge.
-
----
-
-## 14. Recommendation For Next Step
+## 11. Recommendation For Next Step
 
 After review of this document:
 
-1. Freeze Phase 1A schema — all tenant/branch/user/role tables
-2. Freeze Phase 1B billing catalog — plan structure, module codes, capacity limit codes, state machine
-3. Freeze feature code catalog and capacity tier definitions (these become seed data)
-4. Decide payment gateway (Razorpay recommended, Stripe secondary)
-5. Begin Phase 1A migration design and implementation
-6. Plan Phase 1B schema alongside 1A so billing tables are ready when 1A stabilises
+1. freeze Phase 1A schema
+2. freeze Phase 1B billing catalog
+3. freeze feature codes and limit codes
+4. freeze subscription state machine
+5. begin migration design and implementation
 
-Only after Phase 1A and 1B are stable should Phase 1C (commerce) and module work begin.
+Only after Phase 1A and 1B are stable should commerce expansion and business modules begin.
