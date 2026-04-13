@@ -1,6 +1,7 @@
 <?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
+<?php $fieldErrors = session('fieldErrors') ?? []; ?>
 <section class="module-page">
     <div class="module-toolbar">
         <div>
@@ -9,6 +10,10 @@
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants') ?>">Back to tenants</a>
     </div>
+
+    <?php if (! empty($fieldErrors)): ?>
+    <div class="alert alert--error">Please correct the errors below before submitting.</div>
+    <?php endif; ?>
 
     <form class="form-card" method="post" action="<?= site_url('platform/tenants') ?>">
         <?= csrf_field() ?>
@@ -22,13 +27,15 @@
             </div>
 
             <div class="form-grid">
-                <label class="field">
+                <label class="field <?= isset($fieldErrors['name']) ? 'field--error' : '' ?>">
                     <span>Institute name</span>
                     <input type="text" name="name" value="<?= esc(old('name')) ?>" required>
+                    <?php if (isset($fieldErrors['name'])): ?><span class="field-error"><?= esc($fieldErrors['name']) ?></span><?php endif; ?>
                 </label>
-                <label class="field">
+                <label class="field <?= isset($fieldErrors['slug']) ? 'field--error' : '' ?>">
                     <span>Slug</span>
                     <input type="text" name="slug" value="<?= esc(old('slug')) ?>" placeholder="auto-generated if blank">
+                    <?php if (isset($fieldErrors['slug'])): ?><span class="field-error"><?= esc($fieldErrors['slug']) ?></span><?php endif; ?>
                 </label>
                 <label class="field">
                     <span>Legal name</span>
@@ -97,13 +104,15 @@
             </div>
 
             <div class="form-grid">
-                <label class="field">
+                <label class="field <?= isset($fieldErrors['branch_name']) ? 'field--error' : '' ?>">
                     <span>Branch name</span>
                     <input type="text" name="branch_name" value="<?= esc(old('branch_name', 'HQ')) ?>" required>
+                    <?php if (isset($fieldErrors['branch_name'])): ?><span class="field-error"><?= esc($fieldErrors['branch_name']) ?></span><?php endif; ?>
                 </label>
-                <label class="field">
+                <label class="field <?= isset($fieldErrors['branch_code']) ? 'field--error' : '' ?>">
                     <span>Branch code</span>
                     <input type="text" name="branch_code" value="<?= esc(old('branch_code', 'HQ')) ?>" required>
+                    <?php if (isset($fieldErrors['branch_code'])): ?><span class="field-error"><?= esc($fieldErrors['branch_code']) ?></span><?php endif; ?>
                 </label>
                 <label class="field">
                     <span>Branch type</span>
@@ -149,29 +158,38 @@
             </div>
 
             <div class="form-grid">
-                <label class="field">
+                <label class="field <?= isset($fieldErrors['owner_name']) ? 'field--error' : '' ?>">
                     <span>Owner name</span>
                     <input type="text" name="owner_name" value="<?= esc(old('owner_name')) ?>" required>
+                    <?php if (isset($fieldErrors['owner_name'])): ?><span class="field-error"><?= esc($fieldErrors['owner_name']) ?></span><?php endif; ?>
                 </label>
-                <label class="field">
+                <label class="field <?= isset($fieldErrors['owner_email']) ? 'field--error' : '' ?>">
                     <span>Owner email</span>
                     <input type="email" name="owner_email" value="<?= esc(old('owner_email')) ?>" required>
+                    <?php if (isset($fieldErrors['owner_email'])): ?><span class="field-error"><?= esc($fieldErrors['owner_email']) ?></span><?php endif; ?>
                 </label>
                 <label class="field">
                     <span>Owner phone</span>
                     <input type="text" name="owner_phone" value="<?= esc(old('owner_phone')) ?>">
                 </label>
-                <label class="field">
+                <label class="field <?= isset($fieldErrors['owner_username']) ? 'field--error' : '' ?>">
                     <span>Owner username</span>
                     <input type="text" name="owner_username" value="<?= esc(old('owner_username')) ?>" required>
+                    <?php if (isset($fieldErrors['owner_username'])): ?><span class="field-error"><?= esc($fieldErrors['owner_username']) ?></span><?php endif; ?>
                 </label>
                 <label class="field">
                     <span>Owner employee code</span>
                     <input type="text" name="owner_employee_code" value="<?= esc(old('owner_employee_code', 'EMP-001')) ?>">
                 </label>
-                <label class="field">
+                <label class="field <?= isset($fieldErrors['owner_password']) ? 'field--error' : '' ?>">
                     <span>Owner password</span>
                     <input type="password" name="owner_password" required>
+                    <?php if (isset($fieldErrors['owner_password'])): ?><span class="field-error"><?= esc($fieldErrors['owner_password']) ?></span><?php endif; ?>
+                </label>
+                <label class="field <?= isset($fieldErrors['owner_password_confirm']) ? 'field--error' : '' ?>">
+                    <span>Confirm password</span>
+                    <input type="password" name="owner_password_confirm" required>
+                    <?php if (isset($fieldErrors['owner_password_confirm'])): ?><span class="field-error"><?= esc($fieldErrors['owner_password_confirm']) ?></span><?php endif; ?>
                 </label>
             </div>
         </section>

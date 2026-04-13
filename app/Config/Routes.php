@@ -23,6 +23,7 @@ $routes->get('dashboard', 'Dashboard::index', [
     'filter' => ['auth', 'tenant', 'suspension'],
 ]);
 
+// Tenant-scoped operational routes — auth + tenant isolation + suspension enforcement
 $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static function (RouteCollection $routes): void {
     $routes->get('users', 'Users::index');
     $routes->get('users/create', 'Users::create');
@@ -47,7 +48,13 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->post('settings/preferences', 'Settings::updatePreferences');
     $routes->post('settings/email', 'Settings::updateEmailConfig');
     $routes->post('settings/whatsapp', 'Settings::updateWhatsappConfig');
-    $routes->get('platform/tenants', 'PlatformTenants::index');
-    $routes->get('platform/tenants/create', 'PlatformTenants::create');
-    $routes->post('platform/tenants', 'PlatformTenants::store');
+});
+
+// Platform admin routes — auth + platform_admin guard (no tenant or suspension filters)
+$routes->group('platform', ['filter' => ['auth', 'platform_admin']], static function (RouteCollection $routes): void {
+    $routes->get('tenants', 'PlatformTenants::index');
+    $routes->get('tenants/create', 'PlatformTenants::create');
+    $routes->post('tenants', 'PlatformTenants::store');
+    $routes->get('tenants/(:num)', 'PlatformTenants::show/$1');
+    $routes->post('tenants/(:num)/status', 'PlatformTenants::updateStatus/$1');
 });

@@ -15,6 +15,7 @@ use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\AuthFilter;
 use App\Filters\TenantFilter;
 use App\Filters\SuspensionFilter;
+use App\Filters\PlatformAdminFilter;
 
 class Filters extends BaseFilters
 {
@@ -37,9 +38,10 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
-        'auth'          => AuthFilter::class,
-        'tenant'        => TenantFilter::class,
-        'suspension'    => SuspensionFilter::class,
+        'auth'            => AuthFilter::class,
+        'tenant'          => TenantFilter::class,
+        'suspension'      => SuspensionFilter::class,
+        'platform_admin'  => PlatformAdminFilter::class,
     ];
 
     /**

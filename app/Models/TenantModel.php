@@ -47,6 +47,11 @@ class TenantModel extends Model
         return $this->where('slug', $slug)->first();
     }
 
+    public function ownerEmailExists(string $email): bool
+    {
+        return $this->where('owner_email', $email)->countAllResults() > 0;
+    }
+
     public function isActive(int $tenantId): bool
     {
         $tenant = $this->find($tenantId);

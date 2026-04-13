@@ -178,6 +178,28 @@ class UserModel extends BaseModel
                     ->findAll();
     }
 
+    /**
+     * Check if an email exists across ALL tenants (platform-level uniqueness).
+     * Used during tenant onboarding to prevent duplicate owner emails.
+     */
+    public function emailExistsPlatformWide(string $email): bool
+    {
+        return $this->withoutTenantScope()
+                    ->where('email', $email)
+                    ->countAllResults() > 0;
+    }
+
+    /**
+     * Check if a username exists across ALL tenants (platform-level uniqueness).
+     * Used during tenant onboarding to prevent duplicate owner usernames.
+     */
+    public function usernameExistsPlatformWide(string $username): bool
+    {
+        return $this->withoutTenantScope()
+                    ->where('username', $username)
+                    ->countAllResults() > 0;
+    }
+
     public function emailExistsForTenant(string $email, int $tenantId, ?int $ignoreUserId = null): bool
     {
         $builder = $this->withoutTenantScope()

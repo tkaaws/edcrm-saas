@@ -3,14 +3,17 @@
 namespace App\Controllers;
 
 use App\Models\TenantModel;
+use App\Models\UserModel;
 
 class PlatformTenants extends BaseController
 {
     protected TenantModel $tenantModel;
+    protected UserModel $userModel;
 
     public function __construct()
     {
         $this->tenantModel = new TenantModel();
+        $this->userModel   = new UserModel();
     }
 
     public function index(): string
@@ -44,14 +47,56 @@ class PlatformTenants extends BaseController
     {
         $data = $this->collectPayload();
 
-        if ($errors = $this->validateInput($data)) {
-            return redirect()->back()->withInput()->with('error', implode(' ', $errors));
+        $fieldErrors = $this->validateInput($data);
+
+        if (! empty($fieldErrors)) {
+            return redirect()->back()->withInput()->with('fieldErrors', $fieldErrors);
         }
 
         $result = service('tenantProvisioning')->provision($data);
 
         return redirect()->to('/platform/tenants')
             ->with('message', 'Tenant created successfully. Owner login: ' . $result['owner_email']);
+    }
+
+    public function show(int $id): string
+    {
+        $tenant = $this->tenantModel->find($id);
+
+        if (! $tenant) {
+            return redirect()->to('/platform/tenants')->with('error', 'Tenant not found.');
+        }
+
+        return view('platform/tenants/show', $this->buildShellViewData([
+            'title'       => 'Tenant — ' . esc($tenant->name),
+            'pageTitle'   => esc($tenant->name),
+            'activeNav'   => 'tenants',
+            'tenantLabel' => 'Platform scope',
+            'branchLabel' => 'Multi-tenant',
+            'roleLabel'   => 'Provisioning',
+            'tenant'      => $tenant,
+        ]));
+    }
+
+    public function updateStatus(int $id)
+    {
+        $tenant = $this->tenantModel->find($id);
+
+        if (! $tenant) {
+            return redirect()->to('/platform/tenants')->with('error', 'Tenant not found.');
+        }
+
+        $status = $this->request->getPost('status');
+        $allowed = ['active', 'suspended', 'cancelled', 'draft'];
+
+        if (! in_array($status, $allowed, true)) {
+            return redirect()->back()->with('error', 'Invalid status value.');
+        }
+
+        $this->tenantModel->update($id, ['status' => $status]);
+
+        return redirect()->to('/platform/tenants/' . $id)
+            ->with('message', 'Tenant status updated to ' . $status . '.');
     }
 
     /**
@@ -96,52 +141,69 @@ class PlatformTenants extends BaseController
             'branch_visibility_mode'   => (string) $this->request->getPost('branch_visibility_mode'),
             'enquiry_visibility_mode'  => (string) $this->request->getPost('enquiry_visibility_mode'),
             'admission_visibility_mode'=> (string) $this->request->getPost('admission_visibility_mode'),
+            'owner_password_confirm'   => (string) $this->request->getPost('owner_password_confirm'),
         ];
     }
 
     /**
+     * Validate onboarding payload. Returns field-keyed error map.
+     *
      * @param array<string, string> $data
      *
-     * @return list<string>
+     * @return array<string, string>  [ field => first error message ]
      */
     protected function validateInput(array $data): array
     {
         $errors = [];
 
+        // — Institute profile —
+
         if ($data['name'] === '') {
-            $errors[] = 'Institute name is required.';
+            $errors['name'] = 'Institute name is required.';
         }
+
+        if ($data['slug'] !== '' && $this->tenantModel->findBySlug($data['slug'])) {
+            $errors['slug'] = 'This slug is already taken.';
+        }
+
+        // — Owner identity —
 
         if ($data['owner_name'] === '') {
-            $errors[] = 'Owner name is required.';
+            $errors['owner_name'] = 'Owner name is required.';
         }
 
-        if ($data['owner_email'] === '' || ! filter_var($data['owner_email'], FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'A valid owner email is required.';
+        if ($data['owner_email'] === '') {
+            $errors['owner_email'] = 'Owner email is required.';
+        } elseif (! filter_var($data['owner_email'], FILTER_VALIDATE_EMAIL)) {
+            $errors['owner_email'] = 'Owner email must be a valid email address.';
+        } elseif ($this->tenantModel->ownerEmailExists($data['owner_email'])) {
+            $errors['owner_email'] = 'This email is already registered as a tenant owner.';
+        } elseif ($this->userModel->emailExistsPlatformWide($data['owner_email'])) {
+            $errors['owner_email'] = 'This email is already in use by another user.';
         }
 
         if ($data['owner_username'] === '') {
-            $errors[] = 'Owner username is required.';
+            $errors['owner_username'] = 'Owner username is required.';
+        } elseif ($this->userModel->usernameExistsPlatformWide($data['owner_username'])) {
+            $errors['owner_username'] = 'This username is already taken.';
         }
 
-        if ($data['owner_password'] === '' || strlen($data['owner_password']) < 8) {
-            $errors[] = 'Owner password must be at least 8 characters.';
+        if ($data['owner_password'] === '') {
+            $errors['owner_password'] = 'Owner password is required.';
+        } elseif (strlen($data['owner_password']) < 8) {
+            $errors['owner_password'] = 'Password must be at least 8 characters.';
+        } elseif ($data['owner_password'] !== $data['owner_password_confirm']) {
+            $errors['owner_password_confirm'] = 'Passwords do not match.';
         }
 
-        if ($data['slug'] === '') {
-            $errors[] = 'Slug is required.';
-        }
-
-        if ($this->tenantModel->findBySlug($data['slug'])) {
-            $errors[] = 'Slug already exists.';
-        }
+        // — First branch —
 
         if ($data['branch_name'] === '') {
-            $errors[] = 'First branch name is required.';
+            $errors['branch_name'] = 'First branch name is required.';
         }
 
         if ($data['branch_code'] === '') {
-            $errors[] = 'First branch code is required.';
+            $errors['branch_code'] = 'First branch code is required.';
         }
 
         return $errors;
