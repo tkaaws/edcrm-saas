@@ -1,0 +1,181 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Models\PrivilegeModel;
+use App\Models\RoleModel;
+
+class Roles extends BaseController
+{
+    protected RoleModel $roleModel;
+    protected PrivilegeModel $privilegeModel;
+
+    public function __construct()
+    {
+        $this->roleModel = new RoleModel();
+        $this->privilegeModel = new PrivilegeModel();
+    }
+
+    public function index(): string
+    {
+        $tenantId = (int) session()->get('tenant_id');
+
+        return view('roles/index', $this->buildShellViewData([
+            'title'     => 'Roles',
+            'pageTitle' => 'Roles',
+            'activeNav' => 'roles',
+            'roles'     => $this->roleModel->getAdminGrid($tenantId),
+        ]));
+    }
+
+    public function create(): string
+    {
+        return view('roles/form', $this->buildFormViewData([
+            'title'           => 'Create Role',
+            'pageTitle'       => 'Create Role',
+            'activeNav'       => 'roles',
+            'formAction'      => site_url('roles'),
+            'submitText'      => 'Create role',
+            'role'            => null,
+            'selectedPrivilegeIds' => [],
+        ]));
+    }
+
+    public function store()
+    {
+        $tenantId = (int) session()->get('tenant_id');
+        $data = $this->collectPayload();
+
+        if ($errors = $this->validateRoleInput($data, $tenantId)) {
+            return redirect()->back()->withInput()->with('error', implode(' ', $errors));
+        }
+
+        $roleId = $this->roleModel->insertWithActor([
+            'tenant_id'  => $tenantId,
+            'name'       => $data['name'],
+            'code'       => $data['code'],
+            'is_system'  => 0,
+            'status'     => $data['status'],
+        ]);
+
+        $this->roleModel->syncPrivileges((int) $roleId, $data['privilege_ids']);
+
+        return redirect()->to('/roles')->with('message', 'Role created successfully.');
+    }
+
+    public function edit(int $id): string
+    {
+        $role = $this->roleModel->findForTenant($id);
+        if (! $role) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        return view('roles/form', $this->buildFormViewData([
+            'title'                => 'Edit Role',
+            'pageTitle'            => 'Edit Role',
+            'activeNav'            => 'roles',
+            'formAction'           => site_url('roles/' . $id),
+            'submitText'           => 'Save changes',
+            'role'                 => $role,
+            'selectedPrivilegeIds' => $this->privilegeModel->getPrivilegeIdsForRole($id),
+        ]));
+    }
+
+    public function update(int $id)
+    {
+        $tenantId = (int) session()->get('tenant_id');
+        $role = $this->roleModel->findForTenant($id);
+
+        if (! $role) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $data = $this->collectPayload();
+
+        if ($errors = $this->validateRoleInput($data, $tenantId, $id, (bool) $role->is_system)) {
+            return redirect()->back()->withInput()->with('error', implode(' ', $errors));
+        }
+
+        $updateData = [
+            'name'   => $data['name'],
+            'status' => $data['status'],
+        ];
+
+        if (! $role->is_system) {
+            $updateData['code'] = $data['code'];
+        }
+
+        $this->roleModel->updateWithActor($id, $updateData);
+        $this->roleModel->syncPrivileges($id, $data['privilege_ids']);
+
+        return redirect()->to('/roles')->with('message', 'Role updated successfully.');
+    }
+
+    public function updateStatus(int $id)
+    {
+        $role = $this->roleModel->findForTenant($id);
+        if (! $role) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $this->roleModel->updateWithActor($id, [
+            'status' => $role->status === 'active' ? 'inactive' : 'active',
+        ]);
+
+        return redirect()->to('/roles')->with('message', 'Role status updated.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function collectPayload(): array
+    {
+        $privilegeIds = array_map('intval', (array) $this->request->getPost('privilege_ids'));
+
+        return [
+            'name'          => trim((string) $this->request->getPost('name')),
+            'code'          => strtolower(trim((string) $this->request->getPost('code'))),
+            'status'        => $this->request->getPost('status') === 'inactive' ? 'inactive' : 'active',
+            'privilege_ids' => array_values(array_unique(array_filter($privilegeIds))),
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function validateRoleInput(array $data, int $tenantId, ?int $roleId = null, bool $isSystemRole = false): array
+    {
+        $errors = [];
+
+        if ($data['name'] === '') {
+            $errors[] = 'Role name is required.';
+        }
+
+        if (! $isSystemRole && $data['code'] === '') {
+            $errors[] = 'Role code is required.';
+        }
+
+        if (! $isSystemRole && $this->roleModel->codeExistsForTenant($data['code'], $tenantId, $roleId)) {
+            $errors[] = 'Role code already exists for this tenant.';
+        }
+
+        if ($data['privilege_ids'] === []) {
+            $errors[] = 'Select at least one privilege.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     */
+    protected function buildFormViewData(array $data): array
+    {
+        return $this->buildShellViewData(array_merge([
+            'activeNav'         => 'roles',
+            'privilegeGroups'   => $this->privilegeModel->getAllGroupedByModule(),
+        ], $data));
+    }
+}

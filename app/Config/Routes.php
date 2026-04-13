@@ -36,4 +36,10 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->get('branches/(:num)/edit', 'Branches::edit/$1');
     $routes->post('branches/(:num)', 'Branches::update/$1');
     $routes->post('branches/(:num)/status', 'Branches::updateStatus/$1');
+    $routes->get('roles', 'Roles::index');
+    $routes->get('roles/create', 'Roles::create');
+    $routes->post('roles', 'Roles::store');
+    $routes->get('roles/(:num)/edit', 'Roles::edit/$1');
+    $routes->post('roles/(:num)', 'Roles::update/$1');
+    $routes->post('roles/(:num)/status', 'Roles::updateStatus/$1');
 });

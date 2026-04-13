@@ -185,7 +185,7 @@ Last updated: 2026-04-13
 | 15 | Admin shell (layout, sidebar, topbar) | In Progress | responsive shell, sidebar, header, and dashboard layout added |
 | 16 | User management CRUD | In Progress | list, create, edit, role assignment, branch assignment, and status toggle wired |
 | 17 | Branch management CRUD | In Progress | list, create, edit, and status toggle wired |
-| 18 | Role management CRUD | Pending | not started |
+| 18 | Role management CRUD | In Progress | list, create, edit, status toggle, and privilege assignment wired |
 | 19 | Tenant settings (SMTP, WhatsApp) | Pending | schema ready, UI and workflows pending |
 | 20 | TenantAccessPolicy / subscription policy integration | Pending | needed before full Phase 1B restriction enforcement |
 ### 4.0.1 Handoff note

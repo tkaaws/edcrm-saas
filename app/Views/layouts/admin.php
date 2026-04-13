@@ -13,7 +13,7 @@
         ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => site_url('dashboard'), 'meta' => 'Live', 'enabled' => true],
         ['key' => 'users', 'label' => 'Users', 'href' => site_url('users'), 'meta' => 'Live', 'enabled' => true],
         ['key' => 'branches', 'label' => 'Branches', 'href' => site_url('branches'), 'meta' => 'Live', 'enabled' => true],
-        ['key' => 'roles', 'label' => 'Roles', 'href' => null, 'meta' => 'Next', 'enabled' => false],
+        ['key' => 'roles', 'label' => 'Roles', 'href' => site_url('roles'), 'meta' => 'Live', 'enabled' => true],
         ['key' => 'settings', 'label' => 'Settings', 'href' => null, 'meta' => 'Next', 'enabled' => false],
     ];
     ?>
