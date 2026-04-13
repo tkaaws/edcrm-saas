@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Welcome to CodeIgniter 4!</title>
-    <meta name="description" content="The small framework with powerful features">
+    <title>EDCRM SaaS Deploy Test</title>
+    <meta name="description" content="EDCRM SaaS deployment verification page">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" type="image/png" href="/favicon.ico">
 
@@ -213,7 +213,7 @@
             <li class="menu-toggle">
                 <button id="menuToggle">&#9776;</button>
             </li>
-            <li class="menu-item hidden"><a href="#">Home</a></li>
+            <li class="menu-item hidden"><a href="#">EDCRM SaaS</a></li>
             <li class="menu-item hidden"><a href="https://codeigniter.com/user_guide/" target="_blank">Docs</a>
             </li>
             <li class="menu-item hidden"><a href="https://forum.codeigniter.com/" target="_blank">Community</a></li>
@@ -225,9 +225,9 @@
 
     <div class="heroe">
 
-        <h1>Welcome to CodeIgniter <?= CodeIgniter\CodeIgniter::CI_VERSION ?></h1>
+        <h1>EDCRM SaaS Deploy Test</h1>
 
-        <h2>The small framework with powerful features</h2>
+        <h2>If this text appears after a push, the deployment pipeline is working.</h2>
 
     </div>
 
@@ -237,9 +237,9 @@
 
 <section>
 
-    <h1>About this page</h1>
+    <h1>Deployment Check</h1>
 
-    <p>The page you are looking at is being generated dynamically by CodeIgniter.</p>
+    <p>This page is being used to verify GitHub-to-droplet deployment for the EDCRM SaaS project.</p>
 
     <p>If you would like to edit this page you will find it located at:</p>
 
