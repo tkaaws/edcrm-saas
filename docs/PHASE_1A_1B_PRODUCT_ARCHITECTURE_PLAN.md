@@ -175,11 +175,11 @@ Last updated: 2026-04-13
 | 3 | Seeders | ✅ Done | 63 privileges, 9 system roles, demo tenant/branch/user |
 | 4 | BaseModel (tenant scoping) | ✅ Done | app/Models/BaseModel.php |
 | 5 | Domain models | ✅ Done | TenantModel, BranchModel, UserModel, RoleModel, PrivilegeModel |
-| 6 | TenantResolver service | ⏳ Pending | — |
-| 7 | BranchContextResolver service | ⏳ Pending | — |
-| 8 | PermissionService | ⏳ Pending | — |
-| 9 | CurrentUserContext service | ⏳ Pending | — |
-| 10 | LocaleContextResolver service | ⏳ Pending | — |
+| 6 | TenantResolver service | ✅ Done | app/Services/TenantResolver.php |
+| 7 | BranchContextResolver service | ✅ Done | app/Services/BranchContextResolver.php |
+| 8 | PermissionService | ✅ Done | app/Services/PermissionService.php — session-cached privilege codes |
+| 9 | CurrentUserContext service | ✅ Done | app/Services/CurrentUserContext.php — single context object for controllers/views |
+| 10 | LocaleContextResolver | ✅ Done | Merged into BranchContextResolver (resolveTimezone, resolveCurrency) |
 | 11 | Auth (login/logout/forgot/reset) | ⏳ Pending | — |
 | 12 | Filters (Auth, Tenant, Suspension) | ⏳ Pending | — |
 | 13 | Admin shell (layout, sidebar, topbar) | ⏳ Pending | — |

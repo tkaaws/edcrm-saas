@@ -3,30 +3,65 @@
 namespace Config;
 
 use CodeIgniter\Config\BaseService;
+use App\Services\TenantResolver;
+use App\Services\BranchContextResolver;
+use App\Services\PermissionService;
+use App\Services\CurrentUserContext;
 
 /**
- * Services Configuration file.
+ * Services Configuration
  *
- * Services are simply other classes/libraries that the system uses
- * to do its job. This is used by CodeIgniter to allow the core of the
- * framework to be swapped out easily without affecting the usage within
- * the rest of your application.
+ * Register application services here so they can be accessed via:
+ *   service('tenantResolver')
+ *   service('branchContext')
+ *   service('permissions')
+ *   service('userContext')
  *
- * This file holds any application-specific services, or service overrides
- * that you might need. An example has been included with the general
- * method format you should use for your service methods. For more examples,
- * see the core Services file at system/Config/Services.php.
+ * Shared = true means one instance per request (default).
  */
 class Services extends BaseService
 {
-    /*
-     * public static function example($getShared = true)
-     * {
-     *     if ($getShared) {
-     *         return static::getSharedInstance('example');
-     *     }
-     *
-     *     return new \CodeIgniter\Example();
-     * }
+    /**
+     * Resolves the current tenant from session.
      */
+    public static function tenantResolver(bool $getShared = true): TenantResolver
+    {
+        if ($getShared) {
+            return static::getSharedInstance('tenantResolver');
+        }
+        return new TenantResolver();
+    }
+
+    /**
+     * Resolves the current branch context and handles branch switching.
+     */
+    public static function branchContext(bool $getShared = true): BranchContextResolver
+    {
+        if ($getShared) {
+            return static::getSharedInstance('branchContext');
+        }
+        return new BranchContextResolver();
+    }
+
+    /**
+     * Checks user privileges.
+     */
+    public static function permissions(bool $getShared = true): PermissionService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('permissions');
+        }
+        return new PermissionService();
+    }
+
+    /**
+     * Provides full current user context (user, tenant, branch, permissions).
+     */
+    public static function userContext(bool $getShared = true): CurrentUserContext
+    {
+        if ($getShared) {
+            return static::getSharedInstance('userContext');
+        }
+        return new CurrentUserContext();
+    }
 }
