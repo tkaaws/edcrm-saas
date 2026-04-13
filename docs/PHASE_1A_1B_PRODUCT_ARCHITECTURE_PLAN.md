@@ -165,11 +165,11 @@ Instead:
 ## 4. Phase 1A - Multi-Tenant Foundation
 
 ### 4.0 Implementation Status
-Last updated: 2026-04-13
+Last updated: 2026-04-14
 | # | Task | Status | Notes |
 |---|------|--------|-------|
 | 1 | Schema design | Done | 15 Phase 1A tables defined and aligned to multi-tenant naming |
-| 2 | Migrations | Done | 15 migration files exist in app/Database/Migrations |
+| 2 | Migrations | Done | 15 migration files exist in app/Database/Migrations; run on production droplet |
 | 3 | Seeders | Done | DatabaseSeeder, PrivilegesSeeder, and DemoDataSeeder exist |
 | 4 | BaseModel (tenant scoping) | Done | app/Models/BaseModel.php |
 | 5 | Domain models | Done | TenantModel, BranchModel, UserModel, RoleModel, PrivilegeModel |
@@ -178,9 +178,9 @@ Last updated: 2026-04-13
 | 8 | PermissionService | Done | app/Services/PermissionService.php |
 | 9 | CurrentUserContext service | Done | app/Services/CurrentUserContext.php |
 | 10 | Locale and currency resolution | Done | handled through tenant and branch context services |
-| 11 | Auth service and controller | In Progress | AuthService and Auth controller exist; seeded login validation still pending |
-| 12 | Filters (Auth, Tenant, Suspension) | Done | filter classes exist and are registered in Filters.php |
-| 13 | Auth and dashboard routes | Done | Routes.php exposes auth routes and protected /dashboard |
+| 11 | Auth service and controller | Done | AuthService complete: bcrypt, session regeneration, forgot/reset password with SHA-256 token, password history (last 5), audit logging to audit_logs |
+| 12 | Filters (Auth, Tenant, Suspension, PlatformAdmin) | Done | AuthFilter, TenantFilter, SuspensionFilter, PlatformAdminFilter all exist and registered |
+| 13 | Auth and dashboard routes | Done | Routes.php: auth routes, protected /dashboard, tenant-scoped group, platform-isolated group |
 | 14 | Auth and dashboard starter views | Done | starter views added for login, forgot, reset, change password, and dashboard |
 | 15 | Admin shell (layout, sidebar, topbar) | In Progress | responsive shell, sidebar, header, and dashboard layout added |
 | 16 | User management CRUD | In Progress | list, create, edit, role assignment, branch assignment, and status toggle wired |
@@ -188,19 +188,26 @@ Last updated: 2026-04-13
 | 18 | Role management CRUD | In Progress | list, create, edit, status toggle, and privilege assignment wired |
 | 19 | Tenant settings (SMTP, WhatsApp) | In Progress | profile defaults, visibility modes, SMTP, and WhatsApp settings wired |
 | 20 | TenantAccessPolicy / subscription policy integration | Pending | needed before full Phase 1B restriction enforcement |
-| 21 | Platform tenant onboarding | In Progress | tenant list and tenant provisioning flow wired |
+| 21 | Platform tenant onboarding | Done | tenant list, create/provision, show, and updateStatus wired; platform route group isolated with platform_admin filter; structured per-field validation with platform-wide duplicate email/username checks and password confirmation |
 ### 4.0.1 Handoff note
 This table tracks repository implementation status, not just planning intent.
 - Done means code/files exist and basic verification has been performed
 - In Progress means the building blocks exist, but end-to-end validation is still pending
 - Pending means not yet started or not yet ready for handoff
 Current verified runtime facts:
-- DigitalOcean droplet deployment pipeline is live
+- DigitalOcean droplet deployment pipeline is live and auto-deploys on push to main
 - Nginx + PHP-FPM are serving the app on http://143.110.247.79
-- GitHub Actions deploy flow is working
-- php spark routes succeeds locally with auth and dashboard routes registered
+- GitHub Actions deploy flow is working (~17s deploy time)
+- 16 tables confirmed in edcrm_saas database on production droplet
+- php spark routes succeeds locally with all auth, tenant, and platform routes registered
+Platform admin access control:
+- /platform/* routes are protected by PlatformAdminFilter
+- Filter checks: session tenant_id === APP_PLATFORM_TENANT_ID env var
+- Set APP_PLATFORM_TENANT_ID in .env to the platform tenant's id after first setup
+- Dev fallback: if env not set and ENVIRONMENT=development, tenant_owner role is allowed
 Current caution:
 - do not assume demo credentials or migration execution state on every environment without re-checking seed and environment data first
+- APP_PLATFORM_TENANT_ID must be set on production .env before the platform is used live
 ---
 
 ### 4.1 Objectives
@@ -1127,18 +1134,40 @@ UI automation is not part of Phase 1A or 1B.
 
 ## 11. Recommendation For Next Step
 
-Immediate execution order from current repo state:
+### 11.1 Phase 1A remaining work (items 15–20)
 
-1. verify `.env` database settings on local and droplet
-2. run migrations and seeders in the target environment
-3. validate login with seeded tenant owner credentials
-4. confirm protected `/dashboard` flow through `auth + tenant + suspension`
-5. build Admin shell
-6. build User management CRUD
-7. build Branch management CRUD
-8. build Role management CRUD
-9. complete tenant settings UI for SMTP and WhatsApp
-10. begin Phase 1B billing catalog and policy services
+Items 15–19 are In Progress — building blocks exist but end-to-end validation is still pending:
 
-Only after these foundation items are stable should enquiry, admissions, service, placement, and student portal module work begin.
+1. Validate admin shell rendering end-to-end: login → dashboard → sidebar → branch switcher
+2. Validate User management CRUD end-to-end on a provisioned tenant (create, edit, branch assign, status toggle)
+3. Validate Branch management CRUD end-to-end
+4. Validate Role management CRUD with privilege assignment end-to-end
+5. Validate Tenant settings: profile defaults, SMTP save, WhatsApp save
+6. Implement TenantAccessPolicy service (item 20) — ties subscription status to access enforcement before Phase 1B begins
+
+### 11.2 Phase 1A completion checklist
+
+Phase 1A is done when all of the following pass manually:
+- tenant can be provisioned via /platform/tenants/create
+- provisioned owner can log in at /auth/login
+- /dashboard loads with correct tenant/branch context in session
+- user, branch, role CRUD work within tenant scope
+- tenant settings save and reload correctly
+- APP_PLATFORM_TENANT_ID is set on production so platform routes are protected
+
+### 11.3 Phase 1B start criteria
+
+Begin Phase 1B (billing, entitlements, subscription engine) after Phase 1A completion checklist passes.
+
+Phase 1B order:
+1. billing catalog schema (feature_catalog, plans, plan_prices, plan_features, plan_limits)
+2. plan and feature seed data
+3. subscription state machine and subscriptions table
+4. SubscriptionPolicyService, FeatureGateService, UsageLimitService
+5. suspension and grace enforcement wired into SuspensionFilter
+6. billing management UI for platform admin
+7. billing summary view for tenant owner
+8. route and menu gating by entitlement
+
+Only after Phase 1B is stable should enquiry, admissions, service, placement, and student portal module work begin.
 
