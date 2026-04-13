@@ -164,6 +164,36 @@ Instead:
 
 ## 4. Phase 1A - Multi-Tenant Foundation
 
+### 4.0 Implementation Status
+
+Last updated: 2026-04-13
+
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 1 | Schema design | ✅ Done | All 15 tables defined in plan |
+| 2 | Migrations | ✅ Done | 15 migration files, run on production and local |
+| 3 | Seeders | ✅ Done | 63 privileges, 9 system roles, demo tenant/branch/user |
+| 4 | BaseModel (tenant scoping) | ✅ Done | app/Models/BaseModel.php |
+| 5 | Domain models | ✅ Done | TenantModel, BranchModel, UserModel, RoleModel, PrivilegeModel |
+| 6 | TenantResolver service | ⏳ Pending | — |
+| 7 | BranchContextResolver service | ⏳ Pending | — |
+| 8 | PermissionService | ⏳ Pending | — |
+| 9 | CurrentUserContext service | ⏳ Pending | — |
+| 10 | LocaleContextResolver service | ⏳ Pending | — |
+| 11 | Auth (login/logout/forgot/reset) | ⏳ Pending | — |
+| 12 | Filters (Auth, Tenant, Suspension) | ⏳ Pending | — |
+| 13 | Admin shell (layout, sidebar, topbar) | ⏳ Pending | — |
+| 14 | User management CRUD | ⏳ Pending | — |
+| 15 | Branch management CRUD | ⏳ Pending | — |
+| 16 | Role management CRUD | ⏳ Pending | — |
+| 17 | Tenant settings (SMTP, WhatsApp) | ⏳ Pending | — |
+
+**Demo credentials (production + local):**
+- URL: `http://143.110.247.79` (production) / `http://localhost/edcrm-saas/public` (local)
+- Login: `demo@edcrm.in` / `Demo@1234`
+
+---
+
 ### 4.1 Objectives
 
 By the end of Phase 1A, the system must support:
