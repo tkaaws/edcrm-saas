@@ -620,7 +620,7 @@ Last updated: 2026-04-14
 | 10 | Platform tenant-to-plan assignment | Done | assign or replace plan from tenant list and tenant detail |
 | 11 | Tenant billing summary | Done | tenant billing workspace shows plan, module access, renewal/trial dates, and capacity usage |
 | 12 | Route and menu gating | In Progress | feature-gated routes are wired; full menu polish continues as modules are built |
-| 13 | Automated billing tests | In Progress | initial PHPUnit suite exists; coverage still needs expansion |
+| 13 | Automated billing tests | In Progress | initial PHPUnit suite exists; auth, scope, and impersonation coverage added; billing-specific depth still needs expansion |
 
 ### 5.0.1 Verified runtime notes
 
@@ -1199,12 +1199,12 @@ Remaining Phase 1B hardening work:
 
 1. **Module-by-module menu gating polish** - align every tenant menu entry to feature entitlement
 2. **Plan-aware user privilege filtering** - show only plan-relevant module privileges during user and role assignment
-3. **Expanded automated test coverage** - add feature and service coverage around cancellation, switching, limits, and gating
+3. **Expanded automated test coverage** - add deeper coverage around cancellation, switching, overrides, and billing lifecycle edge cases
 4. **Production-safe seed strategy review** - keep demo data manual while production tenants are real customers
 
-### 11.3 Settings and access foundation kickoff
+### 11.3 Settings and access foundation rollout
 
-On 2026-04-14 the next pre-Enquiry foundation slice was started:
+On 2026-04-14 the next pre-Enquiry foundation slice moved from blueprint into implementation:
 
 - settings catalog blueprint added in `docs/SETTINGS_ACCESS_IMPLEMENTATION_BLUEPRINT.md`
 - new schema foundation introduced for:
@@ -1218,6 +1218,21 @@ On 2026-04-14 the next pre-Enquiry foundation slice was started:
   - `hierarchy_mode`
   - `allow_impersonation`
 - `SettingsResolverService` added to centralize effective setting resolution
+- Tenant Settings v2 implemented with catalog-driven save flows
+- Branch Settings module implemented with branch override persistence
+- Platform Tenant Policy workspace implemented with lock-mode control
+- secure impersonation flow implemented with audit trail and return-to-original-account banner
+- user create/edit scope enforcement implemented for:
+  - reporting head filtering
+  - branch assignment filtering
+  - management scope checks
+  - target-user management checks
+- PHPUnit coverage now includes:
+  - protected routes
+  - auth database flows
+  - user access scope rules
+  - impersonation service flows
+  - route protection around impersonation and branch/platform policy surfaces
 
 This slice is intentionally foundation-first. UI tabs and runtime consumption come next, followed by Enquiry implementation on top of these resolved policies.
 

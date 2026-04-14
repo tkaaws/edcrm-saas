@@ -531,3 +531,33 @@ This foundation is ready when:
 - user data/manage scope can be stored
 - impersonation auditing exists
 - Enquiry can read expiry, duplicate, assignment, and visibility policy from resolver instead of hardcoding
+
+---
+
+## 11. Current Delivery Status
+
+Last updated: 2026-04-14
+
+Delivered:
+
+- settings schema foundation
+- `SettingsResolverService`
+- Tenant Settings v2 screen
+- Branch Settings module
+- Platform Tenant Policy workspace
+- user reporting head and scope fields
+- scope enforcement on user create/edit and target-user management
+- impersonation service, controller flow, audit persistence, and shell banner
+- PHPUnit coverage for:
+  - protected routes
+  - auth database flows
+  - user access scope rules
+  - impersonation service rules
+  - impersonation/branch-policy route protection
+
+Next hardening before Enquiry:
+
+- add deeper billing override tests
+- add settings resolver tests for lock precedence
+- add branch/tenant policy save feature tests
+- add impersonation notification behavior if/when implemented
