@@ -114,17 +114,18 @@ class AuthService
         $tenant = $this->tenantModel->find($tenantId);
 
         $session->set([
-            'user_id'         => $user->id,
-            'tenant_id'       => $tenantId,
-            'tenant_name'     => $tenant?->name ?? '',
-            'user_role_id'    => $user->role_id,
-            'user_role_code'  => $role?->code ?? '',
-            'user_role_name'  => $role?->name ?? '',
-            'user_first_name' => $user->first_name,
-            'user_last_name'  => $user->last_name,
-            'user_email'      => $user->email,
-            'branch_id'       => $primaryBranch?->id ?? null,
-            'branch_name'     => $primaryBranch?->name ?? '',
+            'user_id'              => $user->id,
+            'tenant_id'            => $tenantId,
+            'tenant_name'          => $tenant?->name ?? '',
+            'user_role_id'         => $user->role_id,
+            'user_role_code'       => $role?->code ?? '',
+            'user_role_name'       => $role?->name ?? '',
+            'user_first_name'      => $user->first_name,
+            'user_last_name'       => $user->last_name,
+            'user_email'           => $user->email,
+            'branch_id'            => $primaryBranch?->id ?? null,
+            'branch_name'          => $primaryBranch?->name ?? '',
+            'must_reset_password'  => (bool) $user->must_reset_password,
         ]);
 
         // Load and cache privilege codes into session
@@ -270,6 +271,11 @@ class AuthService
             ->where('token_hash', $tokenHash)
             ->update(['used_at' => date('Y-m-d H:i:s')]);
 
+        // Clear must_reset_password from session if user was forced through reset flow
+        if (session()->get('must_reset_password')) {
+            session()->set('must_reset_password', false);
+        }
+
         $this->writeAudit($user->tenant_id, $user->id, 'password_reset_completed', 'Password reset successful');
 
         return true;
@@ -303,6 +309,9 @@ class AuthService
             'must_reset_password' => 0,
             'updated_at'          => date('Y-m-d H:i:s'),
         ]);
+
+        // Clear the flag from session so AuthFilter stops redirecting
+        session()->set('must_reset_password', false);
 
         $this->writeAudit($user->tenant_id, $userId, 'password_changed', 'Password changed by user');
 
