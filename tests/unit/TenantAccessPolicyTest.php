@@ -4,43 +4,58 @@ use App\Models\TenantModel;
 use App\Services\SubscriptionPolicyService;
 use App\Services\TenantAccessPolicy;
 use CodeIgniter\Test\CIUnitTestCase;
+use Config\Services;
 
 /**
+ * TenantAccessPolicyTest
+ *
+ * Pure unit test — no database migrations required.
+ *
+ * TenantModel is mocked via an anonymous subclass so the DB is never queried.
+ * SubscriptionPolicyService is mocked via Services::injectMock() so the
+ * CI4 service container returns the mock instead of the real service.
+ * CIUnitTestCase resets the service container before each test (resetServices=true),
+ * so injected mocks are always cleaned up automatically.
+ *
  * @internal
  */
 final class TenantAccessPolicyTest extends CIUnitTestCase
 {
+    // ---------------------------------------------------------------
+    // Tenant account status — no subscription layer
+    // ---------------------------------------------------------------
+
     public function testActiveTenantIsAllowed(): void
     {
-        $policy = $this->makePolicyReturningStatus('active');
+        $policy = $this->makePolicy('active');
 
         $this->assertSame(TenantAccessPolicy::ALLOW, $policy->check(1, 'tenant_owner', 'GET'));
     }
 
     public function testSuspendedOperationalUserGetsReadOnlyWarning(): void
     {
-        $policy = $this->makePolicyReturningStatus('suspended');
+        $policy = $this->makePolicy('suspended');
 
         $this->assertSame(TenantAccessPolicy::WARN_READ, $policy->check(1, 'counsellor', 'GET'));
     }
 
     public function testSuspendedOperationalUserCannotWrite(): void
     {
-        $policy = $this->makePolicyReturningStatus('suspended');
+        $policy = $this->makePolicy('suspended');
 
         $this->assertSame(TenantAccessPolicy::DENY_WRITE, $policy->check(1, 'counsellor', 'POST'));
     }
 
     public function testSuspendedTenantOwnerKeepsAccess(): void
     {
-        $policy = $this->makePolicyReturningStatus('suspended');
+        $policy = $this->makePolicy('suspended');
 
         $this->assertSame(TenantAccessPolicy::ALLOW, $policy->check(1, 'tenant_owner', 'POST'));
     }
 
     public function testDraftTenantIsBlockedWithActivationMessage(): void
     {
-        $policy = $this->makePolicyReturningStatus('draft');
+        $policy = $this->makePolicy('draft');
 
         $this->assertSame(TenantAccessPolicy::DENY_BLOCKED, $policy->check(1, 'tenant_owner', 'GET'));
         $this->assertSame('This account has not been activated yet.', $policy->blockedMessage(1));
@@ -48,66 +63,73 @@ final class TenantAccessPolicyTest extends CIUnitTestCase
 
     public function testMissingTenantIsBlocked(): void
     {
-        $policy = $this->makePolicyReturningStatus(null);
+        $policy = $this->makePolicy(null);
 
         $this->assertSame(TenantAccessPolicy::DENY_BLOCKED, $policy->check(999, 'tenant_owner', 'GET'));
     }
 
+    // ---------------------------------------------------------------
+    // Subscription state layer (tenant is 'active', sub status varies)
+    // ---------------------------------------------------------------
+
     public function testGraceSubscriptionAllowsReadWithWarning(): void
     {
-        $policy = $this->makePolicyReturningStatus('active', 'grace');
+        $policy = $this->makePolicy('active', 'grace');
 
         $this->assertSame(TenantAccessPolicy::WARN_READ, $policy->check(1, 'counsellor', 'GET'));
     }
 
     public function testExpiredSubscriptionBlocksAccess(): void
     {
-        $policy = $this->makePolicyReturningStatus('active', 'expired');
+        $policy = $this->makePolicy('active', 'expired');
 
         $this->assertSame(TenantAccessPolicy::DENY_BLOCKED, $policy->check(1, 'tenant_owner', 'GET'));
     }
 
     public function testNoSubscriptionAllowsAccess(): void
     {
-        $policy = $this->makePolicyReturningStatus('active', 'none');
+        $policy = $this->makePolicy('active', 'none');
 
         $this->assertSame(TenantAccessPolicy::ALLOW, $policy->check(1, 'tenant_owner', 'GET'));
     }
 
-    // ------------------------------------------------------------------
-    // Helpers
-    // ------------------------------------------------------------------
+    // ---------------------------------------------------------------
+    // Helper
+    // ---------------------------------------------------------------
 
     /**
-     * @param string|null $tenantStatus  Tenant account status (null = tenant not found)
-     * @param string      $subStatus     Subscription status returned by mock service
+     * Build a TenantAccessPolicy with both dependencies mocked.
+     *
+     * @param string|null $tenantStatus  Tenant account status; null = tenant not found
+     * @param string      $subStatus     Subscription status the mock service returns
      */
-    private function makePolicyReturningStatus(?string $tenantStatus, string $subStatus = 'none'): TenantAccessPolicy
+    private function makePolicy(?string $tenantStatus, string $subStatus = 'none'): TenantAccessPolicy
     {
-        // Mock TenantModel
-        $tenantModel = $this->createMock(TenantModel::class);
-        $tenantModel->method('find')->willReturn(
+        // --- Mock SubscriptionPolicyService via CI4 service container ---
+        // Services::injectMock() replaces the shared service instance so
+        // TenantAccessPolicy::getSubscriptionPolicy() returns this mock.
+        // CIUnitTestCase::setUp() resets the container before each test,
+        // so there is no leakage between test methods.
+        $subMock = $this->createMock(SubscriptionPolicyService::class);
+        $subMock->method('getStatus')->willReturn($subStatus);
+        Services::injectMock('subscriptionPolicy', $subMock);
+
+        // --- Mock TenantModel via anonymous subclass ---
+        // TenantAccessPolicy creates a real TenantModel in __construct(), so
+        // we extend the class and replace the property immediately after.
+        $tenantMock = $this->createMock(TenantModel::class);
+        $tenantMock->method('find')->willReturn(
             $tenantStatus === null ? null : (object) ['status' => $tenantStatus]
         );
 
-        // Mock SubscriptionPolicyService — returns a fixed status, no DB required
-        $subscriptionPolicy = $this->createMock(SubscriptionPolicyService::class);
-        $subscriptionPolicy->method('getStatus')->willReturn($subStatus);
-
         $policy = new class () extends TenantAccessPolicy {
-            public function replaceTenantModel(TenantModel $tenantModel): void
+            public function setTenantModel(TenantModel $model): void
             {
-                $this->tenantModel = $tenantModel;
-            }
-
-            public function replaceSubscriptionPolicy(SubscriptionPolicyService $service): void
-            {
-                $this->subscriptionPolicyInstance = $service;
+                $this->tenantModel = $model;
             }
         };
 
-        $policy->replaceTenantModel($tenantModel);
-        $policy->replaceSubscriptionPolicy($subscriptionPolicy);
+        $policy->setTenantModel($tenantMock);
 
         return $policy;
     }

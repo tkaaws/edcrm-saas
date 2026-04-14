@@ -50,7 +50,7 @@ class TenantAccessPolicy
     protected function getSubscriptionPolicy(): SubscriptionPolicyService
     {
         if ($this->subscriptionPolicyInstance === null) {
-            $this->subscriptionPolicyInstance = $this->getSubscriptionPolicy();
+            $this->subscriptionPolicyInstance = service('subscriptionPolicy');
         }
 
         return $this->subscriptionPolicyInstance;
