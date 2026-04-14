@@ -1202,7 +1202,26 @@ Remaining Phase 1B hardening work:
 3. **Expanded automated test coverage** - add feature and service coverage around cancellation, switching, limits, and gating
 4. **Production-safe seed strategy review** - keep demo data manual while production tenants are real customers
 
-### 11.3 Before Phase 1B begins
+### 11.3 Settings and access foundation kickoff
+
+On 2026-04-14 the next pre-Enquiry foundation slice was started:
+
+- settings catalog blueprint added in `docs/SETTINGS_ACCESS_IMPLEMENTATION_BLUEPRINT.md`
+- new schema foundation introduced for:
+  - `setting_definitions`
+  - `branch_setting_values`
+  - `tenant_policy_overrides`
+  - `impersonation_sessions`
+- `users` access metadata extended with:
+  - `data_scope`
+  - `manage_scope`
+  - `hierarchy_mode`
+  - `allow_impersonation`
+- `SettingsResolverService` added to centralize effective setting resolution
+
+This slice is intentionally foundation-first. UI tabs and runtime consumption come next, followed by Enquiry implementation on top of these resolved policies.
+
+### 11.4 Local database reminder
 
 Phase 1B development has already begun and the shared local database recommendation still stands for ongoing work and future Phase 1C development. Billing state changes and payment gateway work must not be tested directly on production:
 

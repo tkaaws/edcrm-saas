@@ -77,6 +77,52 @@
                 <input type="text" name="whatsapp_number" value="<?= esc(old('whatsapp_number', $user->whatsapp_number ?? '')) ?>">
             </label>
 
+            <label class="field">
+                <span>Access mode</span>
+                <select name="hierarchy_mode">
+                    <?php foreach (['hierarchy' => 'Hierarchy based', 'branch_flat' => 'Flat branch operations'] as $mode => $label): ?>
+                        <option value="<?= esc($mode) ?>" <?= old('hierarchy_mode', $user->hierarchy_mode ?? 'hierarchy') === $mode ? 'selected' : '' ?>>
+                            <?= esc($label) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Visibility scope</span>
+                <select name="data_scope">
+                    <?php foreach (['self' => 'Self only', 'team' => 'Team', 'branch' => 'Branch', 'tenant' => 'Tenant', 'custom' => 'Custom'] as $scope => $label): ?>
+                        <option value="<?= esc($scope) ?>" <?= old('data_scope', $user->data_scope ?? 'self') === $scope ? 'selected' : '' ?>>
+                            <?= esc($label) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Management scope</span>
+                <select name="manage_scope">
+                    <?php foreach (['none' => 'No user management', 'self_only' => 'Own profile only', 'team' => 'Team users', 'branch' => 'Branch users', 'tenant' => 'Tenant users'] as $scope => $label): ?>
+                        <option value="<?= esc($scope) ?>" <?= old('manage_scope', $user->manage_scope ?? 'none') === $scope ? 'selected' : '' ?>>
+                            <?= esc($label) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+
+            <label class="field">
+                <span>Reports to</span>
+                <select name="manager_user_id">
+                    <option value="">No reporting head</option>
+                    <?php foreach ($managerUsers as $manager): ?>
+                        <?php $managerId = (string) $manager->id; ?>
+                        <option value="<?= esc($managerId) ?>" <?= (string) old('manager_user_id', $hierarchy->manager_user_id ?? '') === $managerId ? 'selected' : '' ?>>
+                            <?= esc(trim($manager->first_name . ' ' . ($manager->last_name ?? ''))) ?> (<?= esc($manager->email) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+
             <label class="field field--full">
                 <span>Password <?= $user ? '(leave blank to keep existing)' : '' ?></span>
                 <input type="password" name="password" minlength="8" <?= $user ? '' : 'required' ?>>
@@ -119,6 +165,11 @@
                 <label class="checkbox-row">
                     <input type="checkbox" name="must_reset_password" value="1" <?= old('must_reset_password', $user->must_reset_password ?? 0) ? 'checked' : '' ?>>
                     <span>Force password reset on next login</span>
+                </label>
+
+                <label class="checkbox-row">
+                    <input type="checkbox" name="allow_impersonation" value="1" <?= old('allow_impersonation', $user->allow_impersonation ?? 1) ? 'checked' : '' ?>>
+                    <span>Allow impersonation for support and tenant admins</span>
                 </label>
             </section>
         </div>

@@ -25,6 +25,10 @@ class UserModel extends BaseModel
         'whatsapp_number',
         'department',
         'designation',
+        'data_scope',
+        'manage_scope',
+        'hierarchy_mode',
+        'allow_impersonation',
         'password_hash',
         'is_active',
         'must_reset_password',
@@ -205,5 +209,27 @@ class UserModel extends BaseModel
                  ->where('user_id', $userId)
                  ->where('branch_id', $branchId)
                  ->delete();
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getManagerOptions(int $tenantId, ?int $ignoreUserId = null): array
+    {
+        $users = $this->withoutTenantScope()
+                      ->where('tenant_id', $tenantId)
+                      ->where('is_active', 1)
+                      ->orderBy('first_name', 'ASC')
+                      ->orderBy('last_name', 'ASC')
+                      ->findAll();
+
+        if ($ignoreUserId === null) {
+            return $users;
+        }
+
+        return array_values(array_filter(
+            $users,
+            static fn(object $user): bool => (int) $user->id !== $ignoreUserId
+        ));
     }
 }

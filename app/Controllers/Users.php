@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\BranchModel;
 use App\Models\RoleModel;
 use App\Models\UserModel;
+use App\Models\UserHierarchyModel;
 use App\Services\DelegationGuardService;
 use App\Services\UsageLimitService;
 
@@ -13,6 +14,7 @@ class Users extends BaseController
     protected UserModel $userModel;
     protected RoleModel $roleModel;
     protected BranchModel $branchModel;
+    protected UserHierarchyModel $userHierarchyModel;
     protected DelegationGuardService $delegationGuard;
     protected UsageLimitService $usageLimit;
 
@@ -21,6 +23,7 @@ class Users extends BaseController
         $this->userModel   = new UserModel();
         $this->roleModel   = new RoleModel();
         $this->branchModel = new BranchModel();
+        $this->userHierarchyModel = new UserHierarchyModel();
         $this->delegationGuard = service('delegationGuard');
         $this->usageLimit = service('usageLimit');
     }
@@ -46,6 +49,7 @@ class Users extends BaseController
             'formAction'      => site_url('users'),
             'submitText'      => 'Create user',
             'user'            => null,
+            'hierarchy'       => null,
             'userBranchIds'   => [],
             'primaryBranchId' => null,
         ]));
@@ -76,12 +80,17 @@ class Users extends BaseController
             'whatsapp_number'     => $data['whatsapp_number'],
             'department'          => $data['department'],
             'designation'         => $data['designation'],
+            'data_scope'          => $data['data_scope'],
+            'manage_scope'        => $data['manage_scope'],
+            'hierarchy_mode'      => $data['hierarchy_mode'],
+            'allow_impersonation' => (int) $data['allow_impersonation'],
             'password_hash'       => password_hash($data['password'], PASSWORD_BCRYPT),
             'is_active'           => (int) $data['is_active'],
             'must_reset_password' => (int) $data['must_reset_password'],
         ]);
 
         $this->syncUserBranches((int) $userId, $data['branch_ids'], (int) $data['primary_branch_id']);
+        $this->syncUserHierarchy($tenantId, (int) $userId, $data['manager_user_id']);
 
         return redirect()->to('/users')->with('message', 'User created successfully.');
     }
@@ -98,6 +107,7 @@ class Users extends BaseController
             return redirect()->to('/users')->with('error', 'You cannot manage a user whose role is outside your delegation scope.');
         }
 
+        $hierarchy = $this->userHierarchyModel->findByUser($id);
         $branches = $this->userModel->getBranches($id);
         $userBranchIds = array_map(static fn(array $branch) => (int) $branch['id'], $branches);
         $primaryBranch = array_values(array_filter($branches, static fn(array $branch) => (int) $branch['is_primary'] === 1));
@@ -108,6 +118,7 @@ class Users extends BaseController
             'formAction'       => site_url('users/' . $id),
             'submitText'       => 'Save changes',
             'user'             => $user,
+            'hierarchy'        => $hierarchy,
             'userBranchIds'    => $userBranchIds,
             'primaryBranchId'  => $primaryBranch[0]['id'] ?? null,
         ]));
@@ -147,6 +158,10 @@ class Users extends BaseController
             'whatsapp_number'     => $data['whatsapp_number'],
             'department'          => $data['department'],
             'designation'         => $data['designation'],
+            'data_scope'          => $data['data_scope'],
+            'manage_scope'        => $data['manage_scope'],
+            'hierarchy_mode'      => $data['hierarchy_mode'],
+            'allow_impersonation' => (int) $data['allow_impersonation'],
             'is_active'           => (int) $data['is_active'],
             'must_reset_password' => (int) $data['must_reset_password'],
         ];
@@ -157,6 +172,7 @@ class Users extends BaseController
 
         $this->userModel->updateWithActor($id, $updateData);
         $this->syncUserBranches($id, $data['branch_ids'], (int) $data['primary_branch_id']);
+        $this->syncUserHierarchy($tenantId, $id, $data['manager_user_id']);
 
         return redirect()->to('/users')->with('message', 'User updated successfully.');
     }
@@ -208,6 +224,11 @@ class Users extends BaseController
             'whatsapp_number'     => trim((string) $this->request->getPost('whatsapp_number')),
             'department'          => trim((string) $this->request->getPost('department')),
             'designation'         => trim((string) $this->request->getPost('designation')),
+            'data_scope'          => (string) $this->request->getPost('data_scope'),
+            'manage_scope'        => (string) $this->request->getPost('manage_scope'),
+            'hierarchy_mode'      => (string) $this->request->getPost('hierarchy_mode'),
+            'manager_user_id'     => (int) $this->request->getPost('manager_user_id'),
+            'allow_impersonation' => $this->request->getPost('allow_impersonation') ? 1 : 0,
             'password'            => (string) $this->request->getPost('password'),
             'role_id'             => (int) $this->request->getPost('role_id'),
             'branch_ids'          => array_values(array_unique(array_filter($branchIds))),
@@ -220,6 +241,9 @@ class Users extends BaseController
     protected function validateUserInput(array $data, int $tenantId, ?int $userId = null, bool $requirePassword = true): array
     {
         $errors = [];
+        $allowedDataScopes = ['self', 'team', 'branch', 'tenant', 'custom'];
+        $allowedManageScopes = ['none', 'self_only', 'team', 'branch', 'tenant'];
+        $allowedHierarchyModes = ['hierarchy', 'branch_flat'];
 
         if ($data['first_name'] === '') {
             $errors[] = 'First name is required.';
@@ -252,6 +276,18 @@ class Users extends BaseController
             $errors[] = 'Password must be at least 8 characters.';
         }
 
+        if (! in_array($data['data_scope'], $allowedDataScopes, true)) {
+            $errors[] = 'Choose a valid visibility scope.';
+        }
+
+        if (! in_array($data['manage_scope'], $allowedManageScopes, true)) {
+            $errors[] = 'Choose a valid management scope.';
+        }
+
+        if (! in_array($data['hierarchy_mode'], $allowedHierarchyModes, true)) {
+            $errors[] = 'Choose a valid access mode.';
+        }
+
         if ($data['primary_branch_id'] < 1 || ! in_array($data['primary_branch_id'], $data['branch_ids'], true)) {
             $errors[] = 'Choose at least one branch and select a matching primary branch.';
         }
@@ -274,6 +310,18 @@ class Users extends BaseController
 
         if ($this->userModel->usernameExistsForTenant($data['username'], $tenantId, $userId)) {
             $errors[] = 'Username already exists for this tenant.';
+        }
+
+        if ($data['manager_user_id'] > 0) {
+            $manager = $this->userModel->findForTenant($data['manager_user_id']);
+
+            if (! $manager) {
+                $errors[] = 'Reporting head must be an active user from this tenant.';
+            } elseif ((int) ($manager->is_active ?? 0) !== 1) {
+                $errors[] = 'Reporting head must be active.';
+            } elseif ($userId !== null && $data['manager_user_id'] === $userId) {
+                $errors[] = 'A user cannot report to themselves.';
+            }
         }
 
         return $errors;
@@ -317,16 +365,27 @@ class Users extends BaseController
         }
     }
 
+    protected function syncUserHierarchy(int $tenantId, int $userId, int $managerUserId): void
+    {
+        $this->userHierarchyModel->upsertForUser(
+            $tenantId,
+            $userId,
+            $managerUserId > 0 ? $managerUserId : null
+        );
+    }
+
     protected function buildFormViewData(array $data): array
     {
         $tenantId = (int) session()->get('tenant_id');
         $roles = $this->delegationGuard->getAssignableRolesForTenant($tenantId);
+        $ignoreUserId = isset($data['user']->id) ? (int) $data['user']->id : null;
 
         return $this->buildShellViewData(array_merge([
             'activeNav' => 'users',
-            'roles'     => $roles,
-            'branches'  => $this->branchModel->getActiveBranches(),
-            'canSubmit' => $roles !== [],
+            'roles'        => $roles,
+            'branches'     => $this->branchModel->getActiveBranches(),
+            'managerUsers' => $this->userModel->getManagerOptions($tenantId, $ignoreUserId),
+            'canSubmit'    => $roles !== [],
         ], $data));
     }
 }

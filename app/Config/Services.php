@@ -14,6 +14,7 @@ use App\Services\SubscriptionPolicyService;
 use App\Services\FeatureGateService;
 use App\Services\UsageLimitService;
 use App\Services\DelegationGuardService;
+use App\Services\SettingsResolverService;
 
 /**
  * Services Configuration
@@ -148,5 +149,16 @@ class Services extends BaseService
             return static::getSharedInstance('delegationGuard');
         }
         return new DelegationGuardService();
+    }
+
+    /**
+     * Settings resolver â€” platform override -> branch override -> tenant value -> default.
+     */
+    public static function settingsResolver(bool $getShared = true): SettingsResolverService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('settingsResolver');
+        }
+        return new SettingsResolverService();
     }
 }
