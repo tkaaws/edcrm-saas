@@ -4,7 +4,7 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Subscription #<?= $subscription->id ?></h2>
+            <h2 class="module-title">Subscription #<?= esc((string) $subscription->id) ?></h2>
             <p class="module-subtitle"><?= esc($tenant?->name ?? 'Unknown tenant') ?> - <?= esc($plan?->name ?? 'Unknown plan') ?></p>
         </div>
         <a href="<?= site_url('platform/subscriptions') ?>" class="shell-button shell-button--ghost">Back to subscriptions</a>
@@ -58,36 +58,32 @@
                 </div>
             </div>
             <dl class="context-list">
-                <div><dt>Starts</dt><dd><?= $subscription->starts_at ? date('d M Y', strtotime($subscription->starts_at)) : '-' ?></dd></div>
-                <div><dt>Trial ends</dt><dd><?= $subscription->trial_ends_at ? date('d M Y', strtotime($subscription->trial_ends_at)) : '-' ?></dd></div>
-                <div><dt>Renews</dt><dd><?= $subscription->renews_at ? date('d M Y', strtotime($subscription->renews_at)) : '-' ?></dd></div>
-                <div><dt>Expires</dt><dd><?= $subscription->expires_at ? date('d M Y', strtotime($subscription->expires_at)) : '-' ?></dd></div>
-                <div><dt>Grace ends</dt><dd><?= $subscription->grace_ends_at ? date('d M Y', strtotime($subscription->grace_ends_at)) : '-' ?></dd></div>
-                <div><dt>Cancelled</dt><dd><?= $subscription->cancelled_at ? date('d M Y', strtotime($subscription->cancelled_at)) : '-' ?></dd></div>
+                <div><dt>Starts</dt><dd><?= $subscription->starts_at ? esc(date('d M Y', strtotime($subscription->starts_at))) : '-' ?></dd></div>
+                <div><dt>Trial ends</dt><dd><?= $subscription->trial_ends_at ? esc(date('d M Y', strtotime($subscription->trial_ends_at))) : '-' ?></dd></div>
+                <div><dt>Renews</dt><dd><?= $subscription->renews_at ? esc(date('d M Y', strtotime($subscription->renews_at))) : '-' ?></dd></div>
+                <div><dt>Expires</dt><dd><?= $subscription->expires_at ? esc(date('d M Y', strtotime($subscription->expires_at))) : '-' ?></dd></div>
+                <div><dt>Grace ends</dt><dd><?= $subscription->grace_ends_at ? esc(date('d M Y', strtotime($subscription->grace_ends_at))) : '-' ?></dd></div>
+                <div><dt>Cancelled</dt><dd><?= $subscription->cancelled_at ? esc(date('d M Y', strtotime($subscription->cancelled_at))) : '-' ?></dd></div>
             </dl>
         </article>
 
         <?php if ($tenant): ?>
-        <article class="detail-card">
-            <div class="detail-card__header">
-                <div>
-                    <h3 class="detail-card__title">Tenant account</h3>
-                    <p class="detail-card__subtitle">Owning institute and linked platform record.</p>
+            <article class="detail-card">
+                <div class="detail-card__header">
+                    <div>
+                        <h3 class="detail-card__title">Tenant account</h3>
+                        <p class="detail-card__subtitle">Owning institute and linked platform record.</p>
+                    </div>
                 </div>
-            </div>
-            <dl class="context-list">
-                <div><dt>Name</dt><dd><?= esc($tenant->name) ?></dd></div>
-                <div><dt>Slug</dt><dd><code><?= esc($tenant->slug) ?></code></dd></div>
-                <div><dt>Status</dt><dd>
-                    <span class="status-badge <?= $tenant->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
-                        <?= esc(ucfirst($tenant->status)) ?>
-                    </span>
-                </dd></div>
-            </dl>
-            <div class="detail-card__actions">
-                <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View tenant</a>
-            </div>
-        </article>
+                <dl class="context-list">
+                    <div><dt>Name</dt><dd><?= esc($tenant->name) ?></dd></div>
+                    <div><dt>Slug</dt><dd><code><?= esc($tenant->slug) ?></code></dd></div>
+                    <div><dt>Status</dt><dd><span class="status-badge <?= $tenant->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>"><?= esc(ucfirst($tenant->status)) ?></span></dd></div>
+                </dl>
+                <div class="detail-card__actions">
+                    <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View tenant</a>
+                </div>
+            </article>
         <?php endif; ?>
 
         <article class="detail-card">
@@ -97,13 +93,13 @@
                     <p class="detail-card__subtitle">Move the subscription through billing states with an audit note.</p>
                 </div>
             </div>
-            <form method="post" action="<?= site_url("platform/subscriptions/{$subscription->id}/status") ?>" class="stack-form">
+            <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/status') ?>" class="stack-form">
                 <?= csrf_field() ?>
                 <div class="field">
                     <label class="shell-label">New status</label>
                     <select name="status" class="shell-input" required>
-                        <?php foreach (['trial','active','grace','suspended','cancelled','expired'] as $s): ?>
-                            <option value="<?= $s ?>" <?= $subscription->status === $s ? 'selected' : '' ?>><?= ucfirst($s) ?></option>
+                        <?php foreach (['trial', 'active', 'grace', 'suspended', 'cancelled', 'expired'] as $status): ?>
+                            <option value="<?= esc($status) ?>" <?= $subscription->status === $status ? 'selected' : '' ?>><?= esc(ucfirst($status)) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -115,6 +111,17 @@
                     <button type="submit" class="shell-button shell-button--primary">Apply status change</button>
                 </div>
             </form>
+
+            <?php if (in_array($subscription->status, ['trial', 'active', 'grace', 'suspended'], true)): ?>
+                <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/status') ?>" onsubmit="return confirm('Cancel subscription #<?= esc((string) $subscription->id) ?>?')" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line);">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="status" value="cancelled">
+                    <input type="hidden" name="note" value="Cancelled from subscription detail workspace">
+                    <div class="detail-card__actions">
+                        <button type="submit" class="shell-button shell-button--danger">Cancel subscription</button>
+                    </div>
+                </form>
+            <?php endif; ?>
         </article>
 
         <article class="detail-card">
@@ -124,7 +131,7 @@
                     <p class="detail-card__subtitle">Replace the current plan assignment while preserving subscription history.</p>
                 </div>
             </div>
-            <form method="post" action="<?= site_url("platform/subscriptions/{$subscription->id}/switch-plan") ?>" class="stack-form">
+            <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/switch-plan') ?>" class="stack-form">
                 <?= csrf_field() ?>
                 <div class="field">
                     <label class="shell-label">Plan</label>
@@ -179,19 +186,19 @@
                             <tr><th>Feature code</th><th>Enabled</th><th>Limit value</th></tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($overrides as $ov): ?>
+                            <?php foreach ($overrides as $override): ?>
                                 <tr>
-                                    <td><code><?= esc($ov->feature_code) ?></code></td>
+                                    <td><code><?= esc($override->feature_code) ?></code></td>
                                     <td>
-                                        <?php if ($ov->is_enabled === null): ?>
+                                        <?php if ($override->is_enabled === null): ?>
                                             <span class="text-muted">-</span>
                                         <?php else: ?>
-                                            <span class="status-badge <?= $ov->is_enabled ? 'status-badge--good' : 'status-badge--neutral' ?>">
-                                                <?= $ov->is_enabled ? 'Yes' : 'No' ?>
+                                            <span class="status-badge <?= $override->is_enabled ? 'status-badge--good' : 'status-badge--neutral' ?>">
+                                                <?= $override->is_enabled ? 'Yes' : 'No' ?>
                                             </span>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= $ov->limit_value !== null ? $ov->limit_value : '-' ?></td>
+                                    <td><?= $override->limit_value !== null ? esc((string) $override->limit_value) : '-' ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -199,13 +206,13 @@
                 </div>
             <?php endif; ?>
 
-            <form method="post" action="<?= site_url("platform/subscriptions/{$subscription->id}/override") ?>" class="inline-form inline-form--subscription">
+            <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/override') ?>" class="inline-form inline-form--subscription">
                 <?= csrf_field() ?>
                 <div class="field">
                     <label class="shell-label">Feature code</label>
                     <select name="feature_code" class="shell-input">
-                        <?php foreach ($allFeatures as $feat): ?>
-                            <option value="<?= esc($feat->code) ?>"><?= esc($feat->name) ?> (<?= esc($feat->code) ?>)</option>
+                        <?php foreach ($allFeatures as $feature): ?>
+                            <option value="<?= esc($feature->code) ?>"><?= esc($feature->name) ?> (<?= esc($feature->code) ?>)</option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -228,34 +235,34 @@
         </article>
 
         <?php if (! empty($addOns)): ?>
-        <article class="detail-card detail-card--wide">
-            <div class="detail-card__header">
-                <div>
-                    <h3 class="detail-card__title">Add-ons</h3>
-                    <p class="detail-card__subtitle">Commercial add-ons attached to this subscription.</p>
+            <article class="detail-card detail-card--wide">
+                <div class="detail-card__header">
+                    <div>
+                        <h3 class="detail-card__title">Add-ons</h3>
+                        <p class="detail-card__subtitle">Commercial add-ons attached to this subscription.</p>
+                    </div>
                 </div>
-            </div>
-            <div class="table-wrap">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Code</th><th>Name</th><th>Qty</th><th>Unit price</th><th>Status</th><th>Starts</th><th>Ends</th></tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($addOns as $a): ?>
-                            <tr>
-                                <td><code><?= esc($a->code) ?></code></td>
-                                <td><?= esc($a->name) ?></td>
-                                <td><?= $a->quantity ?></td>
-                                <td>Rs <?= number_format($a->unit_price_amount / 100, 0) ?></td>
-                                <td><span class="status-badge <?= $a->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>"><?= esc(ucfirst($a->status)) ?></span></td>
-                                <td><?= $a->starts_at ? date('d M Y', strtotime($a->starts_at)) : '-' ?></td>
-                                <td><?= $a->ends_at ? date('d M Y', strtotime($a->ends_at)) : '-' ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </article>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Code</th><th>Name</th><th>Qty</th><th>Unit price</th><th>Status</th><th>Starts</th><th>Ends</th></tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($addOns as $addOn): ?>
+                                <tr>
+                                    <td><code><?= esc($addOn->code) ?></code></td>
+                                    <td><?= esc($addOn->name) ?></td>
+                                    <td><?= esc((string) $addOn->quantity) ?></td>
+                                    <td>Rs <?= esc(number_format($addOn->unit_price_amount / 100, 0)) ?></td>
+                                    <td><span class="status-badge <?= $addOn->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>"><?= esc(ucfirst($addOn->status)) ?></span></td>
+                                    <td><?= $addOn->starts_at ? esc(date('d M Y', strtotime($addOn->starts_at))) : '-' ?></td>
+                                    <td><?= $addOn->ends_at ? esc(date('d M Y', strtotime($addOn->ends_at))) : '-' ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
         <?php endif; ?>
 
         <article class="detail-card detail-card--wide">
@@ -274,19 +281,19 @@
                             <tr><th>Event</th><th>Transition</th><th>Summary</th><th>By</th><th>When</th></tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($events as $ev): ?>
+                            <?php foreach ($events as $event): ?>
                                 <tr>
-                                    <td><code><?= esc($ev->event_type) ?></code></td>
+                                    <td><code><?= esc($event->event_type) ?></code></td>
                                     <td>
-                                        <?php if ($ev->from_status || $ev->to_status): ?>
-                                            <?= esc($ev->from_status ?? '-') ?> to <?= esc($ev->to_status ?? '-') ?>
+                                        <?php if ($event->from_status || $event->to_status): ?>
+                                            <?= esc($event->from_status ?? '-') ?> to <?= esc($event->to_status ?? '-') ?>
                                         <?php else: ?>
                                             -
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= esc($ev->summary ?? '-') ?></td>
-                                    <td><?= $ev->performed_by ? '#' . $ev->performed_by : 'System' ?></td>
-                                    <td><?= date('d M Y H:i', strtotime($ev->created_at)) ?></td>
+                                    <td><?= esc($event->summary ?? '-') ?></td>
+                                    <td><?= $event->performed_by ? '#' . esc((string) $event->performed_by) : 'System' ?></td>
+                                    <td><?= esc(date('d M Y H:i', strtotime($event->created_at))) ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -302,8 +309,7 @@
                     <p class="detail-card__subtitle">Delete this record only after the subscription has been cancelled or expired.</p>
                 </div>
             </div>
-            <form method="post" action="<?= site_url("platform/subscriptions/{$subscription->id}/delete") ?>"
-                  onsubmit="return confirm('Delete subscription #<?= $subscription->id ?> permanently?')">
+            <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/delete') ?>" onsubmit="return confirm('Delete subscription #<?= esc((string) $subscription->id) ?> permanently?')">
                 <?= csrf_field() ?>
                 <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete subscription</button>
             </form>
