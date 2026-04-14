@@ -88,6 +88,7 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->post('tenants', 'PlatformTenants::store');
     $routes->get('tenants/(:num)', 'PlatformTenants::show/$1');
     $routes->post('tenants/(:num)/status', 'PlatformTenants::updateStatus/$1');
+    $routes->post('tenants/(:num)/plan', 'PlatformTenants::updatePlan/$1');
 
     // Tenants (edit/update/delete)
     $routes->get('tenants/(:num)/edit', 'PlatformTenants::edit/$1');
@@ -109,6 +110,7 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->post('subscriptions/attach', 'PlatformSubscriptions::attach');
     $routes->get('subscriptions/(:num)', 'PlatformSubscriptions::show/$1');
     $routes->post('subscriptions/(:num)/status', 'PlatformSubscriptions::updateStatus/$1');
+    $routes->post('subscriptions/(:num)/switch-plan', 'PlatformSubscriptions::switchPlan/$1');
     $routes->post('subscriptions/(:num)/override', 'PlatformSubscriptions::setOverride/$1');
     $routes->post('subscriptions/(:num)/delete', 'PlatformSubscriptions::delete/$1');
 });

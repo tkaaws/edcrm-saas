@@ -249,6 +249,80 @@ class SubscriptionPolicyService
     }
 
     /**
+     * Replace the tenant's current subscription with a newly assigned plan.
+     * Used by platform admins when upgrading or downgrading a tenant.
+     */
+    public function replaceSubscription(
+        int $tenantId,
+        int $planId,
+        string $billingCycle = 'monthly',
+        string $activationMode = 'trial',
+        int $trialDays = 14,
+        ?int $performedBy = null,
+        ?string $summary = null
+    ): object {
+        $billingCycle  = in_array($billingCycle, ['monthly', 'quarterly', 'yearly'], true) ? $billingCycle : 'monthly';
+        $activationMode = $activationMode === 'active' ? 'active' : 'trial';
+        $trialDays      = max(0, $trialDays);
+
+        $existing = $this->subscriptionModel->getActiveForTenant($tenantId);
+
+        if ($existing) {
+            $this->transitionTo(
+                (int) $existing->id,
+                self::STATUS_CANCELLED,
+                $performedBy,
+                $summary ?: 'Superseded by platform plan change'
+            );
+        }
+
+        $now = date('Y-m-d H:i:s');
+
+        if ($activationMode === 'active') {
+            $periodMonths = match ($billingCycle) {
+                'yearly'    => 12,
+                'quarterly' => 3,
+                default     => 1,
+            };
+            $renewsAt     = date('Y-m-d H:i:s', strtotime("+{$periodMonths} months"));
+
+            $id = $this->subscriptionModel->insert([
+                'tenant_id'     => $tenantId,
+                'plan_id'       => $planId,
+                'billing_cycle' => $billingCycle,
+                'status'        => self::STATUS_ACTIVE,
+                'starts_at'     => $now,
+                'renews_at'     => $renewsAt,
+                'expires_at'    => $renewsAt,
+                'trial_ends_at' => null,
+                'grace_ends_at' => null,
+                'cancelled_at'  => null,
+            ]);
+
+            $this->logBillingEvent(
+                tenantId:       $tenantId,
+                subscriptionId: (int) $id,
+                eventType:      'subscription_created',
+                fromStatus:     null,
+                toStatus:       self::STATUS_ACTIVE,
+                performedBy:    $performedBy,
+                summary:        $summary ?: "Active subscription created on plan_id={$planId}",
+            );
+
+            return $this->subscriptionModel->find($id);
+        }
+
+        $subscription = $this->createTrialSubscription($tenantId, $planId, $trialDays);
+
+        $this->subscriptionModel->update((int) $subscription->id, [
+            'billing_cycle' => $billingCycle,
+            'updated_at'    => date('Y-m-d H:i:s'),
+        ]);
+
+        return $this->subscriptionModel->find((int) $subscription->id);
+    }
+
+    /**
      * Activate a subscription (e.g. after payment confirmed).
      */
     public function activate(int $subscriptionId, string $billingCycle, int $periodMonths, ?int $performedBy = null): bool

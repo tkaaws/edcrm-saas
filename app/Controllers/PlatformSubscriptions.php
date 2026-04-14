@@ -103,7 +103,7 @@ class PlatformSubscriptions extends BaseController
             return redirect()->back()->with('error', 'Tenant and plan are required.');
         }
 
-        if (! in_array($billingCycle, ['monthly', 'yearly'], true)) {
+        if (! in_array($billingCycle, ['monthly', 'quarterly', 'yearly'], true)) {
             $billingCycle = 'monthly';
         }
 
@@ -154,6 +154,39 @@ class PlatformSubscriptions extends BaseController
 
         return redirect()->to("/platform/subscriptions/{$id}")
                          ->with('message', "Status changed to {$newStatus}.");
+    }
+
+    public function switchPlan(int $id): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $subscription = $this->subscriptionModel->find($id);
+        if (! $subscription) {
+            return redirect()->to('/platform/subscriptions')->with('error', 'Subscription not found.');
+        }
+
+        $planId         = (int) $this->request->getPost('plan_id');
+        $billingCycle   = (string) $this->request->getPost('billing_cycle');
+        $activationMode = (string) $this->request->getPost('activation_mode');
+        $trialDays      = (int) ($this->request->getPost('trial_days') ?: 14);
+
+        $plan = $this->planModel->where('status', 'active')->find($planId);
+        if (! $plan) {
+            return redirect()->to("/platform/subscriptions/{$id}")->with('error', 'Select a valid active plan.');
+        }
+
+        $newSubscription = service('subscriptionPolicy')->replaceSubscription(
+            tenantId: (int) $subscription->tenant_id,
+            planId: $planId,
+            billingCycle: $billingCycle,
+            activationMode: $activationMode,
+            trialDays: $trialDays,
+            performedBy: (int) session()->get('user_id'),
+            summary: 'Plan changed by platform admin from subscription workspace'
+        );
+
+        service('featureGate')->flushCache((int) $subscription->tenant_id);
+
+        return redirect()->to('/platform/subscriptions/' . $newSubscription->id)
+                         ->with('message', 'Subscription switched to ' . $plan->name . '.');
     }
 
     public function setOverride(int $id): \CodeIgniter\HTTP\RedirectResponse

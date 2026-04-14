@@ -117,6 +117,53 @@
             </form>
         </article>
 
+        <article class="detail-card">
+            <div class="detail-card__header">
+                <div>
+                    <h3 class="detail-card__title">Switch plan</h3>
+                    <p class="detail-card__subtitle">Replace the current plan assignment while preserving subscription history.</p>
+                </div>
+            </div>
+            <form method="post" action="<?= site_url("platform/subscriptions/{$subscription->id}/switch-plan") ?>" class="stack-form">
+                <?= csrf_field() ?>
+                <div class="field">
+                    <label class="shell-label">Plan</label>
+                    <select name="plan_id" class="shell-input" required>
+                        <option value="">Select plan</option>
+                        <?php foreach ($plans as $candidate): ?>
+                            <option value="<?= esc($candidate->id) ?>" <?= (int) $candidate->id === (int) $subscription->plan_id ? 'selected' : '' ?>>
+                                <?= esc($candidate->name) ?> (<?= esc($candidate->code) ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="shell-label">Billing cycle</label>
+                    <select name="billing_cycle" class="shell-input">
+                        <?php foreach (['monthly', 'quarterly', 'yearly'] as $cycle): ?>
+                            <option value="<?= esc($cycle) ?>" <?= $subscription->billing_cycle === $cycle ? 'selected' : '' ?>>
+                                <?= esc(ucfirst($cycle)) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="shell-label">Activation mode</label>
+                    <select name="activation_mode" class="shell-input">
+                        <option value="active">Activate immediately</option>
+                        <option value="trial">Start with trial</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="shell-label">Trial days</label>
+                    <input type="number" name="trial_days" class="shell-input" value="14" min="1" max="90">
+                </div>
+                <div class="detail-card__actions">
+                    <button type="submit" class="shell-button shell-button--primary">Switch plan</button>
+                </div>
+            </form>
+        </article>
+
         <article class="detail-card detail-card--wide">
             <div class="detail-card__header">
                 <div>

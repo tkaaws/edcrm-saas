@@ -469,6 +469,12 @@ a {
     border-bottom: 0;
 }
 
+.data-table__subrow td {
+    background: #fafbfc;
+    padding-top: 12px;
+    padding-bottom: 16px;
+}
+
 .table-wrap {
     overflow-x: auto;
 }
@@ -675,9 +681,77 @@ a {
     flex: 1 1 220px;
 }
 
+.inline-form--compact > .field {
+    flex: 1 1 160px;
+    min-width: 0;
+}
+
 .inline-form__action {
     display: flex;
     align-items: end;
+}
+
+.field--trial-days {
+    max-width: 120px;
+}
+
+.detail-column {
+    display: grid;
+    gap: 18px;
+}
+
+.usage-bar {
+    height: 6px;
+    background: #eef2f5;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.usage-bar__fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width .3s;
+}
+
+.usage-bar__fill--ok {
+    background: #22c55e;
+}
+
+.usage-bar__fill--warn {
+    background: #f59e0b;
+}
+
+.usage-bar__fill--danger {
+    background: #ef4444;
+}
+
+.module-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.module-tile {
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    display: grid;
+    gap: 8px;
+    background: #fbfcfd;
+}
+
+.module-tile--on {
+    border-color: #cfe9df;
+    background: #f5fbf9;
+}
+
+.module-tile--off {
+    opacity: 0.72;
+}
+
+.module-tile__name {
+    font-weight: 700;
+    font-size: 14px;
 }
 
 .stack-form {

@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\PlanModel;
 use App\Models\TenantModel;
 use App\Models\UserModel;
 
@@ -9,16 +10,29 @@ class PlatformTenants extends BaseController
 {
     protected TenantModel $tenantModel;
     protected UserModel $userModel;
+    protected PlanModel $planModel;
 
     public function __construct()
     {
         $this->tenantModel = new TenantModel();
         $this->userModel   = new UserModel();
+        $this->planModel   = new PlanModel();
     }
 
     public function index(): string
     {
         $tenants = $this->tenantModel->orderBy('created_at', 'DESC')->findAll();
+        $subscriptionMap = $this->getCurrentSubscriptionMap(array_map(static fn($tenant) => (int) $tenant->id, $tenants));
+
+        foreach ($tenants as $tenant) {
+            $current = $subscriptionMap[(int) $tenant->id] ?? null;
+            $tenant->current_plan_id           = $current->plan_id ?? null;
+            $tenant->current_plan_name          = $current->plan_name ?? null;
+            $tenant->current_plan_code          = $current->plan_code ?? null;
+            $tenant->current_subscription_id    = $current->id ?? null;
+            $tenant->current_subscription_status = $current->status ?? null;
+            $tenant->current_billing_cycle      = $current->billing_cycle ?? null;
+        }
 
         return view('platform/tenants/index', $this->buildShellViewData([
             'title'       => 'Tenants',
@@ -28,6 +42,7 @@ class PlatformTenants extends BaseController
             'branchLabel' => 'Multi-tenant',
             'roleLabel'   => 'Provisioning',
             'tenants'     => $tenants,
+            'plans'       => $this->planModel->getAllActivePlans(),
         ]));
     }
 
@@ -66,6 +81,11 @@ class PlatformTenants extends BaseController
             return redirect()->to('/platform/tenants')->with('error', 'Tenant not found.');
         }
 
+        $db = db_connect();
+        $subscription = $this->getCurrentSubscriptionForTenant($id);
+        $userCount    = $db->table('users')->where('tenant_id', $id)->countAllResults();
+        $branchCount  = $db->table('tenant_branches')->where('tenant_id', $id)->countAllResults();
+
         return view('platform/tenants/show', $this->buildShellViewData([
             'title'       => 'Tenant - ' . esc($tenant->name),
             'pageTitle'   => esc($tenant->name),
@@ -74,6 +94,10 @@ class PlatformTenants extends BaseController
             'branchLabel' => 'Multi-tenant',
             'roleLabel'   => 'Provisioning',
             'tenant'      => $tenant,
+            'subscription'=> $subscription,
+            'userCount'   => $userCount,
+            'branchCount' => $branchCount,
+            'plans'       => $this->planModel->getAllActivePlans(),
         ]));
     }
 
@@ -192,6 +216,85 @@ class PlatformTenants extends BaseController
 
         return redirect()->to('/platform/tenants/' . $id)
             ->with('message', 'Tenant status updated to ' . $status . '.');
+    }
+
+    public function updatePlan(int $id): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $tenant = $this->tenantModel->find($id);
+
+        if (! $tenant) {
+            return redirect()->to('/platform/tenants')->with('error', 'Tenant not found.');
+        }
+
+        $planId         = (int) $this->request->getPost('plan_id');
+        $billingCycle   = (string) $this->request->getPost('billing_cycle');
+        $activationMode = (string) $this->request->getPost('activation_mode');
+        $trialDays      = (int) ($this->request->getPost('trial_days') ?: 14);
+
+        $plan = $this->planModel->where('status', 'active')->find($planId);
+        if (! $plan) {
+            return redirect()->to('/platform/tenants/' . $id)->with('error', 'Select a valid active plan.');
+        }
+
+        service('subscriptionPolicy')->replaceSubscription(
+            tenantId: $id,
+            planId: $planId,
+            billingCycle: $billingCycle,
+            activationMode: $activationMode,
+            trialDays: $trialDays,
+            performedBy: (int) session()->get('user_id'),
+            summary: 'Plan changed by platform admin from tenant workspace'
+        );
+
+        service('featureGate')->flushCache($id);
+
+        return redirect()->to('/platform/tenants/' . $id)
+                         ->with('message', 'Tenant plan updated to ' . $plan->name . '.');
+    }
+
+    /**
+     * @param list<int> $tenantIds
+     * @return array<int, object>
+     */
+    protected function getCurrentSubscriptionMap(array $tenantIds): array
+    {
+        if ($tenantIds === []) {
+            return [];
+        }
+
+        $rows = db_connect()->query("
+            SELECT s.*, p.name AS plan_name, p.code AS plan_code
+            FROM subscriptions s
+            INNER JOIN (
+                SELECT tenant_id, MAX(id) AS max_id
+                FROM subscriptions
+                WHERE status NOT IN ('cancelled', 'expired')
+                GROUP BY tenant_id
+            ) latest ON latest.max_id = s.id
+            INNER JOIN plans p ON p.id = s.plan_id
+        ")->getResult();
+
+        $map = [];
+        foreach ($rows as $row) {
+            if (in_array((int) $row->tenant_id, $tenantIds, true)) {
+                $map[(int) $row->tenant_id] = $row;
+            }
+        }
+
+        return $map;
+    }
+
+    protected function getCurrentSubscriptionForTenant(int $tenantId): ?object
+    {
+        return db_connect()->query("
+            SELECT s.*, p.name AS plan_name, p.code AS plan_code
+            FROM subscriptions s
+            INNER JOIN plans p ON p.id = s.plan_id
+            WHERE s.tenant_id = ?
+              AND s.status NOT IN ('cancelled', 'expired')
+            ORDER BY s.id DESC
+            LIMIT 1
+        ", [$tenantId])->getRow();
     }
 
     protected function collectPayload(): array
