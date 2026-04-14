@@ -20,6 +20,9 @@ if [ ! -f .env ]; then
   cp env .env
 fi
 
+echo "[deploy] running database migrations"
+php spark migrate --all --no-interaction
+
 echo "[deploy] fixing writable permissions"
 sudo chown -R www-data:www-data "${APP_DIR}/writable"
 sudo chmod -R 775 "${APP_DIR}/writable"
