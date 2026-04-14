@@ -11,14 +11,11 @@ use CodeIgniter\HTTP\ResponseInterface;
  *
  * Restricts access to /platform/* routes to platform admins only.
  *
- * Platform admin identity is determined by:
- *   session tenant_id === APP_PLATFORM_TENANT_ID (env)
+ * Platform admin identity is determined by role code:
+ *   session user_role_code === 'platform_admin'
  *
- * This prevents any customer tenant user from accessing platform
- * management surfaces even if they know the URL.
- *
- * Setup: set APP_PLATFORM_TENANT_ID in .env to the tenant_id
- * of the platform's own admin tenant (created during first setup).
+ * No environment variables needed — any user with the platform_admin
+ * role code (set in tenant_roles) is granted access.
  */
 class PlatformAdminFilter implements FilterInterface
 {
@@ -29,25 +26,8 @@ class PlatformAdminFilter implements FilterInterface
             return redirect()->to('/auth/login')->with('error', 'Please log in to continue.');
         }
 
-        $platformTenantId = (int) env('APP_PLATFORM_TENANT_ID', 0);
-
-        // If env is not set, block all access to platform routes in production
-        if ($platformTenantId === 0 && ENVIRONMENT !== 'development') {
-            log_message('error', 'APP_PLATFORM_TENANT_ID is not set. Platform routes are blocked.');
-            return redirect()->to('/dashboard')->with('error', 'Platform access is not configured.');
-        }
-
-        $sessionTenantId = (int) session()->get('tenant_id');
-
-        // In development with no env set, allow if role is tenant_owner (demo mode only)
-        if ($platformTenantId === 0 && ENVIRONMENT === 'development') {
-            if (session()->get('user_role_code') === 'tenant_owner') {
-                return null;
-            }
-        }
-
-        if ($sessionTenantId !== $platformTenantId) {
-            log_message('warning', "Unauthorised platform access attempt by user_id=" . session()->get('user_id') . " tenant_id={$sessionTenantId}");
+        if (session()->get('user_role_code') !== 'platform_admin') {
+            log_message('warning', 'Unauthorised platform access attempt by user_id=' . session()->get('user_id'));
             return redirect()->to('/dashboard')->with('error', 'You do not have access to this area.');
         }
 

@@ -61,15 +61,7 @@ abstract class BaseController extends Controller
         $tenantName = session()->get('tenant_name');
         $branchName = session()->get('branch_name');
 
-        $platformTenantId = (int) env('APP_PLATFORM_TENANT_ID', 0);
-
-        if ($platformTenantId > 0) {
-            // Production: exact tenant match
-            $isPlatformAdmin = $tenantId > 0 && $tenantId === $platformTenantId;
-        } else {
-            // Dev fallback: no env set — allow tenant_owner role (mirrors PlatformAdminFilter dev fallback)
-            $isPlatformAdmin = ENVIRONMENT === 'development' && $roleCode === 'tenant_owner';
-        }
+        $isPlatformAdmin = $roleCode === 'platform_admin';
 
         // Resolve enabled feature modules for nav gating.
         // Platform admins have no tenant subscription — skip gate lookup.

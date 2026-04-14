@@ -80,6 +80,7 @@ class DemoDataSeeder extends Seeder
         // 3. System roles
         // -------------------------------------------------------
         $roleDefs = [
+            ['code' => 'platform_admin', 'name' => 'Platform Admin', 'is_system' => 1],
             ['code' => 'tenant_owner',   'name' => 'Tenant Owner',   'is_system' => 1],
             ['code' => 'tenant_admin',   'name' => 'Tenant Admin',   'is_system' => 1],
             ['code' => 'branch_manager', 'name' => 'Branch Manager', 'is_system' => 1],
@@ -120,6 +121,9 @@ class DemoDataSeeder extends Seeder
         }
 
         $roleMappings = [
+
+            // platform_admin: no tenant privileges (platform-only access)
+            'platform_admin' => [],
 
             // tenant_owner: all privileges
             'tenant_owner' => array_keys($privMap),
@@ -218,21 +222,21 @@ class DemoDataSeeder extends Seeder
         echo "DemoDataSeeder: inserted " . count($rpRows) . " role-privilege mappings.\n";
 
         // -------------------------------------------------------
-        // 5. Demo owner user
+        // 5. Platform admin user (demo login)
         // -------------------------------------------------------
-        $ownerRoleId = $roleIds['tenant_owner'];
+        $platformAdminRoleId = $roleIds['platform_admin'];
         $this->db->table('users')->insert([
             'tenant_id'           => $tenantId,
-            'role_id'             => $ownerRoleId,
+            'role_id'             => $platformAdminRoleId,
             'employee_code'       => 'EMP-001',
-            'username'            => 'demo_owner',
+            'username'            => 'demo_admin',
             'email'               => 'demo@edcrm.in',
-            'first_name'          => 'Demo',
-            'last_name'           => 'Owner',
+            'first_name'          => 'Platform',
+            'last_name'           => 'Admin',
             'mobile_number'       => '+910000000000',
             'whatsapp_number'     => null,
-            'department'          => 'Management',
-            'designation'         => 'Owner',
+            'department'          => 'Platform',
+            'designation'         => 'Platform Admin',
             'password_hash'       => password_hash('Demo@1234', PASSWORD_BCRYPT),
             'is_active'           => 1,
             'must_reset_password' => 0,

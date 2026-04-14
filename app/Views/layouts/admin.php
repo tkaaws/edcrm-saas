@@ -85,7 +85,7 @@
         <div class="shell-main">
             <header class="shell-header">
                 <div>
-                    <p class="shell-header__eyebrow">Operations workspace</p>
+                    <p class="shell-header__eyebrow"><?= $isPlatformAdmin ? 'Platform administration' : 'Operations workspace' ?></p>
                     <h1 class="shell-header__title"><?= esc($pageTitle ?? ($title ?? 'Dashboard')) ?></h1>
                 </div>
 
