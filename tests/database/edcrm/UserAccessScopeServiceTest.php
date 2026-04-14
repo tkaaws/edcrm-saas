@@ -28,7 +28,7 @@ final class UserAccessScopeServiceTest extends CIUnitTestCase
         parent::tearDown();
     }
 
-    public function testTenantAdminFallsBackToTenantLevelScopesWhenLegacyDefaultsExist(): void
+    public function testTenantAdminCanGrantTenantBehaviorFromRole(): void
     {
         $tenantId = $this->getDemoTenantId();
         $branchId = $this->getDemoBranchId();
@@ -43,9 +43,6 @@ final class UserAccessScopeServiceTest extends CIUnitTestCase
             'first_name'          => 'Legacy',
             'last_name'           => 'Admin',
             'password_hash'       => password_hash('Demo@1234', PASSWORD_BCRYPT),
-            'data_scope'          => 'self',
-            'manage_scope'        => 'none',
-            'hierarchy_mode'      => 'hierarchy',
             'allow_impersonation' => 1,
             'is_active'           => 1,
             'must_reset_password' => 0,
@@ -70,9 +67,8 @@ final class UserAccessScopeServiceTest extends CIUnitTestCase
 
         $service = new UserAccessScopeService();
 
-        $this->assertContains('tenant', $service->getAllowedDataScopes());
-        $this->assertContains('tenant', $service->getAllowedManageScopes());
-        $this->assertTrue($service->canAssignScopes('tenant', 'tenant'));
+        $this->assertSame('tenant', $service->getActorAccessBehavior());
+        $this->assertTrue($service->canGrantRoleBehavior('tenant'));
     }
 
     public function testBranchManagerCanOnlyAssignUsersInsideOwnBranch(): void
@@ -91,6 +87,53 @@ final class UserAccessScopeServiceTest extends CIUnitTestCase
         $this->assertTrue($service->canAssignBranches([$managerBranchId]));
         $this->assertFalse($service->canAssignBranches([$secondBranchId]));
         $this->assertFalse($service->canAssignBranches([$managerBranchId, $secondBranchId]));
+    }
+
+    public function testHierarchyUserWithoutDownlineCanOnlyViewSelf(): void
+    {
+        $tenantId = $this->getDemoTenantId();
+        $branchId = $this->getDemoBranchId();
+        $roleId = $this->getRoleId('counsellor', $tenantId);
+
+        $this->db->table('users')->insert([
+            'tenant_id'           => $tenantId,
+            'role_id'             => $roleId,
+            'employee_code'       => 'CNS-001',
+            'username'            => 'solo_counsellor',
+            'email'               => 'solo-counsellor@demo.edcrm.in',
+            'first_name'          => 'Solo',
+            'last_name'           => 'Counsellor',
+            'password_hash'       => password_hash('Demo@1234', PASSWORD_BCRYPT),
+            'allow_impersonation' => 1,
+            'is_active'           => 1,
+            'must_reset_password' => 0,
+            'created_at'          => date('Y-m-d H:i:s'),
+            'updated_at'          => date('Y-m-d H:i:s'),
+        ]);
+        $userId = (int) $this->db->insertID();
+
+        $this->db->table('user_branches')->insert([
+            'user_id'    => $userId,
+            'branch_id'  => $branchId,
+            'is_primary' => 1,
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        $branchManagerId = $this->createBranchManager();
+        $targetManager = $this->db->table('users')->where('id', $branchManagerId)->get()->getRow();
+        $self = $this->db->table('users')->where('id', $userId)->get()->getRow();
+
+        session()->set([
+            'user_id'        => $userId,
+            'tenant_id'      => $tenantId,
+            'user_role_code' => 'counsellor',
+        ]);
+
+        $service = new UserAccessScopeService();
+
+        $this->assertTrue($service->canViewTargetUser($self));
+        $this->assertFalse($service->canViewTargetUser($targetManager));
     }
 
     public function testBranchManagerCannotManageTenantOwner(): void
@@ -141,9 +184,6 @@ final class UserAccessScopeServiceTest extends CIUnitTestCase
             'first_name'          => 'Branch',
             'last_name'           => 'Manager',
             'password_hash'       => password_hash('Demo@1234', PASSWORD_BCRYPT),
-            'data_scope'          => 'branch',
-            'manage_scope'        => 'branch',
-            'hierarchy_mode'      => 'hierarchy',
             'allow_impersonation' => 1,
             'is_active'           => 1,
             'must_reset_password' => 0,

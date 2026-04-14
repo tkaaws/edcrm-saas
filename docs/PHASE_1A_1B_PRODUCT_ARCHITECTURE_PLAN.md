@@ -1213,20 +1213,20 @@ On 2026-04-14 the next pre-Enquiry foundation slice moved from blueprint into im
   - `tenant_policy_overrides`
   - `impersonation_sessions`
 - `users` access metadata extended with:
-  - `data_scope`
-  - `manage_scope`
-  - `hierarchy_mode`
+  - `reports_to` relationships in `user_hierarchy`
+  - assigned branch coverage through `user_branches`
+  - role-driven `access_behavior` (`hierarchy`, `branch`, `tenant`)
   - `allow_impersonation`
 - `SettingsResolverService` added to centralize effective setting resolution
 - Tenant Settings v2 implemented with catalog-driven save flows
 - Branch Settings module implemented with branch override persistence
 - Platform Tenant Policy workspace implemented with lock-mode control
 - secure impersonation flow implemented with audit trail and return-to-original-account banner
-- user create/edit scope enforcement implemented for:
+- user create/edit access enforcement implemented for:
   - reporting head filtering
   - branch assignment filtering
-  - management scope checks
-  - target-user management checks
+  - role-behavior checks
+  - target-user management checks inside actor access boundaries
 - PHPUnit coverage now includes:
   - protected routes
   - auth database flows
@@ -1235,6 +1235,8 @@ On 2026-04-14 the next pre-Enquiry foundation slice moved from blueprint into im
   - route protection around impersonation and branch/platform policy surfaces
 
 This slice is intentionally foundation-first. UI tabs and runtime consumption come next, followed by Enquiry implementation on top of these resolved policies.
+
+Access control was later simplified again so normal user forms no longer expose manual `data_scope`, `manage_scope`, or `hierarchy_mode` choices. Visibility is now derived from the selected role's `access_behavior`, assigned branches, and reporting hierarchy.
 
 ### 11.4 Local database reminder
 

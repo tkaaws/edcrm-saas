@@ -31,6 +31,20 @@
             </label>
 
             <label class="field">
+                <span>Access behavior</span>
+                <select name="access_behavior" <?= (! empty($role) && $role->is_system) ? 'disabled' : '' ?>>
+                    <?php foreach (($allowedAccessBehaviors ?? []) as $behavior => $label): ?>
+                        <option value="<?= esc($behavior) ?>" <?= old('access_behavior', $role->access_behavior ?? 'hierarchy') === $behavior ? 'selected' : '' ?>>
+                            <?= esc($label) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (! empty($role) && $role->is_system): ?>
+                    <input type="hidden" name="access_behavior" value="<?= esc($role->access_behavior ?? 'hierarchy') ?>">
+                <?php endif; ?>
+            </label>
+
+            <label class="field">
                 <span>Status</span>
                 <select name="status">
                     <option value="active" <?= old('status', $role->status ?? 'active') === 'active' ? 'selected' : '' ?>>Active</option>
@@ -43,6 +57,10 @@
                 <input type="text" value="<?= (! empty($role) && $role->is_system) ? 'System role' : 'Custom role' ?>" readonly>
             </label>
         </div>
+
+        <p class="module-subtitle" style="margin-top:1rem;">
+            Reporting hierarchy means users see their own records and downline. Assigned branches means users see all data for the branches assigned to them. Full tenant visibility is reserved for trusted admin roles.
+        </p>
 
         <section class="form-card form-card--nested">
             <div class="module-toolbar">

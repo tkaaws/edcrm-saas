@@ -7,20 +7,10 @@ use App\Models\UserModel;
 
 class UserAccessScopeService
 {
-    protected const DATA_SCOPE_RANK = [
-        'self'   => 1,
-        'team'   => 2,
-        'branch' => 3,
-        'tenant' => 4,
-        'custom' => 5,
-    ];
-
-    protected const MANAGE_SCOPE_RANK = [
-        'none'      => 0,
-        'self_only' => 1,
-        'team'      => 2,
-        'branch'    => 3,
-        'tenant'    => 4,
+    protected const ACCESS_BEHAVIOR_RANK = [
+        'hierarchy' => 1,
+        'branch'    => 2,
+        'tenant'    => 3,
     ];
 
     protected UserModel $userModel;
@@ -47,59 +37,36 @@ class UserAccessScopeService
         return $this->userModel->withoutTenantScope()->find((int) $userId);
     }
 
-    /**
-     * @return list<string>
-     */
-    public function getAllowedDataScopes(): array
+    public function getActorAccessBehavior(): string
     {
         if ($this->isPlatformAdmin()) {
-            return array_keys(self::DATA_SCOPE_RANK);
+            return 'tenant';
         }
 
         $actor = $this->getActor();
         if (! $actor) {
-            return [];
+            return 'hierarchy';
         }
 
-        $effectiveScope = $this->getEffectiveDataScope($actor);
-        $maxRank = self::DATA_SCOPE_RANK[$effectiveScope] ?? 1;
-
-        return array_values(array_filter(
-            array_keys(self::DATA_SCOPE_RANK),
-            static fn(string $scope): bool => (self::DATA_SCOPE_RANK[$scope] ?? 0) <= $maxRank
-        ));
+        return $this->getRoleAccessBehaviorForUser($actor);
     }
 
-    /**
-     * @return list<string>
-     */
-    public function getAllowedManageScopes(): array
+    public function canGrantRoleBehavior(string $behavior): bool
     {
+        if (! isset(self::ACCESS_BEHAVIOR_RANK[$behavior])) {
+            return false;
+        }
+
         if ($this->isPlatformAdmin()) {
-            return array_keys(self::MANAGE_SCOPE_RANK);
+            return true;
         }
 
-        $actor = $this->getActor();
-        if (! $actor) {
-            return [];
-        }
+        $actorBehavior = $this->getActorAccessBehavior();
 
-        $effectiveScope = $this->getEffectiveManageScope($actor);
-        $maxRank = self::MANAGE_SCOPE_RANK[$effectiveScope] ?? 0;
-
-        return array_values(array_filter(
-            array_keys(self::MANAGE_SCOPE_RANK),
-            static fn(string $scope): bool => (self::MANAGE_SCOPE_RANK[$scope] ?? 0) <= $maxRank
-        ));
+        return (self::ACCESS_BEHAVIOR_RANK[$behavior] ?? 0) <= (self::ACCESS_BEHAVIOR_RANK[$actorBehavior] ?? 0);
     }
 
-    public function canAssignScopes(string $dataScope, string $manageScope): bool
-    {
-        return in_array($dataScope, $this->getAllowedDataScopes(), true)
-            && in_array($manageScope, $this->getAllowedManageScopes(), true);
-    }
-
-    public function canManageTargetUser(object $targetUser): bool
+    public function canViewTargetUser(object $targetUser): bool
     {
         if ($this->isPlatformAdmin()) {
             return true;
@@ -114,15 +81,21 @@ class UserAccessScopeService
             return false;
         }
 
-        $manageScope = $this->getEffectiveManageScope($actor);
-
-        return match ($manageScope) {
+        return match ($this->getActorAccessBehavior()) {
             'tenant' => true,
-            'branch' => $this->sharesPrimaryBranch((int) $actor->id, (int) $targetUser->id),
-            'team' => $this->isDirectReport((int) $targetUser->id, (int) $actor->id),
-            'self_only' => (int) $actor->id === (int) $targetUser->id,
+            'branch' => $this->sharesAnyAssignedBranch((int) $actor->id, (int) $targetUser->id),
+            'hierarchy' => (int) $actor->id === (int) $targetUser->id || $this->isInDownline((int) $targetUser->id, (int) $actor->id),
             default => false,
         };
+    }
+
+    public function canManageTargetUser(object $targetUser): bool
+    {
+        if (! $this->hasUserManagementPrivileges()) {
+            return false;
+        }
+
+        return $this->canViewTargetUser($targetUser);
     }
 
     /**
@@ -130,6 +103,10 @@ class UserAccessScopeService
      */
     public function canAssignBranches(array $branchIds): bool
     {
+        if ($branchIds === []) {
+            return false;
+        }
+
         if ($this->isPlatformAdmin()) {
             return true;
         }
@@ -139,22 +116,17 @@ class UserAccessScopeService
             return false;
         }
 
-        $manageScope = $this->getEffectiveManageScope($actor);
-        if ($manageScope === 'tenant') {
+        if ($this->getActorAccessBehavior() === 'tenant') {
             return true;
         }
 
-        $actorPrimaryBranch = $this->userModel->getPrimaryBranch((int) $actor->id);
-        if (! $actorPrimaryBranch) {
-            return false;
-        }
-
-        if (! in_array($manageScope, ['branch', 'team'], true)) {
+        $allowedBranchIds = $this->getAssignedBranchIds((int) $actor->id);
+        if ($allowedBranchIds === []) {
             return false;
         }
 
         foreach ($branchIds as $branchId) {
-            if ((int) $branchId !== (int) $actorPrimaryBranch->id) {
+            if (! in_array((int) $branchId, $allowedBranchIds, true)) {
                 return false;
             }
         }
@@ -182,10 +154,10 @@ class UserAccessScopeService
             return false;
         }
 
-        $manageScope = $this->getEffectiveManageScope($actor);
-        return match ($manageScope) {
+        return match ($this->getActorAccessBehavior()) {
             'tenant' => true,
-            'branch', 'team' => $this->sharesPrimaryBranch((int) $actor->id, $managerUserId),
+            'branch' => $this->sharesAnyAssignedBranch((int) $actor->id, $managerUserId),
+            'hierarchy' => $managerUserId === (int) $actor->id || $this->isInDownline($managerUserId, (int) $actor->id),
             default => false,
         };
     }
@@ -205,23 +177,15 @@ class UserAccessScopeService
             return [];
         }
 
-        $manageScope = $this->getEffectiveManageScope($actor);
-        if ($manageScope === 'tenant') {
+        if ($this->getActorAccessBehavior() === 'tenant') {
             return $branches;
         }
 
-        if (! in_array($manageScope, ['branch', 'team'], true)) {
-            return [];
-        }
-
-        $actorPrimaryBranch = $this->userModel->getPrimaryBranch((int) $actor->id);
-        if (! $actorPrimaryBranch) {
-            return [];
-        }
+        $assignedBranchIds = $this->getAssignedBranchIds((int) $actor->id);
 
         return array_values(array_filter(
             $branches,
-            static fn(object $branch): bool => (int) $branch->id === (int) $actorPrimaryBranch->id
+            static fn(object $branch): bool => in_array((int) $branch->id, $assignedBranchIds, true)
         ));
     }
 
@@ -242,78 +206,102 @@ class UserAccessScopeService
         ));
     }
 
-    protected function sharesPrimaryBranch(int $actorUserId, int $targetUserId): bool
+    public function hasUserManagementPrivileges(): bool
     {
-        $actorBranch = $this->userModel->getPrimaryBranch($actorUserId);
-        $targetBranch = $this->userModel->getPrimaryBranch($targetUserId);
+        if ($this->isPlatformAdmin()) {
+            return true;
+        }
 
-        if (! $actorBranch || ! $targetBranch) {
+        $codes = session()->get('user_privilege_codes') ?? [];
+        foreach (['users.create', 'users.edit', 'users.status'] as $code) {
+            if (in_array($code, $codes, true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function getRoleAccessBehaviorForUser(object $user): string
+    {
+        return $this->getRoleAccessBehaviorByRoleId((int) ($user->role_id ?? 0), isset($user->role_code) ? (string) $user->role_code : null);
+    }
+
+    protected function getRoleAccessBehaviorByRoleId(int $roleId, ?string $roleCode = null): string
+    {
+        if ($roleId < 1 && $roleCode === null) {
+            return 'hierarchy';
+        }
+
+        $builder = db_connect()->table('user_roles')->select('access_behavior, code');
+        if ($roleId > 0) {
+            $builder->where('id', $roleId);
+        } else {
+            $builder->where('code', $roleCode);
+        }
+
+        $row = $builder->get()->getRow();
+        $behavior = (string) ($row->access_behavior ?? '');
+        if (isset(self::ACCESS_BEHAVIOR_RANK[$behavior])) {
+            return $behavior;
+        }
+
+        return match ((string) ($row->code ?? $roleCode ?? '')) {
+            'tenant_owner', 'tenant_admin' => 'tenant',
+            'branch_manager', 'operations', 'accounts', 'placement', 'support_agent' => 'branch',
+            default => 'hierarchy',
+        };
+    }
+
+    /**
+     * @return list<int>
+     */
+    protected function getAssignedBranchIds(int $userId): array
+    {
+        $rows = $this->userModel->getBranches($userId);
+        return array_values(array_map(static fn(array $branch): int => (int) $branch['id'], $rows));
+    }
+
+    protected function sharesAnyAssignedBranch(int $actorUserId, int $targetUserId): bool
+    {
+        $actorBranchIds = $this->getAssignedBranchIds($actorUserId);
+        $targetBranchIds = $this->getAssignedBranchIds($targetUserId);
+
+        if ($actorBranchIds === [] || $targetBranchIds === []) {
             return false;
         }
 
-        return (int) $actorBranch->id === (int) $targetBranch->id;
-    }
-
-    protected function isDirectReport(int $userId, int $managerUserId): bool
-    {
-        $hierarchy = $this->userHierarchyModel->withoutTenantScope()
-                                              ->where('user_id', $userId)
-                                              ->first();
-
-        return $hierarchy && (int) $hierarchy->manager_user_id === $managerUserId;
-    }
-
-    protected function getEffectiveDataScope(object $user): string
-    {
-        $stored = (string) ($user->data_scope ?? '');
-        if ($stored !== '' && ! ($stored === 'self' && $this->shouldUseRoleFallback($user))) {
-            return $stored;
+        foreach ($targetBranchIds as $branchId) {
+            if (in_array($branchId, $actorBranchIds, true)) {
+                return true;
+            }
         }
 
-        return match ($this->getRoleCodeForUser($user)) {
-            'tenant_owner', 'tenant_admin' => 'tenant',
-            'branch_manager' => 'branch',
-            'operations', 'accounts', 'placement', 'faculty', 'support_agent' => 'branch',
-            default => $stored !== '' ? $stored : 'self',
-        };
+        return false;
     }
 
-    protected function getEffectiveManageScope(object $user): string
+    protected function isInDownline(int $userId, int $managerUserId): bool
     {
-        $stored = (string) ($user->manage_scope ?? '');
-        if ($stored !== '' && ! ($stored === 'none' && $this->shouldUseRoleFallback($user))) {
-            return $stored;
+        $guard = 0;
+        $currentUserId = $userId;
+
+        while ($guard < 25) {
+            $hierarchy = $this->userHierarchyModel->withoutTenantScope()
+                ->where('user_id', $currentUserId)
+                ->first();
+
+            if (! $hierarchy || $hierarchy->manager_user_id === null) {
+                return false;
+            }
+
+            if ((int) $hierarchy->manager_user_id === $managerUserId) {
+                return true;
+            }
+
+            $currentUserId = (int) $hierarchy->manager_user_id;
+            $guard++;
         }
 
-        return match ($this->getRoleCodeForUser($user)) {
-            'tenant_owner', 'tenant_admin' => 'tenant',
-            'branch_manager' => 'branch',
-            default => $stored !== '' ? $stored : 'none',
-        };
-    }
-
-    protected function shouldUseRoleFallback(object $user): bool
-    {
-        return ! isset($user->data_scope, $user->manage_scope)
-            || ((string) ($user->data_scope ?? 'self') === 'self' && (string) ($user->manage_scope ?? 'none') === 'none');
-    }
-
-    protected function getRoleCodeForUser(object $user): string
-    {
-        if (isset($user->role_code) && $user->role_code !== null) {
-            return (string) $user->role_code;
-        }
-
-        if ((int) ($user->role_id ?? 0) < 1) {
-            return '';
-        }
-
-        $row = db_connect()->table('user_roles')
-            ->select('code')
-            ->where('id', (int) $user->role_id)
-            ->get()
-            ->getRow();
-
-        return (string) ($row->code ?? '');
+        return false;
     }
 }

@@ -356,13 +356,10 @@ Fields:
 - created_at
 - updated_at
 
-### 4.6 users access additions
+### 4.6 user access model
 
-Add to users:
+Keep on users:
 
-- data_scope
-- manage_scope
-- hierarchy_mode
 - allow_impersonation
 
 Keep org chart in user_hierarchy:
@@ -370,6 +367,14 @@ Keep org chart in user_hierarchy:
 - user_id
 - manager_user_id
 - acting_manager_user_id
+
+Drive visibility from role-level `access_behavior`:
+
+- `hierarchy` -> self plus downline users
+- `branch` -> assigned branch coverage
+- `tenant` -> full tenant visibility
+
+Normal user administration should not expose free-form scope pickers. The selected role determines behavior, branch assignments define operational coverage, and `user_hierarchy` defines downline visibility for hierarchy-driven roles.
 
 ---
 

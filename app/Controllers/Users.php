@@ -34,7 +34,11 @@ class Users extends BaseController
     public function index(): string
     {
         $tenantId = (int) session()->get('tenant_id');
-        $users    = $this->userModel->getAdminGrid($tenantId);
+        $users    = array_values(array_filter(
+            $this->userModel->getAdminGrid($tenantId),
+            fn(object $user): bool => $this->userAccessScope->canViewTargetUser($user)
+        ));
+
         foreach ($users as $user) {
             $user->can_manage_target = $this->userAccessScope->canManageTargetUser($user);
         }
@@ -86,9 +90,6 @@ class Users extends BaseController
             'whatsapp_number'     => $data['whatsapp_number'],
             'department'          => $data['department'],
             'designation'         => $data['designation'],
-            'data_scope'          => $data['data_scope'],
-            'manage_scope'        => $data['manage_scope'],
-            'hierarchy_mode'      => $data['hierarchy_mode'],
             'allow_impersonation' => (int) $data['allow_impersonation'],
             'password_hash'       => password_hash($data['password'], PASSWORD_BCRYPT),
             'is_active'           => (int) $data['is_active'],
@@ -172,9 +173,6 @@ class Users extends BaseController
             'whatsapp_number'     => $data['whatsapp_number'],
             'department'          => $data['department'],
             'designation'         => $data['designation'],
-            'data_scope'          => $data['data_scope'],
-            'manage_scope'        => $data['manage_scope'],
-            'hierarchy_mode'      => $data['hierarchy_mode'],
             'allow_impersonation' => (int) $data['allow_impersonation'],
             'is_active'           => (int) $data['is_active'],
             'must_reset_password' => (int) $data['must_reset_password'],
@@ -242,9 +240,6 @@ class Users extends BaseController
             'whatsapp_number'     => trim((string) $this->request->getPost('whatsapp_number')),
             'department'          => trim((string) $this->request->getPost('department')),
             'designation'         => trim((string) $this->request->getPost('designation')),
-            'data_scope'          => (string) $this->request->getPost('data_scope'),
-            'manage_scope'        => (string) $this->request->getPost('manage_scope'),
-            'hierarchy_mode'      => (string) $this->request->getPost('hierarchy_mode'),
             'manager_user_id'     => (int) $this->request->getPost('manager_user_id'),
             'allow_impersonation' => $this->request->getPost('allow_impersonation') ? 1 : 0,
             'password'            => (string) $this->request->getPost('password'),
@@ -259,9 +254,6 @@ class Users extends BaseController
     protected function validateUserInput(array $data, int $tenantId, ?int $userId = null, bool $requirePassword = true): array
     {
         $errors = [];
-        $allowedDataScopes = ['self', 'team', 'branch', 'tenant', 'custom'];
-        $allowedManageScopes = ['none', 'self_only', 'team', 'branch', 'tenant'];
-        $allowedHierarchyModes = ['hierarchy', 'branch_flat'];
 
         if ($data['first_name'] === '') {
             $errors[] = 'First name is required.';
@@ -292,22 +284,6 @@ class Users extends BaseController
 
         if ($data['password'] !== '' && strlen($data['password']) < 8) {
             $errors[] = 'Password must be at least 8 characters.';
-        }
-
-        if (! in_array($data['data_scope'], $allowedDataScopes, true)) {
-            $errors[] = 'Choose a valid visibility scope.';
-        }
-
-        if (! in_array($data['manage_scope'], $allowedManageScopes, true)) {
-            $errors[] = 'Choose a valid management scope.';
-        }
-
-        if (! in_array($data['hierarchy_mode'], $allowedHierarchyModes, true)) {
-            $errors[] = 'Choose a valid access mode.';
-        }
-
-        if (! $this->userAccessScope->canAssignScopes($data['data_scope'], $data['manage_scope'])) {
-            $errors[] = 'You cannot assign visibility or management scopes broader than your own access.';
         }
 
         if ($data['primary_branch_id'] < 1 || ! in_array($data['primary_branch_id'], $data['branch_ids'], true)) {
@@ -414,8 +390,6 @@ class Users extends BaseController
             'roles'             => $roles,
             'branches'          => $assignableBranches,
             'managerUsers'      => $this->userAccessScope->getAllowedManagerOptions($tenantId, $ignoreUserId),
-            'allowedDataScopes' => $this->userAccessScope->getAllowedDataScopes(),
-            'allowedManageScopes' => $this->userAccessScope->getAllowedManageScopes(),
             'canSubmit'         => $roles !== [],
         ], $data));
     }

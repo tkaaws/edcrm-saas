@@ -17,6 +17,7 @@ class RoleModel extends BaseModel
         'tenant_id',
         'name',
         'code',
+        'access_behavior',
         'is_system',
         'status',
         'created_by',
@@ -24,9 +25,10 @@ class RoleModel extends BaseModel
     ];
 
     protected $validationRules = [
-        'name'   => 'required|min_length[2]|max_length[255]',
-        'code'   => 'required|min_length[2]|max_length[100]',
-        'status' => 'required|in_list[active,inactive]',
+        'name'            => 'required|min_length[2]|max_length[255]',
+        'code'            => 'required|min_length[2]|max_length[100]',
+        'access_behavior' => 'permit_empty|in_list[hierarchy,branch,tenant]',
+        'status'          => 'required|in_list[active,inactive]',
     ];
 
     public function getActiveRoles(): array

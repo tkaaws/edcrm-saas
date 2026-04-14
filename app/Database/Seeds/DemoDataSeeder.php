@@ -77,43 +77,45 @@ class DemoDataSeeder extends Seeder
             $platformRoleId = (int) $existingPlatformRole->id;
         } else {
             $this->db->table('user_roles')->insert([
-                'tenant_id'  => null,
-                'name'       => 'Platform Admin',
-                'code'       => 'platform_admin',
-                'is_system'  => 1,
-                'status'     => 'active',
-                'created_by' => null,
-                'updated_by' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tenant_id'        => null,
+                'name'             => 'Platform Admin',
+                'code'             => 'platform_admin',
+                'access_behavior'  => 'tenant',
+                'is_system'        => 1,
+                'status'           => 'active',
+                'created_by'       => null,
+                'updated_by'       => null,
+                'created_at'       => $now,
+                'updated_at'       => $now,
             ]);
             $platformRoleId = (int) $this->db->insertID();
         }
 
         $roleDefs = [
-            ['code' => 'tenant_owner',   'name' => 'Tenant Owner',   'is_system' => 1],
-            ['code' => 'tenant_admin',   'name' => 'Tenant Admin',   'is_system' => 1],
-            ['code' => 'branch_manager', 'name' => 'Branch Manager', 'is_system' => 1],
-            ['code' => 'counsellor',     'name' => 'Counsellor',     'is_system' => 1],
-            ['code' => 'accounts',       'name' => 'Accounts',       'is_system' => 1],
-            ['code' => 'operations',     'name' => 'Operations',     'is_system' => 1],
-            ['code' => 'placement',      'name' => 'Placement',      'is_system' => 1],
-            ['code' => 'faculty',        'name' => 'Faculty',        'is_system' => 1],
-            ['code' => 'support_agent',  'name' => 'Support Agent',  'is_system' => 1],
+            ['code' => 'tenant_owner',   'name' => 'Tenant Owner',   'is_system' => 1, 'access_behavior' => 'tenant'],
+            ['code' => 'tenant_admin',   'name' => 'Tenant Admin',   'is_system' => 1, 'access_behavior' => 'tenant'],
+            ['code' => 'branch_manager', 'name' => 'Branch Manager', 'is_system' => 1, 'access_behavior' => 'branch'],
+            ['code' => 'counsellor',     'name' => 'Counsellor',     'is_system' => 1, 'access_behavior' => 'hierarchy'],
+            ['code' => 'accounts',       'name' => 'Accounts',       'is_system' => 1, 'access_behavior' => 'branch'],
+            ['code' => 'operations',     'name' => 'Operations',     'is_system' => 1, 'access_behavior' => 'branch'],
+            ['code' => 'placement',      'name' => 'Placement',      'is_system' => 1, 'access_behavior' => 'branch'],
+            ['code' => 'faculty',        'name' => 'Faculty',        'is_system' => 1, 'access_behavior' => 'hierarchy'],
+            ['code' => 'support_agent',  'name' => 'Support Agent',  'is_system' => 1, 'access_behavior' => 'branch'],
         ];
 
         $roleIds = [];
         foreach ($roleDefs as $role) {
             $this->db->table('user_roles')->insert([
-                'tenant_id'  => $tenantId,
-                'name'       => $role['name'],
-                'code'       => $role['code'],
-                'is_system'  => $role['is_system'],
-                'status'     => 'active',
-                'created_by' => null,
-                'updated_by' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tenant_id'        => $tenantId,
+                'name'             => $role['name'],
+                'code'             => $role['code'],
+                'access_behavior'  => $role['access_behavior'],
+                'is_system'        => $role['is_system'],
+                'status'           => 'active',
+                'created_by'       => null,
+                'updated_by'       => null,
+                'created_at'       => $now,
+                'updated_at'       => $now,
             ]);
             $roleIds[$role['code']] = $this->db->insertID();
         }
@@ -208,9 +210,6 @@ class DemoDataSeeder extends Seeder
             'department'          => 'Platform',
             'designation'         => 'Platform Admin',
             'password_hash'       => password_hash('Demo@1234', PASSWORD_BCRYPT),
-            'data_scope'          => 'tenant',
-            'manage_scope'        => 'tenant',
-            'hierarchy_mode'      => 'branch_flat',
             'allow_impersonation' => 1,
             'is_active'           => 1,
             'must_reset_password' => 0,
@@ -236,9 +235,6 @@ class DemoDataSeeder extends Seeder
             'department'          => 'Management',
             'designation'         => 'Tenant Owner',
             'password_hash'       => password_hash('Demo@1234', PASSWORD_BCRYPT),
-            'data_scope'          => 'tenant',
-            'manage_scope'        => 'tenant',
-            'hierarchy_mode'      => 'branch_flat',
             'allow_impersonation' => 1,
             'is_active'           => 1,
             'must_reset_password' => 0,

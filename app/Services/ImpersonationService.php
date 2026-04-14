@@ -70,7 +70,7 @@ class ImpersonationService
             }
 
             if (! $this->userAccessScope->canManageTargetUser($target)) {
-                throw new RuntimeException('This user is outside your management scope.');
+                throw new RuntimeException('This user is outside your access boundary.');
             }
 
             if (! (bool) $this->settingsResolver->getEffectiveSetting((int) $target->tenant_id, null, 'tenant.security.allow_impersonation')) {

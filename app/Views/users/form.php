@@ -78,41 +78,6 @@
             </label>
 
             <label class="field">
-                <span>Access mode</span>
-                <select name="hierarchy_mode">
-                    <?php foreach (['hierarchy' => 'Hierarchy based', 'branch_flat' => 'Flat branch operations'] as $mode => $label): ?>
-                        <option value="<?= esc($mode) ?>" <?= old('hierarchy_mode', $user->hierarchy_mode ?? 'hierarchy') === $mode ? 'selected' : '' ?>>
-                            <?= esc($label) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
-
-            <label class="field">
-                <span>Visibility scope</span>
-                <select name="data_scope">
-                    <?php foreach (['self' => 'Self only', 'team' => 'Team', 'branch' => 'Branch', 'tenant' => 'Tenant', 'custom' => 'Custom'] as $scope => $label): ?>
-                        <?php if (! in_array($scope, $allowedDataScopes ?? [], true)) continue; ?>
-                        <option value="<?= esc($scope) ?>" <?= old('data_scope', $user->data_scope ?? 'self') === $scope ? 'selected' : '' ?>>
-                            <?= esc($label) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
-
-            <label class="field">
-                <span>Management scope</span>
-                <select name="manage_scope">
-                    <?php foreach (['none' => 'No user management', 'self_only' => 'Own profile only', 'team' => 'Team users', 'branch' => 'Branch users', 'tenant' => 'Tenant users'] as $scope => $label): ?>
-                        <?php if (! in_array($scope, $allowedManageScopes ?? [], true)) continue; ?>
-                        <option value="<?= esc($scope) ?>" <?= old('manage_scope', $user->manage_scope ?? 'none') === $scope ? 'selected' : '' ?>>
-                            <?= esc($label) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
-
-            <label class="field">
                 <span>Reports to</span>
                 <select name="manager_user_id">
                     <option value="">No reporting head</option>
@@ -123,6 +88,7 @@
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <small>For hierarchy roles, this defines who the user reports to. Branch and tenant roles use assigned branches or tenant-wide access from their role behavior.</small>
             </label>
 
             <label class="field field--full">
@@ -175,6 +141,10 @@
                 </label>
             </section>
         </div>
+
+        <p class="module-subtitle" style="margin-top:1rem;">
+            Access is now derived from the selected role. Hierarchy roles use reporting head relationships, branch roles use assigned branches, and tenant admin roles can see the full institute.
+        </p>
 
         <div class="form-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('users') ?>">Cancel</a>
