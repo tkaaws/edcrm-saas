@@ -227,7 +227,7 @@
 
         <h1>EDCRM SaaS Deploy Test</h1>
 
-        <h2>Auto deploy check: version 2 from GitHub Actions.</h2>
+        <h2>Auto deploy check: version 3 with migration pipeline validation.</h2>
 
     </div>
 
