@@ -41,6 +41,8 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->get('branches/(:num)/edit', 'Branches::edit/$1', ['filter' => ['feature:crm_core', 'privilege:branches.edit']]);
     $routes->post('branches/(:num)', 'Branches::update/$1', ['filter' => ['feature:crm_core', 'privilege:branches.edit']]);
     $routes->post('branches/(:num)/status', 'Branches::updateStatus/$1', ['filter' => ['feature:crm_core', 'privilege:branches.edit']]);
+    $routes->get('branches/(:num)/settings', 'BranchSettings::index/$1', ['filter' => ['feature:crm_core', 'privilege:branches.edit']]);
+    $routes->post('branches/(:num)/settings/(:segment)', 'BranchSettings::updateCategory/$1/$2', ['filter' => ['feature:crm_core', 'privilege:branches.edit']]);
 
     $routes->get('roles', 'Roles::index', ['filter' => ['feature:crm_core', 'privilege:roles.view']]);
     $routes->get('roles/create', 'Roles::create', ['filter' => ['feature:crm_core', 'privilege:roles.create']]);
@@ -55,6 +57,11 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->post('settings/catalog/(:segment)', 'Settings::updateCatalogCategory/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/email', 'Settings::updateEmailConfig', ['filter' => ['feature:crm_core', 'privilege:settings.smtp']]);
     $routes->post('settings/whatsapp', 'Settings::updateWhatsappConfig', ['filter' => ['feature:crm_core', 'privilege:settings.whatsapp']]);
+});
+
+$routes->group('impersonation', ['filter' => ['auth']], static function (RouteCollection $routes): void {
+    $routes->post('start/(:num)', 'Impersonation::start/$1');
+    $routes->post('stop', 'Impersonation::stop');
 });
 
 $routes->group('enquiries', ['filter' => ['auth', 'tenant', 'suspension', 'feature:crm_core']], static function (RouteCollection $routes): void {
@@ -86,8 +93,10 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->get('tenants/create', 'PlatformTenants::create');
     $routes->post('tenants', 'PlatformTenants::store');
     $routes->get('tenants/(:num)', 'PlatformTenants::show/$1');
+    $routes->get('tenants/(:num)/policy', 'PlatformTenantPolicies::index/$1');
     $routes->post('tenants/(:num)/status', 'PlatformTenants::updateStatus/$1');
     $routes->post('tenants/(:num)/plan', 'PlatformTenants::updatePlan/$1');
+    $routes->post('tenants/(:num)/policy/(:segment)/(:segment)', 'PlatformTenantPolicies::updateCategory/$1/$2/$3');
 
     $routes->get('tenants/(:num)/edit', 'PlatformTenants::edit/$1');
     $routes->post('tenants/(:num)/update', 'PlatformTenants::update/$1');

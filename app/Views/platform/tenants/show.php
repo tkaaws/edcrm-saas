@@ -8,6 +8,14 @@
             <p class="module-subtitle">Tenant profile, status control, and plan assignment.</p>
         </div>
         <div style="display:flex;gap:.5rem;">
+            <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id . '/policy') ?>">Policy</a>
+            <?php if (! empty($tenantOwnerUser) && (int) ($tenantOwnerUser->allow_impersonation ?? 1) === 1): ?>
+                <form method="post" action="<?= site_url('impersonation/start/' . $tenantOwnerUser->id) ?>">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="reason" value="Platform tenant support access">
+                    <button class="shell-button shell-button--ghost" type="submit">Login as owner</button>
+                </form>
+            <?php endif; ?>
             <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id . '/edit') ?>">Edit</a>
             <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants') ?>">Back</a>
         </div>

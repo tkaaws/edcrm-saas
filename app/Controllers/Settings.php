@@ -114,12 +114,15 @@ class Settings extends BaseController
     public function updateCatalogCategory(string $category)
     {
         $tenantId = (int) session()->get('tenant_id');
-        $definitions = $this->settingDefinitionModel
+        $definitions = array_values(array_filter(
+            $this->settingDefinitionModel
             ->where('scope', 'tenant')
             ->where('category', $category)
             ->where('is_active', 1)
             ->orderBy('sort_order', 'ASC')
-            ->findAll();
+            ->findAll(),
+            fn(object $definition): bool => $this->isDefinitionEnabledForTenant($tenantId, $definition)
+        ));
 
         if ($definitions === []) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
@@ -394,6 +397,10 @@ class Settings extends BaseController
                 ->where('is_active', 1)
                 ->orderBy('sort_order', 'ASC')
                 ->findAll();
+            $definitions = array_values(array_filter(
+                $definitions,
+                fn(object $definition): bool => $this->isDefinitionEnabledForTenant($tenantId, $definition)
+            ));
 
             $fields = [];
             foreach ($definitions as $definition) {
@@ -405,6 +412,10 @@ class Settings extends BaseController
                     'isLocked'   => $this->settingsResolver->isLockedForTenant($tenantId, $definition->key),
                     'options'    => $this->decodeOptions($definition->allowed_options_json),
                 ];
+            }
+
+            if ($fields === []) {
+                continue;
             }
 
             $sections[] = [
@@ -550,5 +561,13 @@ class Settings extends BaseController
         }
 
         return array_values(array_filter(array_map('strval', $decoded)));
+    }
+
+    protected function isDefinitionEnabledForTenant(int $tenantId, object $definition): bool
+    {
+        $moduleCode = (string) ($definition->module_code ?? 'crm_core');
+        return $moduleCode === '' || $moduleCode === 'crm_core'
+            ? true
+            : service('featureGate')->isEnabled($tenantId, $moduleCode);
     }
 }

@@ -5,6 +5,7 @@
     <?php $codes = session()->get('user_privilege_codes') ?? []; ?>
     <?php $canCreateUsers = in_array('users.create', $codes, true); ?>
     <?php $canEditUsers = in_array('users.edit', $codes, true); ?>
+    <?php $canImpersonateUsers = in_array('users.impersonate', $codes, true) || (($roleCode ?? '') === 'platform_admin'); ?>
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Tenant users</h2>
@@ -52,13 +53,20 @@
                         <td><?= esc($user->last_login_at ?? 'Never') ?></td>
                         <td class="data-table__actions">
                             <div class="table-actions">
-                                <?php if ($canEditUsers): ?>
+                                <?php if ($canEditUsers && ! empty($user->can_manage_target)): ?>
                                     <a class="shell-button shell-button--ghost" href="<?= site_url('users/' . $user->id . '/edit') ?>">Edit</a>
                                     <form method="post" action="<?= site_url('users/' . $user->id . '/status') ?>">
                                         <?= csrf_field() ?>
                                         <button class="shell-button shell-button--soft" type="submit">
                                             <?= $user->is_active ? 'Deactivate' : 'Activate' ?>
                                         </button>
+                                    </form>
+                                <?php endif; ?>
+                                <?php if ($canImpersonateUsers && ! empty($user->can_manage_target) && $user->is_active && (int) $user->id !== (int) session()->get('user_id') && (int) ($user->allow_impersonation ?? 1) === 1): ?>
+                                    <form method="post" action="<?= site_url('impersonation/start/' . $user->id) ?>">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="reason" value="Tenant support access">
+                                        <button class="shell-button shell-button--soft" type="submit">Login as</button>
                                     </form>
                                 <?php endif; ?>
                             </div>

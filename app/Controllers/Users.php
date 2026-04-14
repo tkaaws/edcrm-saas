@@ -8,6 +8,7 @@ use App\Models\UserModel;
 use App\Models\UserHierarchyModel;
 use App\Services\DelegationGuardService;
 use App\Services\UsageLimitService;
+use App\Services\UserAccessScopeService;
 
 class Users extends BaseController
 {
@@ -17,6 +18,7 @@ class Users extends BaseController
     protected UserHierarchyModel $userHierarchyModel;
     protected DelegationGuardService $delegationGuard;
     protected UsageLimitService $usageLimit;
+    protected UserAccessScopeService $userAccessScope;
 
     public function __construct()
     {
@@ -26,12 +28,16 @@ class Users extends BaseController
         $this->userHierarchyModel = new UserHierarchyModel();
         $this->delegationGuard = service('delegationGuard');
         $this->usageLimit = service('usageLimit');
+        $this->userAccessScope = service('userAccessScope');
     }
 
     public function index(): string
     {
         $tenantId = (int) session()->get('tenant_id');
         $users    = $this->userModel->getAdminGrid($tenantId);
+        foreach ($users as $user) {
+            $user->can_manage_target = $this->userAccessScope->canManageTargetUser($user);
+        }
 
         return view('users/index', $this->buildShellViewData([
             'title'      => 'Users',
@@ -107,6 +113,10 @@ class Users extends BaseController
             return redirect()->to('/users')->with('error', 'You cannot manage a user whose role is outside your delegation scope.');
         }
 
+        if (! $this->userAccessScope->canManageTargetUser($user)) {
+            return redirect()->to('/users')->with('error', 'You cannot manage a user outside your access scope.');
+        }
+
         $hierarchy = $this->userHierarchyModel->findByUser($id);
         $branches = $this->userModel->getBranches($id);
         $userBranchIds = array_map(static fn(array $branch) => (int) $branch['id'], $branches);
@@ -135,6 +145,10 @@ class Users extends BaseController
 
         if (! $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $user->role_id)) {
             return redirect()->to('/users')->with('error', 'You cannot manage a user whose role is outside your delegation scope.');
+        }
+
+        if (! $this->userAccessScope->canManageTargetUser($user)) {
+            return redirect()->to('/users')->with('error', 'You cannot manage a user outside your access scope.');
         }
 
         $data = $this->collectPayload();
@@ -191,6 +205,10 @@ class Users extends BaseController
 
         if (! $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $user->role_id)) {
             return redirect()->to('/users')->with('error', 'You cannot manage a user whose role is outside your delegation scope.');
+        }
+
+        if (! $this->userAccessScope->canManageTargetUser($user)) {
+            return redirect()->to('/users')->with('error', 'You cannot manage a user outside your access scope.');
         }
 
         $role = $this->roleModel->findForTenant((int) $user->role_id);
@@ -288,8 +306,16 @@ class Users extends BaseController
             $errors[] = 'Choose a valid access mode.';
         }
 
+        if (! $this->userAccessScope->canAssignScopes($data['data_scope'], $data['manage_scope'])) {
+            $errors[] = 'You cannot assign visibility or management scopes broader than your own access.';
+        }
+
         if ($data['primary_branch_id'] < 1 || ! in_array($data['primary_branch_id'], $data['branch_ids'], true)) {
             $errors[] = 'Choose at least one branch and select a matching primary branch.';
+        }
+
+        if (! $this->userAccessScope->canAssignBranches($data['branch_ids'])) {
+            $errors[] = 'You can only assign branches inside your allowed management scope.';
         }
 
         $activeBranchIds = array_map(
@@ -321,6 +347,8 @@ class Users extends BaseController
                 $errors[] = 'Reporting head must be active.';
             } elseif ($userId !== null && $data['manager_user_id'] === $userId) {
                 $errors[] = 'A user cannot report to themselves.';
+            } elseif (! $this->userAccessScope->canAssignManager($data['manager_user_id'])) {
+                $errors[] = 'Reporting head must be inside your allowed management scope.';
             }
         }
 
@@ -379,13 +407,16 @@ class Users extends BaseController
         $tenantId = (int) session()->get('tenant_id');
         $roles = $this->delegationGuard->getAssignableRolesForTenant($tenantId);
         $ignoreUserId = isset($data['user']->id) ? (int) $data['user']->id : null;
+        $assignableBranches = $this->userAccessScope->filterAssignableBranches($this->branchModel->getActiveBranches());
 
         return $this->buildShellViewData(array_merge([
-            'activeNav' => 'users',
-            'roles'        => $roles,
-            'branches'     => $this->branchModel->getActiveBranches(),
-            'managerUsers' => $this->userModel->getManagerOptions($tenantId, $ignoreUserId),
-            'canSubmit'    => $roles !== [],
+            'activeNav'         => 'users',
+            'roles'             => $roles,
+            'branches'          => $assignableBranches,
+            'managerUsers'      => $this->userAccessScope->getAllowedManagerOptions($tenantId, $ignoreUserId),
+            'allowedDataScopes' => $this->userAccessScope->getAllowedDataScopes(),
+            'allowedManageScopes' => $this->userAccessScope->getAllowedManageScopes(),
+            'canSubmit'         => $roles !== [],
         ], $data));
     }
 }

@@ -95,6 +95,15 @@ class PlatformTenants extends BaseController
         $subscription = $this->getCurrentSubscriptionForTenant($id);
         $userCount    = $db->table('users')->where('tenant_id', $id)->countAllResults();
         $branchCount  = $db->table('tenant_branches')->where('tenant_id', $id)->countAllResults();
+        $tenantOwnerUser = $db->table('users')
+            ->select('users.*')
+            ->join('user_roles', 'user_roles.id = users.role_id', 'inner')
+            ->where('users.tenant_id', $id)
+            ->where('users.is_active', 1)
+            ->where('user_roles.code', 'tenant_owner')
+            ->orderBy('users.id', 'ASC')
+            ->get()
+            ->getRow();
 
         return view('platform/tenants/show', $this->buildShellViewData([
             'title'       => 'Tenant - ' . esc($tenant->name),
@@ -107,6 +116,7 @@ class PlatformTenants extends BaseController
             'subscription'=> $subscription,
             'userCount'   => $userCount,
             'branchCount' => $branchCount,
+            'tenantOwnerUser' => $tenantOwnerUser,
             'plans'       => $this->planModel->getAllActivePlans(),
         ]));
     }

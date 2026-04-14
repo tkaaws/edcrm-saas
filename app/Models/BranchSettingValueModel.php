@@ -24,4 +24,33 @@ class BranchSettingValueModel extends BaseModel
                     ->where('key', $key)
                     ->first();
     }
+
+    public function upsertValue(int $tenantId, int $branchId, string $key, mixed $value, string $valueType = 'string'): void
+    {
+        $storedValue = match ($valueType) {
+            'bool', 'boolean' => $value ? '1' : '0',
+            'json', 'array', 'object' => json_encode($value),
+            default => $value === null ? null : (string) $value,
+        };
+
+        $existing = $this->withoutTenantScope()
+                         ->where('branch_id', $branchId)
+                         ->where('key', $key)
+                         ->first();
+
+        $payload = [
+            'tenant_id'  => $tenantId,
+            'branch_id'  => $branchId,
+            'key'        => $key,
+            'value'      => $storedValue,
+            'value_type' => $valueType,
+        ];
+
+        if ($existing) {
+            $this->updateWithActor((int) $existing->id, $payload);
+            return;
+        }
+
+        $this->insertWithActor($payload);
+    }
 }

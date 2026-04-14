@@ -19,6 +19,7 @@ class PrivilegesSeeder extends Seeder
             ['code' => 'users.create', 'name' => 'Create Users', 'module' => 'users'],
             ['code' => 'users.edit',   'name' => 'Edit Users',   'module' => 'users'],
             ['code' => 'users.delete', 'name' => 'Delete Users', 'module' => 'users'],
+            ['code' => 'users.impersonate', 'name' => 'Impersonate Users', 'module' => 'users'],
 
             // -------------------------------------------------------
             // MODULE: branches
@@ -143,17 +144,22 @@ class PrivilegesSeeder extends Seeder
             ['code' => 'audit.view', 'name' => 'View Audit Logs', 'module' => 'audit'],
         ];
 
-        foreach ($privileges as &$p) {
-            $p['created_at'] = $now;
-            $p['updated_at'] = $now;
-        }
+        foreach ($privileges as $privilege) {
+            $existing = $this->db->table('privileges')
+                ->where('code', $privilege['code'])
+                ->get()
+                ->getRow();
 
-        // Insert in chunks — skip if already seeded
-        $existing = $this->db->table('privileges')->countAllResults();
-        if ($existing > 0) {
-            return;
-        }
+            $payload = $privilege + ['updated_at' => $now];
 
-        $this->db->table('privileges')->insertBatch($privileges);
+            if ($existing) {
+                $this->db->table('privileges')
+                    ->where('id', $existing->id)
+                    ->update($payload);
+                continue;
+            }
+
+            $this->db->table('privileges')->insert($payload + ['created_at' => $now]);
+        }
     }
 }

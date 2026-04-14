@@ -92,6 +92,7 @@
                 <span>Visibility scope</span>
                 <select name="data_scope">
                     <?php foreach (['self' => 'Self only', 'team' => 'Team', 'branch' => 'Branch', 'tenant' => 'Tenant', 'custom' => 'Custom'] as $scope => $label): ?>
+                        <?php if (! in_array($scope, $allowedDataScopes ?? [], true)) continue; ?>
                         <option value="<?= esc($scope) ?>" <?= old('data_scope', $user->data_scope ?? 'self') === $scope ? 'selected' : '' ?>>
                             <?= esc($label) ?>
                         </option>
@@ -103,6 +104,7 @@
                 <span>Management scope</span>
                 <select name="manage_scope">
                     <?php foreach (['none' => 'No user management', 'self_only' => 'Own profile only', 'team' => 'Team users', 'branch' => 'Branch users', 'tenant' => 'Tenant users'] as $scope => $label): ?>
+                        <?php if (! in_array($scope, $allowedManageScopes ?? [], true)) continue; ?>
                         <option value="<?= esc($scope) ?>" <?= old('manage_scope', $user->manage_scope ?? 'none') === $scope ? 'selected' : '' ?>>
                             <?= esc($label) ?>
                         </option>

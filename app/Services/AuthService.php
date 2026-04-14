@@ -136,6 +136,24 @@ class AuthService
         $this->permissionService->loadForRole($user->role_id);
     }
 
+    /**
+     * Re-establish a full authenticated session for a given user.
+     * Used by controlled impersonation flows and session restoration.
+     */
+    public function establishSessionForUserId(int $userId): void
+    {
+        $user = $this->db->table('users')
+                         ->where('id', $userId)
+                         ->get()
+                         ->getRow();
+
+        if (! $user) {
+            throw new \RuntimeException('Unable to establish session: user not found.');
+        }
+
+        $this->buildSession($user, $user->tenant_id !== null ? (int) $user->tenant_id : null);
+    }
+
     // ---------------------------------------------------------------
     // LOGOUT
     // ---------------------------------------------------------------

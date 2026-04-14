@@ -15,6 +15,8 @@ use App\Services\FeatureGateService;
 use App\Services\UsageLimitService;
 use App\Services\DelegationGuardService;
 use App\Services\SettingsResolverService;
+use App\Services\UserAccessScopeService;
+use App\Services\ImpersonationService;
 
 /**
  * Services Configuration
@@ -160,5 +162,21 @@ class Services extends BaseService
             return static::getSharedInstance('settingsResolver');
         }
         return new SettingsResolverService();
+    }
+
+    public static function userAccessScope(bool $getShared = true): UserAccessScopeService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('userAccessScope');
+        }
+        return new UserAccessScopeService();
+    }
+
+    public static function impersonation(bool $getShared = true): ImpersonationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('impersonation');
+        }
+        return new ImpersonationService();
     }
 }

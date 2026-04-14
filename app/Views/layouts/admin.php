@@ -121,6 +121,25 @@
                 </div>
             <?php endif; ?>
 
+            <?php if (session()->get('impersonation_active')): ?>
+                <div class="shell-alert shell-alert--warning" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+                    <div>
+                        <strong>Impersonation active.</strong>
+                        You are viewing the workspace as <?= esc($userDisplayName ?? 'target user') ?>.
+                        <?php if (session()->get('impersonation_actor_name')): ?>
+                            Original account: <?= esc((string) session()->get('impersonation_actor_name')) ?>.
+                        <?php endif; ?>
+                        <?php if (session()->get('impersonation_reason')): ?>
+                            Reason: <?= esc((string) session()->get('impersonation_reason')) ?>.
+                        <?php endif; ?>
+                    </div>
+                    <form method="post" action="<?= site_url('impersonation/stop') ?>" style="margin:0;">
+                        <?= csrf_field() ?>
+                        <button class="shell-button shell-button--ghost" type="submit">Return to my account</button>
+                    </form>
+                </div>
+            <?php endif; ?>
+
             <?php $accessWarning = session()->getFlashdata('access_warning_context'); ?>
             <?php if ($accessWarning === 'grace'): ?>
                 <div class="shell-alert shell-alert--warning">

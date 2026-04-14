@@ -2,12 +2,17 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
+    <?php $codes = session()->get('user_privilege_codes') ?? []; ?>
+    <?php $canCreateBranches = in_array('branches.create', $codes, true); ?>
+    <?php $canEditBranches = in_array('branches.edit', $codes, true); ?>
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Tenant branches</h2>
             <p class="module-subtitle">Manage institute locations, region-specific settings, and branch availability.</p>
         </div>
-        <a class="shell-button shell-button--primary" href="<?= site_url('branches/create') ?>">Create branch</a>
+        <?php if ($canCreateBranches): ?>
+            <a class="shell-button shell-button--primary" href="<?= site_url('branches/create') ?>">Create branch</a>
+        <?php endif; ?>
     </div>
 
     <div class="table-card">
@@ -49,13 +54,16 @@
                         </td>
                         <td class="data-table__actions">
                             <div class="table-actions">
-                                <a class="shell-button shell-button--ghost" href="<?= site_url('branches/' . $branch->id . '/edit') ?>">Edit</a>
-                                <form method="post" action="<?= site_url('branches/' . $branch->id . '/status') ?>">
-                                    <?= csrf_field() ?>
-                                    <button class="shell-button shell-button--soft" type="submit">
-                                        <?= $branch->status === 'active' ? 'Deactivate' : 'Activate' ?>
-                                    </button>
-                                </form>
+                                <?php if ($canEditBranches): ?>
+                                    <a class="shell-button shell-button--ghost" href="<?= site_url('branches/' . $branch->id . '/settings') ?>">Settings</a>
+                                    <a class="shell-button shell-button--ghost" href="<?= site_url('branches/' . $branch->id . '/edit') ?>">Edit</a>
+                                    <form method="post" action="<?= site_url('branches/' . $branch->id . '/status') ?>">
+                                        <?= csrf_field() ?>
+                                        <button class="shell-button shell-button--soft" type="submit">
+                                            <?= $branch->status === 'active' ? 'Deactivate' : 'Activate' ?>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>
