@@ -2,25 +2,34 @@
 
 namespace App\Controllers;
 
+use App\Models\SettingDefinitionModel;
 use App\Models\TenantEmailConfigModel;
 use App\Models\TenantModel;
+use App\Models\TenantSettingValueModel;
 use App\Models\TenantSettingsModel;
 use App\Models\TenantWhatsappConfigModel;
+use App\Services\SettingsResolverService;
 use Config\Encryption;
 
 class Settings extends BaseController
 {
     protected TenantModel $tenantModel;
     protected TenantSettingsModel $tenantSettingsModel;
+    protected TenantSettingValueModel $tenantSettingValueModel;
     protected TenantEmailConfigModel $tenantEmailConfigModel;
     protected TenantWhatsappConfigModel $tenantWhatsappConfigModel;
+    protected SettingDefinitionModel $settingDefinitionModel;
+    protected SettingsResolverService $settingsResolver;
 
     public function __construct()
     {
         $this->tenantModel = new TenantModel();
         $this->tenantSettingsModel = new TenantSettingsModel();
+        $this->tenantSettingValueModel = new TenantSettingValueModel();
         $this->tenantEmailConfigModel = new TenantEmailConfigModel();
         $this->tenantWhatsappConfigModel = new TenantWhatsappConfigModel();
+        $this->settingDefinitionModel = new SettingDefinitionModel();
+        $this->settingsResolver = service('settingsResolver');
     }
 
     public function index(): string
@@ -39,6 +48,7 @@ class Settings extends BaseController
             'settings'       => $settings,
             'emailConfig'    => $this->decorateEmailConfig($emailConfig),
             'whatsappConfig' => $this->decorateWhatsappConfig($whatsappConfig),
+            'catalogSections' => $this->buildCatalogSections($tenantId),
         ]));
     }
 
@@ -80,12 +90,12 @@ class Settings extends BaseController
         $data = [
             'tenant_id'                 => $tenantId,
             'branding_name'             => trim((string) $this->request->getPost('branding_name')),
-            'default_timezone'          => trim((string) $this->request->getPost('default_timezone')),
-            'default_currency_code'     => strtoupper(trim((string) $this->request->getPost('default_currency_code'))),
-            'locale_code'               => trim((string) $this->request->getPost('locale_code')),
-            'branch_visibility_mode'    => (string) $this->request->getPost('branch_visibility_mode'),
-            'enquiry_visibility_mode'   => (string) $this->request->getPost('enquiry_visibility_mode'),
-            'admission_visibility_mode' => (string) $this->request->getPost('admission_visibility_mode'),
+            'default_timezone'          => $settings->default_timezone ?? null,
+            'default_currency_code'     => $settings->default_currency_code ?? null,
+            'locale_code'               => $settings->locale_code ?? null,
+            'branch_visibility_mode'    => $settings->branch_visibility_mode ?? 'restricted',
+            'enquiry_visibility_mode'   => $settings->enquiry_visibility_mode ?? 'restricted',
+            'admission_visibility_mode' => $settings->admission_visibility_mode ?? 'restricted',
         ];
 
         if ($errors = $this->validatePreferencesInput($data)) {
@@ -99,6 +109,63 @@ class Settings extends BaseController
         }
 
         return redirect()->to('/settings')->with('message', 'Tenant preferences updated successfully.');
+    }
+
+    public function updateCatalogCategory(string $category)
+    {
+        $tenantId = (int) session()->get('tenant_id');
+        $definitions = $this->settingDefinitionModel
+            ->where('scope', 'tenant')
+            ->where('category', $category)
+            ->where('is_active', 1)
+            ->orderBy('sort_order', 'ASC')
+            ->findAll();
+
+        if ($definitions === []) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $errors = [];
+        $resolvedValues = [];
+
+        foreach ($definitions as $definition) {
+            if ($this->settingsResolver->isLockedForTenant($tenantId, $definition->key)) {
+                continue;
+            }
+
+            $formKey = $this->fieldNameForKey($definition->key);
+            $rawValue = $this->request->getPost($formKey);
+            $normalized = $this->normalizeDefinitionInput($definition, $rawValue);
+
+            $fieldErrors = $this->validateDefinitionValue($definition, $normalized);
+            if ($fieldErrors !== []) {
+                $errors = array_merge($errors, $fieldErrors);
+                continue;
+            }
+
+            $resolvedValues[$definition->key] = $normalized;
+        }
+
+        if ($errors !== []) {
+            return redirect()->back()->withInput()->with('error', implode(' ', $errors));
+        }
+
+        foreach ($definitions as $definition) {
+            if (! array_key_exists($definition->key, $resolvedValues)) {
+                continue;
+            }
+
+            $this->tenantSettingValueModel->upsertValue(
+                $tenantId,
+                $definition->key,
+                $resolvedValues[$definition->key],
+                (string) $definition->value_type
+            );
+        }
+
+        $this->syncLegacySettings($tenantId, $category, $resolvedValues);
+
+        return redirect()->to('/settings')->with('message', ucfirst($category) . ' settings updated successfully.');
     }
 
     public function updateEmailConfig()
@@ -201,7 +268,6 @@ class Settings extends BaseController
     protected function validatePreferencesInput(array $data): array
     {
         $errors = [];
-        $allowedModes = ['own', 'restricted', 'all'];
 
         if ($data['branding_name'] === '') {
             $errors[] = 'Branding name is required.';
@@ -213,12 +279,6 @@ class Settings extends BaseController
 
         if ($data['default_currency_code'] !== '' && (strlen($data['default_currency_code']) !== 3 || ! ctype_alpha($data['default_currency_code']))) {
             $errors[] = 'Default currency code must be a 3-letter currency code.';
-        }
-
-        if (! in_array($data['branch_visibility_mode'], $allowedModes, true)
-            || ! in_array($data['enquiry_visibility_mode'], $allowedModes, true)
-            || ! in_array($data['admission_visibility_mode'], $allowedModes, true)) {
-            $errors[] = 'Visibility modes must use own, restricted, or all.';
         }
 
         return $errors;
@@ -299,5 +359,196 @@ class Settings extends BaseController
 
         $config->has_api_key = $config->api_key_encrypted !== null && $config->api_key_encrypted !== '';
         return $config;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildCatalogSections(int $tenantId): array
+    {
+        $sectionMeta = [
+            'regional' => [
+                'title' => 'Regional defaults',
+                'subtitle' => 'Timezone, currency, locale, and calendar defaults for the institute.',
+            ],
+            'visibility' => [
+                'title' => 'Visibility policy',
+                'subtitle' => 'Control how records are visible across branches, teams, and expired pipelines.',
+            ],
+            'security' => [
+                'title' => 'Security policy',
+                'subtitle' => 'Password, session, and impersonation rules for tenant users.',
+            ],
+            'enquiry' => [
+                'title' => 'Enquiry policy',
+                'subtitle' => 'Expiry, duplicate handling, assignment, and lifecycle defaults for Enquiry.',
+            ],
+        ];
+
+        $sections = [];
+
+        foreach ($sectionMeta as $category => $meta) {
+            $definitions = $this->settingDefinitionModel
+                ->where('scope', 'tenant')
+                ->where('category', $category)
+                ->where('is_active', 1)
+                ->orderBy('sort_order', 'ASC')
+                ->findAll();
+
+            $fields = [];
+            foreach ($definitions as $definition) {
+                $fields[] = [
+                    'definition' => $definition,
+                    'formKey'    => $this->fieldNameForKey($definition->key),
+                    'value'      => $this->settingsResolver->getEffectiveSetting($tenantId, null, $definition->key),
+                    'lockMode'   => $this->settingsResolver->getLockModeForTenant($tenantId, $definition->key),
+                    'isLocked'   => $this->settingsResolver->isLockedForTenant($tenantId, $definition->key),
+                    'options'    => $this->decodeOptions($definition->allowed_options_json),
+                ];
+            }
+
+            $sections[] = [
+                'category' => $category,
+                'title' => $meta['title'],
+                'subtitle' => $meta['subtitle'],
+                'fields' => $fields,
+            ];
+        }
+
+        return $sections;
+    }
+
+    protected function fieldNameForKey(string $key): string
+    {
+        return str_replace(['.', '-'], '__', $key);
+    }
+
+    protected function normalizeDefinitionInput(object $definition, mixed $rawValue): mixed
+    {
+        return match ((string) $definition->value_type) {
+            'int', 'integer' => $rawValue === '' || $rawValue === null ? null : (int) $rawValue,
+            'bool', 'boolean' => in_array((string) $rawValue, ['1', 'true', 'on', 'yes'], true),
+            'json', 'array', 'object' => $this->normalizeListInput((string) $rawValue),
+            default => trim((string) $rawValue),
+        };
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function validateDefinitionValue(object $definition, mixed $value): array
+    {
+        $errors = [];
+        $options = $this->decodeOptions($definition->allowed_options_json);
+
+        if ($options !== [] && ! in_array((string) $value, $options, true)) {
+            $errors[] = $definition->label . ' must use one of the allowed values.';
+        }
+
+        if ((string) $definition->value_type === 'string' && str_contains($definition->key, 'timezone') && $value !== '' && ! in_array((string) $value, timezone_identifiers_list(), true)) {
+            $errors[] = $definition->label . ' must be a valid timezone.';
+        }
+
+        if (str_contains($definition->key, 'currency') && $value !== '' && (! is_string($value) || strlen($value) !== 3 || ! ctype_alpha($value))) {
+            $errors[] = $definition->label . ' must be a 3-letter currency code.';
+        }
+
+        if (str_contains($definition->key, 'locale') && $value !== '' && ! is_string($value)) {
+            $errors[] = $definition->label . ' must be a valid locale code.';
+        }
+
+        if (in_array((string) $definition->value_type, ['int', 'integer'], true) && $value !== null && $value < 0) {
+            $errors[] = $definition->label . ' cannot be negative.';
+        }
+
+        return $errors;
+    }
+
+    protected function syncLegacySettings(int $tenantId, string $category, array $values): void
+    {
+        if ($category === 'regional') {
+            $tenantUpdate = [];
+            $settingsUpdate = ['tenant_id' => $tenantId];
+
+            if (isset($values['tenant.regional.timezone'])) {
+                $tenantUpdate['default_timezone'] = $values['tenant.regional.timezone'];
+                $settingsUpdate['default_timezone'] = $values['tenant.regional.timezone'];
+            }
+
+            if (isset($values['tenant.regional.currency'])) {
+                $tenantUpdate['default_currency_code'] = strtoupper((string) $values['tenant.regional.currency']);
+                $settingsUpdate['default_currency_code'] = strtoupper((string) $values['tenant.regional.currency']);
+            }
+
+            if (isset($values['tenant.regional.locale'])) {
+                $tenantUpdate['locale_code'] = (string) $values['tenant.regional.locale'];
+                $settingsUpdate['locale_code'] = (string) $values['tenant.regional.locale'];
+            }
+
+            if ($tenantUpdate !== []) {
+                $this->tenantModel->update($tenantId, $tenantUpdate);
+            }
+
+            if (count($settingsUpdate) > 1) {
+                $this->upsertStructuredTenantSettings($tenantId, $settingsUpdate);
+            }
+        }
+
+        if ($category === 'visibility') {
+            $settingsUpdate = ['tenant_id' => $tenantId];
+
+            if (isset($values['tenant.visibility.branch_mode'])) {
+                $settingsUpdate['branch_visibility_mode'] = (string) $values['tenant.visibility.branch_mode'];
+            }
+
+            if (isset($values['tenant.visibility.enquiry_mode'])) {
+                $settingsUpdate['enquiry_visibility_mode'] = (string) $values['tenant.visibility.enquiry_mode'];
+            }
+
+            if ($settingsUpdate !== ['tenant_id' => $tenantId]) {
+                $this->upsertStructuredTenantSettings($tenantId, $settingsUpdate);
+            }
+        }
+    }
+
+    protected function upsertStructuredTenantSettings(int $tenantId, array $data): void
+    {
+        $settings = $this->tenantSettingsModel->findByTenant($tenantId);
+
+        if ($settings) {
+            $this->tenantSettingsModel->updateWithActor((int) $settings->id, $data);
+            return;
+        }
+
+        $this->tenantSettingsModel->insertWithActor($data);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function normalizeListInput(string $rawValue): array
+    {
+        $parts = preg_split('/[\r\n,]+/', $rawValue) ?: [];
+        $parts = array_map(static fn(string $item): string => trim($item), $parts);
+        $parts = array_filter($parts, static fn(string $item): bool => $item !== '');
+
+        return array_values(array_unique($parts));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function decodeOptions(?string $json): array
+    {
+        if (! $json) {
+            return [];
+        }
+
+        $decoded = json_decode($json, true);
+        if (! is_array($decoded)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('strval', $decoded)));
     }
 }

@@ -52,6 +52,7 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->get('settings', 'Settings::index', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
     $routes->post('settings/profile', 'Settings::updateProfile', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/preferences', 'Settings::updatePreferences', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
+    $routes->post('settings/catalog/(:segment)', 'Settings::updateCatalogCategory/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/email', 'Settings::updateEmailConfig', ['filter' => ['feature:crm_core', 'privilege:settings.smtp']]);
     $routes->post('settings/whatsapp', 'Settings::updateWhatsappConfig', ['filter' => ['feature:crm_core', 'privilege:settings.whatsapp']]);
 });

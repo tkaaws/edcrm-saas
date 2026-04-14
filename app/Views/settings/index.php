@@ -71,8 +71,8 @@
             <?= csrf_field() ?>
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Branding and visibility</h3>
-                    <p class="module-subtitle">Control tenant-facing branding defaults and branch-level visibility behavior.</p>
+                    <h3 class="module-title module-title--small">Branding</h3>
+                    <p class="module-subtitle">Control tenant-facing brand identity for the institute workspace.</p>
                 </div>
             </div>
 
@@ -81,54 +81,77 @@
                     <span>Branding name</span>
                     <input type="text" name="branding_name" value="<?= esc(old('branding_name', $settings->branding_name ?? '')) ?>">
                 </label>
-                <label class="field">
-                    <span>Default timezone</span>
-                    <input type="text" name="default_timezone" value="<?= esc(old('default_timezone', $settings->default_timezone ?? ($tenant->default_timezone ?? 'UTC'))) ?>">
-                </label>
-                <label class="field">
-                    <span>Default currency code</span>
-                    <input type="text" name="default_currency_code" value="<?= esc(old('default_currency_code', $settings->default_currency_code ?? ($tenant->default_currency_code ?? 'USD'))) ?>">
-                </label>
-                <label class="field">
-                    <span>Locale code</span>
-                    <input type="text" name="locale_code" value="<?= esc(old('locale_code', $settings->locale_code ?? ($tenant->locale_code ?? 'en'))) ?>">
-                </label>
-                <label class="field">
-                    <span>Branch visibility mode</span>
-                    <select name="branch_visibility_mode">
-                        <?php foreach (['own', 'restricted', 'all'] as $mode): ?>
-                            <option value="<?= esc($mode) ?>" <?= old('branch_visibility_mode', $settings->branch_visibility_mode ?? 'restricted') === $mode ? 'selected' : '' ?>>
-                                <?= esc(ucfirst($mode)) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <label class="field">
-                    <span>Enquiry visibility mode</span>
-                    <select name="enquiry_visibility_mode">
-                        <?php foreach (['own', 'restricted', 'all'] as $mode): ?>
-                            <option value="<?= esc($mode) ?>" <?= old('enquiry_visibility_mode', $settings->enquiry_visibility_mode ?? 'restricted') === $mode ? 'selected' : '' ?>>
-                                <?= esc(ucfirst($mode)) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
-                <label class="field">
-                    <span>Admission visibility mode</span>
-                    <select name="admission_visibility_mode">
-                        <?php foreach (['own', 'restricted', 'all'] as $mode): ?>
-                            <option value="<?= esc($mode) ?>" <?= old('admission_visibility_mode', $settings->admission_visibility_mode ?? 'restricted') === $mode ? 'selected' : '' ?>>
-                                <?= esc(ucfirst($mode)) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </label>
             </div>
 
             <div class="form-actions">
                 <button class="shell-button shell-button--primary" type="submit">Save preferences</button>
             </div>
         </form>
+    </div>
+
+    <div class="settings-grid">
+        <?php foreach ($catalogSections as $section): ?>
+            <form class="form-card" method="post" action="<?= site_url('settings/catalog/' . $section['category']) ?>">
+                <?= csrf_field() ?>
+                <div class="module-toolbar">
+                    <div>
+                        <h3 class="module-title module-title--small"><?= esc($section['title']) ?></h3>
+                        <p class="module-subtitle"><?= esc($section['subtitle']) ?></p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <?php foreach ($section['fields'] as $field): ?>
+                        <?php
+                        $definition = $field['definition'];
+                        $formKey = $field['formKey'];
+                        $value = old($formKey, $field['value']);
+                        $options = $field['options'];
+                        $isLocked = $field['isLocked'];
+                        $lockMode = $field['lockMode'];
+                        $valueType = $definition->value_type;
+                        ?>
+                        <label class="field<?= $valueType === 'json' ? ' field--full' : '' ?>">
+                            <span><?= esc($definition->label) ?></span>
+
+                            <?php if ($valueType === 'bool' || $valueType === 'boolean'): ?>
+                                <input type="hidden" name="<?= esc($formKey) ?>" value="0">
+                                <label class="checkbox-row">
+                                    <input type="checkbox" name="<?= esc($formKey) ?>" value="1" <?= $value ? 'checked' : '' ?> <?= $isLocked ? 'disabled' : '' ?>>
+                                    <span><?= esc($definition->description ?: 'Enabled') ?></span>
+                                </label>
+                            <?php elseif ($options !== []): ?>
+                                <select name="<?= esc($formKey) ?>" <?= $isLocked ? 'disabled' : '' ?>>
+                                    <?php foreach ($options as $option): ?>
+                                        <option value="<?= esc($option) ?>" <?= (string) $value === $option ? 'selected' : '' ?>>
+                                            <?= esc(ucwords(str_replace(['_', '-'], ' ', $option))) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            <?php elseif ($valueType === 'int' || $valueType === 'integer'): ?>
+                                <input type="number" name="<?= esc($formKey) ?>" value="<?= esc((string) $value) ?>" <?= $isLocked ? 'disabled' : '' ?>>
+                            <?php elseif ($valueType === 'json' || $valueType === 'array' || $valueType === 'object'): ?>
+                                <textarea name="<?= esc($formKey) ?>" rows="3" <?= $isLocked ? 'disabled' : '' ?>><?= esc(is_array($value) ? implode(', ', $value) : (string) $value) ?></textarea>
+                            <?php else: ?>
+                                <input type="text" name="<?= esc($formKey) ?>" value="<?= esc((string) $value) ?>" <?= $isLocked ? 'disabled' : '' ?>>
+                            <?php endif; ?>
+
+                            <?php if ($definition->description): ?>
+                                <small><?= esc($definition->description) ?></small>
+                            <?php endif; ?>
+
+                            <?php if ($isLocked): ?>
+                                <small>This setting is currently locked by platform policy (<?= esc($lockMode) ?>).</small>
+                            <?php endif; ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="form-actions">
+                    <button class="shell-button shell-button--primary" type="submit">Save <?= esc($section['title']) ?></button>
+                </div>
+            </form>
+        <?php endforeach; ?>
     </div>
 
     <div class="settings-grid">
