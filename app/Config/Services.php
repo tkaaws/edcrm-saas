@@ -10,6 +10,9 @@ use App\Services\CurrentUserContext;
 use App\Services\AuthService;
 use App\Services\TenantProvisioningService;
 use App\Services\TenantAccessPolicy;
+use App\Services\SubscriptionPolicyService;
+use App\Services\FeatureGateService;
+use App\Services\UsageLimitService;
 
 /**
  * Services Configuration
@@ -100,5 +103,38 @@ class Services extends BaseService
             return static::getSharedInstance('tenantAccessPolicy');
         }
         return new TenantAccessPolicy();
+    }
+
+    /**
+     * Subscription state machine — status, transitions, trial provisioning.
+     */
+    public static function subscriptionPolicy(bool $getShared = true): SubscriptionPolicyService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('subscriptionPolicy');
+        }
+        return new SubscriptionPolicyService();
+    }
+
+    /**
+     * Feature gate — is a module enabled for this tenant?
+     */
+    public static function featureGate(bool $getShared = true): FeatureGateService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('featureGate');
+        }
+        return new FeatureGateService();
+    }
+
+    /**
+     * Usage limits — is the tenant at or over their user/branch cap?
+     */
+    public static function usageLimit(bool $getShared = true): UsageLimitService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('usageLimit');
+        }
+        return new UsageLimitService();
     }
 }

@@ -2,15 +2,18 @@
 
 namespace App\Services;
 
+use App\Models\PlanModel;
 use CodeIgniter\Database\BaseConnection;
 
 class TenantProvisioningService
 {
     protected BaseConnection $db;
+    protected PlanModel $planModel;
 
     public function __construct()
     {
-        $this->db = db_connect();
+        $this->db        = db_connect();
+        $this->planModel = new PlanModel();
     }
 
     /**
@@ -37,6 +40,10 @@ class TenantProvisioningService
         if (! $this->db->transStatus()) {
             throw new \RuntimeException('Tenant provisioning failed.');
         }
+
+        // Create trial subscription outside the main transaction — non-critical,
+        // failure here should not roll back the tenant.
+        $this->createTrialSubscription($tenantId);
 
         return [
             'tenant_id'      => $tenantId,
@@ -275,5 +282,27 @@ class TenantProvisioningService
             'created_at'                => $now,
             'updated_at'                => $now,
         ]);
+    }
+
+    /**
+     * Create a 14-day trial subscription for the newly provisioned tenant.
+     * Uses the 'starter' plan by default; falls back gracefully if no plan exists.
+     */
+    protected function createTrialSubscription(int $tenantId): void
+    {
+        try {
+            $plan = $this->planModel->findByCode('starter');
+
+            if (! $plan) {
+                log_message('warning', "TenantProvisioningService: no 'starter' plan found — trial subscription skipped for tenant {$tenantId}");
+                return;
+            }
+
+            service('subscriptionPolicy')->createTrialSubscription($tenantId, (int) $plan->id, 14);
+
+            log_message('info', "TenantProvisioningService: trial subscription created for tenant {$tenantId}");
+        } catch (\Throwable $e) {
+            log_message('error', "TenantProvisioningService: failed to create trial subscription for tenant {$tenantId}: " . $e->getMessage());
+        }
     }
 }
