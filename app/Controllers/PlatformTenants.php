@@ -67,7 +67,17 @@ class PlatformTenants extends BaseController
             return redirect()->back()->withInput()->with('fieldErrors', $fieldErrors);
         }
 
-        $result = service('tenantProvisioning')->provision($data);
+        try {
+            $result = service('tenantProvisioning')->provision($data);
+        } catch (\Throwable $exception) {
+            log_message('error', 'Tenant provisioning failed: {message}', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Tenant could not be created. ' . $exception->getMessage());
+        }
 
         return redirect()->to('/platform/tenants')
             ->with('message', 'Tenant created successfully. Owner login: ' . $result['owner_email']);

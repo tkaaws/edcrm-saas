@@ -15,6 +15,10 @@
     <div class="alert alert--error">Please correct the errors below before submitting.</div>
     <?php endif; ?>
 
+    <?php if (session('error')): ?>
+    <div class="alert alert--error"><?= esc(session('error')) ?></div>
+    <?php endif; ?>
+
     <form class="form-card" method="post" action="<?= site_url('platform/tenants') ?>">
         <?= csrf_field() ?>
 
