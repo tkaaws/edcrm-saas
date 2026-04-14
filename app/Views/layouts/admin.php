@@ -87,9 +87,19 @@
                 </div>
             <?php endif; ?>
 
-            <?php if (session()->getFlashdata('suspension_warning')): ?>
+            <?php $accessWarning = session()->getFlashdata('access_warning_context'); ?>
+            <?php if ($accessWarning === 'grace'): ?>
                 <div class="shell-alert shell-alert--warning">
-                    This tenant is in suspended mode. Read access is available, but operational writes are restricted.
+                    <strong>Subscription expired.</strong>
+                    Your subscription has expired — you are in a grace period. Please renew to avoid service interruption.
+                    <?php if (in_array($roleCode ?? '', ['tenant_owner', 'tenant_admin'])): ?>
+                        <a href="<?= site_url('billing') ?>" class="shell-alert__link">Renew now &rarr;</a>
+                    <?php endif; ?>
+                </div>
+            <?php elseif ($accessWarning === 'suspended'): ?>
+                <div class="shell-alert shell-alert--warning">
+                    <strong>Account suspended.</strong>
+                    Read access is available but operational writes are restricted. Contact your administrator.
                 </div>
             <?php endif; ?>
 

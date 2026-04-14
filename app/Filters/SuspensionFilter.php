@@ -48,14 +48,15 @@ class SuspensionFilter implements FilterInterface
         }
 
         $roleCode = (string) session()->get('user_role_code');
-        $result   = service('tenantAccessPolicy')->check($tenantId, $roleCode, $request->getMethod());
+        $policy   = service('tenantAccessPolicy');
+        $result   = $policy->check($tenantId, $roleCode, $request->getMethod());
 
         return match ($result) {
-            TenantAccessPolicy::ALLOW     => null,
+            TenantAccessPolicy::ALLOW        => null,
 
-            TenantAccessPolicy::WARN_READ => $this->allowWithWarning(),
+            TenantAccessPolicy::WARN_READ    => $this->allowWithWarning($policy->getWarningContext($tenantId)),
 
-            TenantAccessPolicy::DENY_WRITE => $this->denyWrite($request),
+            TenantAccessPolicy::DENY_WRITE   => $this->denyWrite($request),
 
             TenantAccessPolicy::DENY_BLOCKED => $this->denyBlocked($tenantId),
 
@@ -68,9 +69,12 @@ class SuspensionFilter implements FilterInterface
         return null;
     }
 
-    protected function allowWithWarning(): null
+    protected function allowWithWarning(string $context = 'suspended'): null
     {
-        session()->setFlashdata('suspension_warning', true);
+        // Context tells the shell which banner to render:
+        // 'grace'     → "Your subscription has expired — please renew to avoid interruption"
+        // 'suspended' → "Your account is suspended — contact your administrator"
+        session()->setFlashdata('access_warning_context', $context);
         return null;
     }
 
