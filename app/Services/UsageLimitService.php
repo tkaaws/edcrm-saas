@@ -67,7 +67,7 @@ class UsageLimitService
         $override = $this->db->table('subscription_feature_overrides')
                              ->where('subscription_id', $subscription->id)
                              ->where('feature_code', $limitCode)
-                             ->whereNotNull('limit_value')
+                             ->where('limit_value IS NOT NULL', null, false)
                              ->get()
                              ->getRow();
 

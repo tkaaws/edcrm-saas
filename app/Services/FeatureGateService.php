@@ -121,7 +121,7 @@ class FeatureGateService
     {
         $rows = $this->db->table('subscription_feature_overrides')
                          ->where('subscription_id', $subscriptionId)
-                         ->whereNotNull('is_enabled')
+                         ->where('is_enabled IS NOT NULL', null, false)
                          ->get()
                          ->getResult();
 
