@@ -3,6 +3,7 @@
 use App\Database\Seeds\DatabaseSeeder;
 use App\Services\ImpersonationService;
 use App\Services\SettingsResolverService;
+use Config\Services;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
 
@@ -21,6 +22,7 @@ final class ImpersonationServiceTest extends CIUnitTestCase
     {
         parent::setUp();
 
+        Services::reset();
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $_SERVER['HTTP_USER_AGENT'] = 'PHPUnit';
         session()->destroy();
@@ -29,6 +31,7 @@ final class ImpersonationServiceTest extends CIUnitTestCase
     protected function tearDown(): void
     {
         session()->destroy();
+        Services::reset();
         parent::tearDown();
     }
 
