@@ -38,7 +38,12 @@ class TenantProvisioningService
         $this->db->transComplete();
 
         if (! $this->db->transStatus()) {
-            throw new \RuntimeException('Tenant provisioning failed.');
+            $error = $this->db->error();
+            $message = $error['message'] ?? '';
+
+            throw new \RuntimeException(
+                $message !== '' ? 'Tenant provisioning failed: ' . $message : 'Tenant provisioning failed.'
+            );
         }
 
         // Create trial subscription outside the main transaction — non-critical,
@@ -126,7 +131,7 @@ class TenantProvisioningService
         $roleIds = [];
 
         foreach ($definitions as $definition) {
-            $this->db->table('tenant_roles')->insert([
+            $this->db->table('user_roles')->insert([
                 'tenant_id'  => $tenantId,
                 'name'       => $definition['name'],
                 'code'       => $definition['code'],

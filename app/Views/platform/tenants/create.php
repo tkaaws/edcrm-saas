@@ -187,12 +187,12 @@
                 </label>
                 <label class="field <?= isset($fieldErrors['owner_password']) ? 'field--error' : '' ?>">
                     <span>Owner password</span>
-                    <input type="password" name="owner_password" required>
+                    <input type="password" name="owner_password" minlength="8" required>
                     <?php if (isset($fieldErrors['owner_password'])): ?><span class="field-error"><?= esc($fieldErrors['owner_password']) ?></span><?php endif; ?>
                 </label>
                 <label class="field <?= isset($fieldErrors['owner_password_confirm']) ? 'field--error' : '' ?>">
                     <span>Confirm password</span>
-                    <input type="password" name="owner_password_confirm" required>
+                    <input type="password" name="owner_password_confirm" minlength="8" required>
                     <?php if (isset($fieldErrors['owner_password_confirm'])): ?><span class="field-error"><?= esc($fieldErrors['owner_password_confirm']) ?></span><?php endif; ?>
                 </label>
             </div>
