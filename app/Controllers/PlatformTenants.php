@@ -46,7 +46,6 @@ class PlatformTenants extends BaseController
     public function store()
     {
         $data = $this->collectPayload();
-
         $fieldErrors = $this->validateInput($data);
 
         if (! empty($fieldErrors)) {
@@ -68,7 +67,7 @@ class PlatformTenants extends BaseController
         }
 
         return view('platform/tenants/show', $this->buildShellViewData([
-            'title'       => 'Tenant — ' . esc($tenant->name),
+            'title'       => 'Tenant - ' . esc($tenant->name),
             'pageTitle'   => esc($tenant->name),
             'activeNav'   => 'tenants',
             'tenantLabel' => 'Platform scope',
@@ -99,9 +98,6 @@ class PlatformTenants extends BaseController
             ->with('message', 'Tenant status updated to ' . $status . '.');
     }
 
-    /**
-     * @return array<string, string>
-     */
     protected function collectPayload(): array
     {
         $name = trim((string) $this->request->getPost('name'));
@@ -111,62 +107,68 @@ class PlatformTenants extends BaseController
         [$ownerFirstName, $ownerLastName] = $this->splitName($ownerFullName);
 
         return [
-            'name'                     => $name,
-            'slug'                     => $slug !== '' ? strtolower($slug) : $this->slugify($name),
-            'status'                   => $this->request->getPost('status') === 'draft' ? 'draft' : 'active',
-            'legal_name'               => trim((string) $this->request->getPost('legal_name')),
-            'owner_name'               => $ownerFullName,
-            'owner_first_name'         => $ownerFirstName,
-            'owner_last_name'          => $ownerLastName,
-            'owner_email'              => strtolower(trim((string) $this->request->getPost('owner_email'))),
-            'owner_phone'              => trim((string) $this->request->getPost('owner_phone')),
-            'owner_username'           => strtolower(trim((string) $this->request->getPost('owner_username'))),
-            'owner_employee_code'      => trim((string) $this->request->getPost('owner_employee_code')),
-            'owner_password'           => (string) $this->request->getPost('owner_password'),
-            'default_timezone'         => trim((string) $this->request->getPost('default_timezone')),
-            'default_currency_code'    => strtoupper(trim((string) $this->request->getPost('default_currency_code'))),
-            'country_code'             => strtoupper(trim((string) $this->request->getPost('country_code'))),
-            'locale_code'              => trim((string) $this->request->getPost('locale_code')),
-            'branch_name'              => trim((string) $this->request->getPost('branch_name')),
-            'branch_code'              => strtoupper(trim((string) $this->request->getPost('branch_code'))),
-            'branch_type'              => trim((string) $this->request->getPost('branch_type')),
-            'branch_city'              => trim((string) $this->request->getPost('branch_city')),
-            'branch_state_code'        => trim((string) $this->request->getPost('branch_state_code')),
-            'branch_address_line_1'    => trim((string) $this->request->getPost('branch_address_line_1')),
-            'branch_address_line_2'    => trim((string) $this->request->getPost('branch_address_line_2')),
-            'branch_postal_code'       => trim((string) $this->request->getPost('branch_postal_code')),
-            'branch_timezone'          => trim((string) $this->request->getPost('branch_timezone')),
-            'branch_currency_code'     => strtoupper(trim((string) $this->request->getPost('branch_currency_code'))),
-            'branding_name'            => trim((string) $this->request->getPost('branding_name')),
-            'branch_visibility_mode'   => (string) $this->request->getPost('branch_visibility_mode'),
-            'enquiry_visibility_mode'  => (string) $this->request->getPost('enquiry_visibility_mode'),
-            'admission_visibility_mode'=> (string) $this->request->getPost('admission_visibility_mode'),
-            'owner_password_confirm'   => (string) $this->request->getPost('owner_password_confirm'),
+            'name'                      => $name,
+            'slug'                      => $slug !== '' ? strtolower($slug) : $this->slugify($name),
+            'status'                    => $this->request->getPost('status') === 'draft' ? 'draft' : 'active',
+            'legal_name'                => trim((string) $this->request->getPost('legal_name')),
+            'owner_name'                => $ownerFullName,
+            'owner_first_name'          => $ownerFirstName,
+            'owner_last_name'           => $ownerLastName,
+            'owner_email'               => strtolower(trim((string) $this->request->getPost('owner_email'))),
+            'owner_phone'               => trim((string) $this->request->getPost('owner_phone')),
+            'owner_username'            => strtolower(trim((string) $this->request->getPost('owner_username'))),
+            'owner_employee_code'       => trim((string) $this->request->getPost('owner_employee_code')),
+            'owner_password'            => (string) $this->request->getPost('owner_password'),
+            'default_timezone'          => trim((string) $this->request->getPost('default_timezone')),
+            'default_currency_code'     => strtoupper(trim((string) $this->request->getPost('default_currency_code'))),
+            'country_code'              => strtoupper(trim((string) $this->request->getPost('country_code'))),
+            'locale_code'               => trim((string) $this->request->getPost('locale_code')),
+            'branch_name'               => trim((string) $this->request->getPost('branch_name')),
+            'branch_code'               => strtoupper(trim((string) $this->request->getPost('branch_code'))),
+            'branch_type'               => trim((string) $this->request->getPost('branch_type')),
+            'branch_city'               => trim((string) $this->request->getPost('branch_city')),
+            'branch_state_code'         => strtoupper(trim((string) $this->request->getPost('branch_state_code'))),
+            'branch_address_line_1'     => trim((string) $this->request->getPost('branch_address_line_1')),
+            'branch_address_line_2'     => trim((string) $this->request->getPost('branch_address_line_2')),
+            'branch_postal_code'        => trim((string) $this->request->getPost('branch_postal_code')),
+            'branch_timezone'           => trim((string) $this->request->getPost('branch_timezone')),
+            'branch_currency_code'      => strtoupper(trim((string) $this->request->getPost('branch_currency_code'))),
+            'branding_name'             => trim((string) $this->request->getPost('branding_name')),
+            'branch_visibility_mode'    => (string) $this->request->getPost('branch_visibility_mode'),
+            'enquiry_visibility_mode'   => (string) $this->request->getPost('enquiry_visibility_mode'),
+            'admission_visibility_mode' => (string) $this->request->getPost('admission_visibility_mode'),
+            'owner_password_confirm'    => (string) $this->request->getPost('owner_password_confirm'),
         ];
     }
 
-    /**
-     * Validate onboarding payload. Returns field-keyed error map.
-     *
-     * @param array<string, string> $data
-     *
-     * @return array<string, string>  [ field => first error message ]
-     */
     protected function validateInput(array $data): array
     {
         $errors = [];
-
-        // — Institute profile —
+        $allowedModes = ['own', 'restricted', 'all'];
 
         if ($data['name'] === '') {
             $errors['name'] = 'Institute name is required.';
         }
 
-        if ($data['slug'] !== '' && $this->tenantModel->findBySlug($data['slug'])) {
+        if ($data['slug'] === '') {
+            $errors['slug'] = 'Slug could not be generated. Please enter a valid institute name or slug.';
+        } elseif (! preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $data['slug'])) {
+            $errors['slug'] = 'Slug may contain lowercase letters, numbers, and hyphens only.';
+        } elseif ($this->tenantModel->findBySlug($data['slug'])) {
             $errors['slug'] = 'This slug is already taken.';
         }
 
-        // — Owner identity —
+        if ($data['default_timezone'] !== '' && ! in_array($data['default_timezone'], timezone_identifiers_list(), true)) {
+            $errors['default_timezone'] = 'Default timezone must be a valid PHP timezone identifier.';
+        }
+
+        if ($data['default_currency_code'] !== '' && (strlen($data['default_currency_code']) !== 3 || ! ctype_alpha($data['default_currency_code']))) {
+            $errors['default_currency_code'] = 'Default currency code must be a 3-letter currency code.';
+        }
+
+        if ($data['country_code'] !== '' && (strlen($data['country_code']) !== 2 || ! ctype_alpha($data['country_code']))) {
+            $errors['country_code'] = 'Country code must be a 2-letter country code.';
+        }
 
         if ($data['owner_name'] === '') {
             $errors['owner_name'] = 'Owner name is required.';
@@ -184,6 +186,8 @@ class PlatformTenants extends BaseController
 
         if ($data['owner_username'] === '') {
             $errors['owner_username'] = 'Owner username is required.';
+        } elseif (! preg_match('/^[a-z0-9._-]+$/', $data['owner_username'])) {
+            $errors['owner_username'] = 'Owner username may contain lowercase letters, numbers, dots, underscores, and hyphens only.';
         } elseif ($this->userModel->usernameExistsPlatformWide($data['owner_username'])) {
             $errors['owner_username'] = 'This username is already taken.';
         }
@@ -196,22 +200,37 @@ class PlatformTenants extends BaseController
             $errors['owner_password_confirm'] = 'Passwords do not match.';
         }
 
-        // — First branch —
-
         if ($data['branch_name'] === '') {
             $errors['branch_name'] = 'First branch name is required.';
         }
 
         if ($data['branch_code'] === '') {
             $errors['branch_code'] = 'First branch code is required.';
+        } elseif (! preg_match('/^[A-Z0-9_-]+$/', $data['branch_code'])) {
+            $errors['branch_code'] = 'First branch code may contain uppercase letters, numbers, underscores, and hyphens only.';
+        }
+
+        if ($data['branch_timezone'] !== '' && ! in_array($data['branch_timezone'], timezone_identifiers_list(), true)) {
+            $errors['branch_timezone'] = 'Branch timezone must be a valid PHP timezone identifier.';
+        }
+
+        if ($data['branch_currency_code'] !== '' && (strlen($data['branch_currency_code']) !== 3 || ! ctype_alpha($data['branch_currency_code']))) {
+            $errors['branch_currency_code'] = 'Branch currency code must be a 3-letter currency code.';
+        }
+
+        if ($data['branch_state_code'] !== '' && ! preg_match('/^[A-Z0-9-]+$/', $data['branch_state_code'])) {
+            $errors['branch_state_code'] = 'State code may contain uppercase letters, numbers, and hyphens only.';
+        }
+
+        foreach (['branch_visibility_mode', 'enquiry_visibility_mode', 'admission_visibility_mode'] as $modeField) {
+            if (! in_array($data[$modeField], $allowedModes, true)) {
+                $errors[$modeField] = 'Visibility mode must be own, restricted, or all.';
+            }
         }
 
         return $errors;
     }
 
-    /**
-     * @return array{0:string,1:string}
-     */
     protected function splitName(string $name): array
     {
         $parts = preg_split('/\s+/', trim($name)) ?: [''];

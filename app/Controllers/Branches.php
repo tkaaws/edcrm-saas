@@ -122,6 +122,10 @@ class Branches extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
+        if ($branch->status === 'active' && $this->branchModel->countAssignedUsers($id) > 0) {
+            return redirect()->to('/branches')->with('error', 'Reassign branch users before deactivating this branch.');
+        }
+
         $this->branchModel->updateWithActor($id, [
             'status' => $branch->status === 'active' ? 'inactive' : 'active',
         ]);
@@ -129,9 +133,6 @@ class Branches extends BaseController
         return redirect()->to('/branches')->with('message', 'Branch status updated.');
     }
 
-    /**
-     * @return array<string, string>
-     */
     protected function collectPayload(): array
     {
         return [
@@ -139,7 +140,7 @@ class Branches extends BaseController
             'code'           => strtoupper(trim((string) $this->request->getPost('code'))),
             'type'           => trim((string) $this->request->getPost('type')),
             'country_code'   => strtoupper(trim((string) $this->request->getPost('country_code'))),
-            'state_code'     => trim((string) $this->request->getPost('state_code')),
+            'state_code'     => strtoupper(trim((string) $this->request->getPost('state_code'))),
             'city'           => trim((string) $this->request->getPost('city')),
             'address_line_1' => trim((string) $this->request->getPost('address_line_1')),
             'address_line_2' => trim((string) $this->request->getPost('address_line_2')),
@@ -150,9 +151,6 @@ class Branches extends BaseController
         ];
     }
 
-    /**
-     * @return list<string>
-     */
     protected function validateBranchInput(array $data, int $tenantId, ?int $branchId = null): array
     {
         $errors = [];
@@ -165,6 +163,10 @@ class Branches extends BaseController
             $errors[] = 'Branch code is required.';
         }
 
+        if (! preg_match('/^[A-Z0-9_-]+$/', $data['code'])) {
+            $errors[] = 'Branch code may contain uppercase letters, numbers, underscores, and hyphens only.';
+        }
+
         if ($this->branchModel->codeExistsForTenant($data['code'], $tenantId, $branchId)) {
             $errors[] = 'Branch code already exists for this tenant.';
         }
@@ -173,8 +175,24 @@ class Branches extends BaseController
             $errors[] = 'Country code must be 2 characters.';
         }
 
+        if ($data['country_code'] !== '' && ! ctype_alpha($data['country_code'])) {
+            $errors[] = 'Country code must contain letters only.';
+        }
+
+        if ($data['state_code'] !== '' && ! preg_match('/^[A-Z0-9-]+$/', $data['state_code'])) {
+            $errors[] = 'State code may contain uppercase letters, numbers, and hyphens only.';
+        }
+
         if ($data['currency_code'] !== '' && strlen($data['currency_code']) !== 3) {
             $errors[] = 'Currency code must be 3 characters.';
+        }
+
+        if ($data['currency_code'] !== '' && ! ctype_alpha($data['currency_code'])) {
+            $errors[] = 'Currency code must contain letters only.';
+        }
+
+        if ($data['timezone'] !== '' && ! in_array($data['timezone'], timezone_identifiers_list(), true)) {
+            $errors[] = 'Timezone must be a valid PHP timezone identifier.';
         }
 
         return $errors;

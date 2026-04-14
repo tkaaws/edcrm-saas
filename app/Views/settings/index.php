@@ -172,7 +172,7 @@
                 </label>
                 <label class="field">
                     <span>Password</span>
-                    <input type="text" name="password" value="<?= esc(old('password', $emailConfig->password_display ?? '')) ?>">
+                    <input type="password" name="password" value="<?= esc(old('password')) ?>" placeholder="<?= ! empty($emailConfig?->has_password) ? 'Stored - leave blank to keep existing password' : '' ?>">
                 </label>
                 <label class="field">
                     <span>Status</span>
@@ -208,7 +208,7 @@
                 </label>
                 <label class="field">
                     <span>API key</span>
-                    <input type="text" name="api_key" value="<?= esc(old('api_key', $whatsappConfig->api_key_display ?? '')) ?>">
+                    <input type="password" name="api_key" value="<?= esc(old('api_key')) ?>" placeholder="<?= ! empty($whatsappConfig?->has_api_key) ? 'Stored - leave blank to keep existing API key' : '' ?>">
                 </label>
                 <label class="field">
                     <span>Sender ID</span>
@@ -230,3 +230,4 @@
     </div>
 </section>
 <?= $this->endSection() ?>
+

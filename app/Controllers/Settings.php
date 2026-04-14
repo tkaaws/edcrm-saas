@@ -78,15 +78,19 @@ class Settings extends BaseController
         $settings = $this->tenantSettingsModel->findByTenant($tenantId);
 
         $data = [
-            'tenant_id'                => $tenantId,
-            'branding_name'            => trim((string) $this->request->getPost('branding_name')),
-            'default_timezone'         => trim((string) $this->request->getPost('default_timezone')),
-            'default_currency_code'    => strtoupper(trim((string) $this->request->getPost('default_currency_code'))),
-            'locale_code'              => trim((string) $this->request->getPost('locale_code')),
-            'branch_visibility_mode'   => (string) $this->request->getPost('branch_visibility_mode'),
-            'enquiry_visibility_mode'  => (string) $this->request->getPost('enquiry_visibility_mode'),
-            'admission_visibility_mode'=> (string) $this->request->getPost('admission_visibility_mode'),
+            'tenant_id'                 => $tenantId,
+            'branding_name'             => trim((string) $this->request->getPost('branding_name')),
+            'default_timezone'          => trim((string) $this->request->getPost('default_timezone')),
+            'default_currency_code'     => strtoupper(trim((string) $this->request->getPost('default_currency_code'))),
+            'locale_code'               => trim((string) $this->request->getPost('locale_code')),
+            'branch_visibility_mode'    => (string) $this->request->getPost('branch_visibility_mode'),
+            'enquiry_visibility_mode'   => (string) $this->request->getPost('enquiry_visibility_mode'),
+            'admission_visibility_mode' => (string) $this->request->getPost('admission_visibility_mode'),
         ];
+
+        if ($errors = $this->validatePreferencesInput($data)) {
+            return redirect()->back()->withInput()->with('error', implode(' ', $errors));
+        }
 
         if ($settings) {
             $this->tenantSettingsModel->updateWithActor($settings->id, $data);
@@ -104,18 +108,22 @@ class Settings extends BaseController
 
         $secret = trim((string) $this->request->getPost('password'));
         $payload = [
-            'tenant_id'           => $tenantId,
-            'provider_name'       => trim((string) $this->request->getPost('provider_name')),
-            'from_name'           => trim((string) $this->request->getPost('from_name')),
-            'from_email'          => strtolower(trim((string) $this->request->getPost('from_email'))),
-            'host'                => trim((string) $this->request->getPost('host')),
-            'port'                => (int) $this->request->getPost('port'),
-            'username'            => trim((string) $this->request->getPost('username')),
-            'password_encrypted'  => $secret !== '' ? $this->encryptSecret($secret) : ($existing->password_encrypted ?? null),
-            'encryption'          => trim((string) $this->request->getPost('encryption')),
-            'is_default'          => 1,
-            'status'              => $this->request->getPost('status') === 'inactive' ? 'inactive' : 'active',
+            'tenant_id'          => $tenantId,
+            'provider_name'      => trim((string) $this->request->getPost('provider_name')),
+            'from_name'          => trim((string) $this->request->getPost('from_name')),
+            'from_email'         => strtolower(trim((string) $this->request->getPost('from_email'))),
+            'host'               => trim((string) $this->request->getPost('host')),
+            'port'               => (int) $this->request->getPost('port'),
+            'username'           => trim((string) $this->request->getPost('username')),
+            'password_encrypted' => $secret !== '' ? $this->encryptSecret($secret) : ($existing->password_encrypted ?? null),
+            'encryption'         => strtolower(trim((string) $this->request->getPost('encryption'))),
+            'is_default'         => 1,
+            'status'             => $this->request->getPost('status') === 'inactive' ? 'inactive' : 'active',
         ];
+
+        if ($errors = $this->validateEmailConfigInput($payload)) {
+            return redirect()->back()->withInput()->with('error', implode(' ', $errors));
+        }
 
         if ($existing) {
             $this->tenantEmailConfigModel->updateWithActor($existing->id, $payload);
@@ -133,14 +141,18 @@ class Settings extends BaseController
 
         $secret = trim((string) $this->request->getPost('api_key'));
         $payload = [
-            'tenant_id'          => $tenantId,
-            'provider_name'      => trim((string) $this->request->getPost('provider_name')),
-            'api_base_url'       => trim((string) $this->request->getPost('api_base_url')),
-            'api_key_encrypted'  => $secret !== '' ? $this->encryptSecret($secret) : ($existing->api_key_encrypted ?? null),
-            'sender_id'          => trim((string) $this->request->getPost('sender_id')),
-            'is_default'         => 1,
-            'status'             => $this->request->getPost('status') === 'inactive' ? 'inactive' : 'active',
+            'tenant_id'         => $tenantId,
+            'provider_name'     => trim((string) $this->request->getPost('provider_name')),
+            'api_base_url'      => trim((string) $this->request->getPost('api_base_url')),
+            'api_key_encrypted' => $secret !== '' ? $this->encryptSecret($secret) : ($existing->api_key_encrypted ?? null),
+            'sender_id'         => trim((string) $this->request->getPost('sender_id')),
+            'is_default'        => 1,
+            'status'            => $this->request->getPost('status') === 'inactive' ? 'inactive' : 'active',
         ];
+
+        if ($errors = $this->validateWhatsappConfigInput($payload)) {
+            return redirect()->back()->withInput()->with('error', implode(' ', $errors));
+        }
 
         if ($existing) {
             $this->tenantWhatsappConfigModel->updateWithActor($existing->id, $payload);
@@ -151,11 +163,6 @@ class Settings extends BaseController
         return redirect()->to('/settings')->with('message', 'WhatsApp configuration updated successfully.');
     }
 
-    /**
-     * @param array<string, string> $data
-     *
-     * @return list<string>
-     */
     protected function validateProfileInput(array $data): array
     {
         $errors = [];
@@ -172,8 +179,92 @@ class Settings extends BaseController
             $errors[] = 'Country code must be 2 characters.';
         }
 
+        if ($data['country_code'] !== '' && ! ctype_alpha($data['country_code'])) {
+            $errors[] = 'Country code must contain letters only.';
+        }
+
         if ($data['default_currency_code'] !== '' && strlen($data['default_currency_code']) !== 3) {
             $errors[] = 'Currency code must be 3 characters.';
+        }
+
+        if ($data['default_currency_code'] !== '' && ! ctype_alpha($data['default_currency_code'])) {
+            $errors[] = 'Currency code must contain letters only.';
+        }
+
+        if ($data['default_timezone'] !== '' && ! in_array($data['default_timezone'], timezone_identifiers_list(), true)) {
+            $errors[] = 'Default timezone must be a valid PHP timezone identifier.';
+        }
+
+        return $errors;
+    }
+
+    protected function validatePreferencesInput(array $data): array
+    {
+        $errors = [];
+        $allowedModes = ['own', 'restricted', 'all'];
+
+        if ($data['branding_name'] === '') {
+            $errors[] = 'Branding name is required.';
+        }
+
+        if ($data['default_timezone'] !== '' && ! in_array($data['default_timezone'], timezone_identifiers_list(), true)) {
+            $errors[] = 'Default timezone must be a valid PHP timezone identifier.';
+        }
+
+        if ($data['default_currency_code'] !== '' && (strlen($data['default_currency_code']) !== 3 || ! ctype_alpha($data['default_currency_code']))) {
+            $errors[] = 'Default currency code must be a 3-letter currency code.';
+        }
+
+        if (! in_array($data['branch_visibility_mode'], $allowedModes, true)
+            || ! in_array($data['enquiry_visibility_mode'], $allowedModes, true)
+            || ! in_array($data['admission_visibility_mode'], $allowedModes, true)) {
+            $errors[] = 'Visibility modes must use own, restricted, or all.';
+        }
+
+        return $errors;
+    }
+
+    protected function validateEmailConfigInput(array $data): array
+    {
+        $errors = [];
+
+        if ($data['provider_name'] === '') {
+            $errors[] = 'SMTP provider name is required.';
+        }
+
+        if ($data['from_email'] !== '' && ! filter_var($data['from_email'], FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'From email must be valid.';
+        }
+
+        if ($data['host'] === '') {
+            $errors[] = 'SMTP host is required.';
+        }
+
+        if ((int) $data['port'] < 1 || (int) $data['port'] > 65535) {
+            $errors[] = 'SMTP port must be between 1 and 65535.';
+        }
+
+        if ($data['encryption'] !== '' && ! in_array($data['encryption'], ['tls', 'ssl', 'starttls', 'none'], true)) {
+            $errors[] = 'Encryption must be tls, ssl, starttls, or none.';
+        }
+
+        return $errors;
+    }
+
+    protected function validateWhatsappConfigInput(array $data): array
+    {
+        $errors = [];
+
+        if ($data['provider_name'] === '') {
+            $errors[] = 'WhatsApp provider name is required.';
+        }
+
+        if ($data['api_base_url'] !== '' && filter_var($data['api_base_url'], FILTER_VALIDATE_URL) === false) {
+            $errors[] = 'WhatsApp API base URL must be a valid URL.';
+        }
+
+        if ($data['sender_id'] === '') {
+            $errors[] = 'Sender ID is required.';
         }
 
         return $errors;
@@ -190,32 +281,13 @@ class Settings extends BaseController
         return bin2hex(service('encrypter')->encrypt($value));
     }
 
-    protected function decryptSecret(?string $value): string
-    {
-        if ($value === null || $value === '') {
-            return '';
-        }
-
-        $config = config(Encryption::class);
-
-        if ($config->key === '') {
-            return base64_decode($value, true) ?: '';
-        }
-
-        try {
-            return service('encrypter')->decrypt(hex2bin($value) ?: '') ?: '';
-        } catch (\Throwable) {
-            return '';
-        }
-    }
-
     protected function decorateEmailConfig(?object $config): ?object
     {
         if (! $config) {
             return null;
         }
 
-        $config->password_display = $this->decryptSecret($config->password_encrypted);
+        $config->has_password = $config->password_encrypted !== null && $config->password_encrypted !== '';
         return $config;
     }
 
@@ -225,7 +297,7 @@ class Settings extends BaseController
             return null;
         }
 
-        $config->api_key_display = $this->decryptSecret($config->api_key_encrypted);
+        $config->has_api_key = $config->api_key_encrypted !== null && $config->api_key_encrypted !== '';
         return $config;
     }
 }

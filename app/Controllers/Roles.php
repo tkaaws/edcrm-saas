@@ -31,12 +31,12 @@ class Roles extends BaseController
     public function create(): string
     {
         return view('roles/form', $this->buildFormViewData([
-            'title'           => 'Create Role',
-            'pageTitle'       => 'Create Role',
-            'activeNav'       => 'roles',
-            'formAction'      => site_url('roles'),
-            'submitText'      => 'Create role',
-            'role'            => null,
+            'title'                => 'Create Role',
+            'pageTitle'            => 'Create Role',
+            'activeNav'            => 'roles',
+            'formAction'           => site_url('roles'),
+            'submitText'           => 'Create role',
+            'role'                 => null,
             'selectedPrivilegeIds' => [],
         ]));
     }
@@ -118,6 +118,10 @@ class Roles extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
+        if ($role->code === 'tenant_owner' && $role->status === 'active') {
+            return redirect()->to('/roles')->with('error', 'Tenant owner role must remain active.');
+        }
+
         $this->roleModel->updateWithActor($id, [
             'status' => $role->status === 'active' ? 'inactive' : 'active',
         ]);
@@ -125,9 +129,6 @@ class Roles extends BaseController
         return redirect()->to('/roles')->with('message', 'Role status updated.');
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     protected function collectPayload(): array
     {
         $privilegeIds = array_map('intval', (array) $this->request->getPost('privilege_ids'));
@@ -140,9 +141,6 @@ class Roles extends BaseController
         ];
     }
 
-    /**
-     * @return list<string>
-     */
     protected function validateRoleInput(array $data, int $tenantId, ?int $roleId = null, bool $isSystemRole = false): array
     {
         $errors = [];
@@ -155,6 +153,10 @@ class Roles extends BaseController
             $errors[] = 'Role code is required.';
         }
 
+        if (! $isSystemRole && $data['code'] !== '' && ! preg_match('/^[a-z0-9_]+$/', $data['code'])) {
+            $errors[] = 'Role code may contain lowercase letters, numbers, and underscores only.';
+        }
+
         if (! $isSystemRole && $this->roleModel->codeExistsForTenant($data['code'], $tenantId, $roleId)) {
             $errors[] = 'Role code already exists for this tenant.';
         }
@@ -163,19 +165,19 @@ class Roles extends BaseController
             $errors[] = 'Select at least one privilege.';
         }
 
+        if ($data['privilege_ids'] !== []
+            && $this->privilegeModel->whereIn('id', $data['privilege_ids'])->countAllResults() !== count($data['privilege_ids'])) {
+            $errors[] = 'One or more selected privileges are invalid.';
+        }
+
         return $errors;
     }
 
-    /**
-     * @param array<string, mixed> $data
-     *
-     * @return array<string, mixed>
-     */
     protected function buildFormViewData(array $data): array
     {
         return $this->buildShellViewData(array_merge([
-            'activeNav'         => 'roles',
-            'privilegeGroups'   => $this->privilegeModel->getAllGroupedByModule(),
+            'activeNav'       => 'roles',
+            'privilegeGroups' => $this->privilegeModel->getAllGroupedByModule(),
         ], $data));
     }
 }
