@@ -12,6 +12,7 @@ final class AuthServiceTest extends CIUnitTestCase
 {
     use DatabaseTestTrait;
 
+    protected $namespace = null;
     protected $refresh = true;
     protected $seed = DatabaseSeeder::class;
 
