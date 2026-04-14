@@ -105,6 +105,10 @@ class AuthService
     {
         $session = session();
 
+        if (session_status() !== PHP_SESSION_ACTIVE && method_exists($session, 'start')) {
+            $session->start();
+        }
+
         // Regenerate session ID — security critical
         $session->regenerate(true);
 
