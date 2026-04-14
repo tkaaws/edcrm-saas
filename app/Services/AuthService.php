@@ -83,7 +83,7 @@ class AuthService
         }
 
         // All checks passed — build session
-        $this->buildSession($user, (int) $user->tenant_id);
+        $this->buildSession($user, $user->tenant_id !== null ? (int) $user->tenant_id : null);
 
         // Record login metadata
         $this->userModel->recordLogin($user->id, $this->getClientIp());
@@ -101,7 +101,7 @@ class AuthService
      * Build the full session after successful authentication.
      * Regenerates session ID to prevent session fixation.
      */
-    protected function buildSession(object $user, int $tenantId): void
+    protected function buildSession(object $user, ?int $tenantId): void
     {
         $session = session();
 
@@ -115,7 +115,7 @@ class AuthService
         $primaryBranch = $this->userModel->getPrimaryBranch($user->id);
 
         // Load tenant name for shell display (avoids per-request DB lookup in BaseController)
-        $tenant = $this->tenantModel->find($tenantId);
+        $tenant = $tenantId !== null ? $this->tenantModel->find($tenantId) : null;
 
         $session->set([
             'user_id'              => $user->id,
@@ -149,7 +149,7 @@ class AuthService
         $userId   = session()->get('user_id');
         $tenantId = session()->get('tenant_id');
 
-        if ($userId && $tenantId) {
+        if ($userId) {
             $this->writeAudit($tenantId, $userId, 'logout', 'User logged out');
         }
 
@@ -200,7 +200,7 @@ class AuthService
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
-        $this->writeAudit($tenantId, $user->id, 'password_reset_requested', 'Reset token generated');
+        $this->writeAudit($user->tenant_id !== null ? (int) $user->tenant_id : null, $user->id, 'password_reset_requested', 'Reset token generated');
 
         // TODO: send reset email via TenantEmailConfig (Phase 1A task 17)
         // For now, log the plain token for local dev testing
@@ -363,11 +363,11 @@ class AuthService
      * Write an entry to audit_logs.
      * Silently swallowed on failure — audit writes must never block login or logout.
      */
-    protected function writeAudit(int $tenantId, ?int $userId, string $action, string $summary): void
+    protected function writeAudit(?int $tenantId, ?int $userId, string $action, string $summary): void
     {
         try {
-            // Only write if the tenant still exists (guards against deleted tenants in session)
-            $tenantExists = $this->db->table('tenants')->where('id', $tenantId)->countAllResults() > 0;
+            $tenantExists = $tenantId !== null
+                && $this->db->table('tenants')->where('id', $tenantId)->countAllResults() > 0;
 
             $this->db->table('audit_logs')->insert([
                 'tenant_id'   => $tenantExists ? $tenantId : null,

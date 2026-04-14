@@ -33,16 +33,14 @@ final class AuthServiceTest extends CIUnitTestCase
     public function testAttemptBuildsSessionAndWritesAuditLog(): void
     {
         $service = new AuthService();
-        $tenantId = $this->getTenantId();
-
-        $result = $service->attempt($tenantId, 'demo@edcrm.in', 'Demo@1234');
+        $result = $service->attempt('owner@demo.edcrm.in', 'Demo@1234');
 
         $this->assertSame(AuthService::LOGIN_SUCCESS, $result);
-        $this->assertSame('demo@edcrm.in', session()->get('user_email'));
+        $this->assertSame('owner@demo.edcrm.in', session()->get('user_email'));
         $this->assertSame('tenant_owner', session()->get('user_role_code'));
         $this->assertFalse((bool) session()->get('must_reset_password'));
 
-        $user = $this->db->table('users')->where('email', 'demo@edcrm.in')->get()->getRow();
+        $user = $this->db->table('users')->where('email', 'owner@demo.edcrm.in')->get()->getRow();
 
         $this->assertNotNull($user->last_login_at);
         $this->assertSame('127.0.0.1', $user->last_login_ip);
@@ -51,12 +49,12 @@ final class AuthServiceTest extends CIUnitTestCase
 
     public function testAttemptReturnsMustResetWhenFlagged(): void
     {
-        $this->db->table('users')->where('email', 'demo@edcrm.in')->update([
+        $this->db->table('users')->where('email', 'owner@demo.edcrm.in')->update([
             'must_reset_password' => 1,
         ]);
 
         $service = new AuthService();
-        $result = $service->attempt($this->getTenantId(), 'demo@edcrm.in', 'Demo@1234');
+        $result = $service->attempt('owner@demo.edcrm.in', 'Demo@1234');
 
         $this->assertSame(AuthService::LOGIN_MUST_RESET, $result);
         $this->assertTrue((bool) session()->get('must_reset_password'));
@@ -74,7 +72,7 @@ final class AuthServiceTest extends CIUnitTestCase
         ]);
 
         $service = new AuthService();
-        $result = $service->forgotPassword($this->getTenantId(), 'demo@edcrm.in');
+        $result = $service->forgotPassword('owner@demo.edcrm.in');
 
         $this->assertTrue($result);
         $this->assertSame(2, $this->db->table('password_reset_tokens')->countAllResults());
@@ -84,7 +82,7 @@ final class AuthServiceTest extends CIUnitTestCase
 
     public function testResetPasswordUpdatesHashArchivesHistoryAndConsumesToken(): void
     {
-        $user = $this->db->table('users')->where('email', 'demo@edcrm.in')->get()->getRow();
+        $user = $this->db->table('users')->where('email', 'owner@demo.edcrm.in')->get()->getRow();
         $plainToken = 'reset-token-123';
 
         $this->db->table('password_reset_tokens')->insert([
@@ -115,7 +113,7 @@ final class AuthServiceTest extends CIUnitTestCase
 
     public function testChangePasswordRejectsReuseAndClearsResetFlagOnSuccess(): void
     {
-        $user = $this->db->table('users')->where('email', 'demo@edcrm.in')->get()->getRow();
+        $user = $this->db->table('users')->where('email', 'owner@demo.edcrm.in')->get()->getRow();
 
         $this->db->table('user_password_histories')->insert([
             'user_id'       => $user->id,
@@ -147,6 +145,6 @@ final class AuthServiceTest extends CIUnitTestCase
 
     private function getUserId(): int
     {
-        return (int) $this->db->table('users')->where('email', 'demo@edcrm.in')->get()->getRow()->id;
+        return (int) $this->db->table('users')->where('email', 'owner@demo.edcrm.in')->get()->getRow()->id;
     }
 }

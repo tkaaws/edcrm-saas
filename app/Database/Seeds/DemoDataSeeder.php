@@ -7,16 +7,19 @@ use CodeIgniter\Database\Seeder;
 /**
  * DemoDataSeeder
  *
- * Creates one complete demo tenant with:
+ * Creates one complete demo setup with:
+ * - 1 platform admin user (tenantless)
  * - 1 tenant (Demo Institute)
  * - 1 branch (HQ)
- * - all system roles under that tenant
- * - role-privilege mappings for each system role
- * - 1 tenant_owner user (demo login)
+ * - 1 global platform_admin role
+ * - all tenant system roles under the demo tenant
+ * - role-privilege mappings for each tenant system role
+ * - 1 tenant_owner user for the demo tenant
  * - tenant_settings row
- * - user assigned to HQ branch as primary
+ * - tenant owner assigned to HQ branch as primary
  *
- * Demo login: demo@edcrm.in / Demo@1234
+ * Platform login: platform@edcrm.in / Demo@1234
+ * Tenant login: owner@demo.edcrm.in / Demo@1234
  */
 class DemoDataSeeder extends Seeder
 {
@@ -24,26 +27,20 @@ class DemoDataSeeder extends Seeder
     {
         $now = date('Y-m-d H:i:s');
 
-        // -------------------------------------------------------
-        // Guard: skip if demo tenant already exists
-        // -------------------------------------------------------
         $existing = $this->db->table('tenants')->where('slug', 'demo-institute')->countAllResults();
         if ($existing > 0) {
             echo "DemoDataSeeder: demo tenant already exists, skipping.\n";
             return;
         }
 
-        // -------------------------------------------------------
-        // 1. Tenant
-        // -------------------------------------------------------
         $this->db->table('tenants')->insert([
             'name'                  => 'Demo Institute',
             'slug'                  => 'demo-institute',
             'status'                => 'active',
             'legal_name'            => 'Demo Institute Pvt Ltd',
             'owner_name'            => 'Demo Owner',
-            'owner_email'           => 'demo@edcrm.in',
-            'owner_phone'           => '+910000000000',
+            'owner_email'           => 'owner@demo.edcrm.in',
+            'owner_phone'           => '+910000000001',
             'default_timezone'      => 'Asia/Kolkata',
             'default_currency_code' => 'INR',
             'country_code'          => 'IN',
@@ -54,19 +51,16 @@ class DemoDataSeeder extends Seeder
         $tenantId = $this->db->insertID();
         echo "DemoDataSeeder: created tenant id={$tenantId}\n";
 
-        // -------------------------------------------------------
-        // 2. Branch
-        // -------------------------------------------------------
         $this->db->table('tenant_branches')->insert([
-            'tenant_id'  => $tenantId,
-            'name'       => 'HQ',
-            'code'       => 'HQ',
-            'type'       => 'main',
+            'tenant_id'    => $tenantId,
+            'name'         => 'HQ',
+            'code'         => 'HQ',
+            'type'         => 'main',
             'country_code' => 'IN',
             'state_code'   => 'MH',
             'city'         => 'Pune',
             'timezone'     => null,
-            'currency_code' => null,
+            'currency_code'=> null,
             'status'       => 'active',
             'created_by'   => null,
             'updated_by'   => null,
@@ -76,11 +70,30 @@ class DemoDataSeeder extends Seeder
         $branchId = $this->db->insertID();
         echo "DemoDataSeeder: created branch id={$branchId}\n";
 
-        // -------------------------------------------------------
-        // 3. System roles
-        // -------------------------------------------------------
+        $existingPlatformRole = $this->db->table('user_roles')
+            ->where('tenant_id', null)
+            ->where('code', 'platform_admin')
+            ->get()
+            ->getRow();
+
+        if ($existingPlatformRole) {
+            $platformRoleId = (int) $existingPlatformRole->id;
+        } else {
+            $this->db->table('user_roles')->insert([
+                'tenant_id'  => null,
+                'name'       => 'Platform Admin',
+                'code'       => 'platform_admin',
+                'is_system'  => 1,
+                'status'     => 'active',
+                'created_by' => null,
+                'updated_by' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+            $platformRoleId = (int) $this->db->insertID();
+        }
+
         $roleDefs = [
-            ['code' => 'platform_admin', 'name' => 'Platform Admin', 'is_system' => 1],
             ['code' => 'tenant_owner',   'name' => 'Tenant Owner',   'is_system' => 1],
             ['code' => 'tenant_admin',   'name' => 'Tenant Admin',   'is_system' => 1],
             ['code' => 'branch_manager', 'name' => 'Branch Manager', 'is_system' => 1],
@@ -107,39 +120,24 @@ class DemoDataSeeder extends Seeder
             ]);
             $roleIds[$role['code']] = $this->db->insertID();
         }
-        echo "DemoDataSeeder: created " . count($roleIds) . " system roles.\n";
+        echo "DemoDataSeeder: created " . count($roleIds) . " tenant system roles.\n";
 
-        // -------------------------------------------------------
-        // 4. Role-privilege mappings
-        // -------------------------------------------------------
         $allPrivileges = $this->db->table('privileges')->get()->getResultArray();
         $privMap = array_column($allPrivileges, 'id', 'code');
 
         if (empty($privMap)) {
-            echo "DemoDataSeeder: no privileges found — run PrivilegesSeeder first.\n";
+            echo "DemoDataSeeder: no privileges found - run PrivilegesSeeder first.\n";
             return;
         }
 
         $roleMappings = [
-
-            // platform_admin: no tenant privileges (platform-only access)
-            'platform_admin' => [],
-
-            // tenant_owner: all privileges
             'tenant_owner' => array_keys($privMap),
-
-            // tenant_admin: all except billing.manage
             'tenant_admin' => array_values(array_filter(
                 array_keys($privMap),
-                fn($c) => $c !== 'billing.manage'
+                static fn($code) => $code !== 'billing.manage'
             )),
-
-            // branch_manager: branch ops, enquiries, admissions, fees, reports
             'branch_manager' => [
-                'users.view',
-                'branches.view',
-                'roles.view',
-                'settings.view',
+                'users.view', 'branches.view', 'roles.view', 'settings.view',
                 'enquiries.view', 'enquiries.create', 'enquiries.edit',
                 'enquiries.assign', 'enquiries.bulk_assign', 'enquiries.export',
                 'followups.view', 'followups.create', 'followups.edit',
@@ -151,53 +149,31 @@ class DemoDataSeeder extends Seeder
                 'reports.view', 'reports.advanced', 'reports.export',
                 'whatsapp.view', 'whatsapp.send',
             ],
-
-            // counsellor: enquiries, followups, admissions view
             'counsellor' => [
                 'enquiries.view', 'enquiries.create', 'enquiries.edit',
-                'enquiries.assign',
-                'followups.view', 'followups.create', 'followups.edit',
-                'admissions.view', 'admissions.create',
-                'students.view',
-                'reports.view',
-                'whatsapp.send',
+                'enquiries.assign', 'followups.view', 'followups.create', 'followups.edit',
+                'admissions.view', 'admissions.create', 'students.view',
+                'reports.view', 'whatsapp.send',
             ],
-
-            // accounts: fees, payments, receipts
             'accounts' => [
-                'admissions.view',
-                'fees.view', 'fees.create', 'fees.edit', 'fees.receipts',
-                'fees.discount', 'fees.structure',
-                'students.view',
+                'admissions.view', 'fees.view', 'fees.create', 'fees.edit', 'fees.receipts',
+                'fees.discount', 'fees.structure', 'students.view',
                 'reports.view', 'reports.export',
             ],
-
-            // operations: students, batches, attendance
             'operations' => [
-                'admissions.view',
-                'students.view', 'students.edit', 'students.attendance', 'students.export',
+                'admissions.view', 'students.view', 'students.edit', 'students.attendance', 'students.export',
                 'batches.view', 'batches.create', 'batches.edit',
                 'tickets.view', 'tickets.create', 'tickets.edit',
                 'reports.view',
             ],
-
-            // placement: placement module
             'placement' => [
-                'students.view',
-                'placement.view', 'placement.manage',
-                'placement.jobs', 'placement.interviews',
-                'placement.mock', 'placement.college',
-                'reports.view',
-                'whatsapp.send',
+                'students.view', 'placement.view', 'placement.manage',
+                'placement.jobs', 'placement.interviews', 'placement.mock',
+                'placement.college', 'reports.view', 'whatsapp.send',
             ],
-
-            // faculty: batches view, attendance
             'faculty' => [
-                'batches.view',
-                'students.view', 'students.attendance',
+                'batches.view', 'students.view', 'students.attendance',
             ],
-
-            // support_agent: tickets only
             'support_agent' => [
                 'tickets.view', 'tickets.create', 'tickets.edit', 'tickets.close',
                 'students.view',
@@ -207,10 +183,14 @@ class DemoDataSeeder extends Seeder
         $rpRows = [];
         foreach ($roleMappings as $roleCode => $privCodes) {
             $roleId = $roleIds[$roleCode] ?? null;
-            if (! $roleId) continue;
+            if (! $roleId) {
+                continue;
+            }
             foreach ($privCodes as $privCode) {
                 $privId = $privMap[$privCode] ?? null;
-                if (! $privId) continue;
+                if (! $privId) {
+                    continue;
+                }
                 $rpRows[] = [
                     'role_id'      => $roleId,
                     'privilege_id' => $privId,
@@ -221,16 +201,12 @@ class DemoDataSeeder extends Seeder
         $this->db->table('role_privileges')->insertBatch($rpRows);
         echo "DemoDataSeeder: inserted " . count($rpRows) . " role-privilege mappings.\n";
 
-        // -------------------------------------------------------
-        // 5. Platform admin user (demo login)
-        // -------------------------------------------------------
-        $platformAdminRoleId = $roleIds['platform_admin'];
         $this->db->table('users')->insert([
-            'tenant_id'           => $tenantId,
-            'role_id'             => $platformAdminRoleId,
+            'tenant_id'           => null,
+            'role_id'             => $platformRoleId,
             'employee_code'       => 'EMP-001',
-            'username'            => 'demo_admin',
-            'email'               => 'demo@edcrm.in',
+            'username'            => 'platform_admin',
+            'email'               => 'platform@edcrm.in',
             'first_name'          => 'Platform',
             'last_name'           => 'Admin',
             'mobile_number'       => '+910000000000',
@@ -247,14 +223,36 @@ class DemoDataSeeder extends Seeder
             'created_at'          => $now,
             'updated_at'          => $now,
         ]);
-        $userId = $this->db->insertID();
-        echo "DemoDataSeeder: created demo owner user id={$userId}\n";
+        $platformUserId = $this->db->insertID();
+        echo "DemoDataSeeder: created platform admin user id={$platformUserId}\n";
 
-        // -------------------------------------------------------
-        // 6. Assign owner to HQ branch as primary
-        // -------------------------------------------------------
+        $this->db->table('users')->insert([
+            'tenant_id'           => $tenantId,
+            'role_id'             => $roleIds['tenant_owner'],
+            'employee_code'       => 'OWN-001',
+            'username'            => 'demo_owner',
+            'email'               => 'owner@demo.edcrm.in',
+            'first_name'          => 'Demo',
+            'last_name'           => 'Owner',
+            'mobile_number'       => '+910000000001',
+            'whatsapp_number'     => null,
+            'department'          => 'Management',
+            'designation'         => 'Tenant Owner',
+            'password_hash'       => password_hash('Demo@1234', PASSWORD_BCRYPT),
+            'is_active'           => 1,
+            'must_reset_password' => 0,
+            'last_login_at'       => null,
+            'last_login_ip'       => null,
+            'created_by'          => null,
+            'updated_by'          => null,
+            'created_at'          => $now,
+            'updated_at'          => $now,
+        ]);
+        $tenantOwnerUserId = $this->db->insertID();
+        echo "DemoDataSeeder: created tenant owner user id={$tenantOwnerUserId}\n";
+
         $this->db->table('user_branches')->insert([
-            'user_id'    => $userId,
+            'user_id'    => $tenantOwnerUserId,
             'branch_id'  => $branchId,
             'is_primary' => 1,
             'created_by' => null,
@@ -262,29 +260,27 @@ class DemoDataSeeder extends Seeder
             'created_at' => $now,
             'updated_at' => $now,
         ]);
-        echo "DemoDataSeeder: assigned owner to HQ branch.\n";
+        echo "DemoDataSeeder: assigned tenant owner to HQ branch.\n";
 
-        // -------------------------------------------------------
-        // 7. Tenant settings
-        // -------------------------------------------------------
         $this->db->table('tenant_settings')->insert([
-            'tenant_id'               => $tenantId,
-            'branding_name'           => 'Demo Institute',
-            'logo_path'               => null,
-            'favicon_path'            => null,
-            'default_timezone'        => 'Asia/Kolkata',
-            'default_currency_code'   => 'INR',
-            'locale_code'             => 'en',
-            'branch_visibility_mode'  => 'own',
-            'enquiry_visibility_mode' => 'own',
+            'tenant_id'                 => $tenantId,
+            'branding_name'             => 'Demo Institute',
+            'logo_path'                 => null,
+            'favicon_path'              => null,
+            'default_timezone'          => 'Asia/Kolkata',
+            'default_currency_code'     => 'INR',
+            'locale_code'               => 'en',
+            'branch_visibility_mode'    => 'own',
+            'enquiry_visibility_mode'   => 'own',
             'admission_visibility_mode' => 'own',
-            'created_at'              => $now,
-            'updated_at'              => $now,
+            'created_at'                => $now,
+            'updated_at'                => $now,
         ]);
         echo "DemoDataSeeder: created tenant_settings.\n";
 
         echo "DemoDataSeeder: complete.\n";
         echo "---\n";
-        echo "Demo login  →  demo@edcrm.in  /  Demo@1234\n";
+        echo "Platform login  ->  platform@edcrm.in  /  Demo@1234\n";
+        echo "Tenant login    ->  owner@demo.edcrm.in  /  Demo@1234\n";
     }
 }
