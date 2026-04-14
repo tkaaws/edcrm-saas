@@ -3,8 +3,8 @@
 namespace App\Controllers;
 
 use App\Models\PlanModel;
-use App\Models\TenantModel;
 use App\Models\SubscriptionModel;
+use App\Models\TenantModel;
 
 class PlatformSubscriptions extends BaseController
 {
@@ -18,10 +18,6 @@ class PlatformSubscriptions extends BaseController
         $this->tenantModel       = new TenantModel();
         $this->planModel         = new PlanModel();
     }
-
-    // ------------------------------------------------------------------
-    // INDEX — all subscriptions across all tenants
-    // ------------------------------------------------------------------
 
     public function index(): string
     {
@@ -51,10 +47,6 @@ class PlatformSubscriptions extends BaseController
         ]));
     }
 
-    // ------------------------------------------------------------------
-    // SHOW — subscription detail + events log
-    // ------------------------------------------------------------------
-
     public function show(int $id): string|\CodeIgniter\HTTP\RedirectResponse
     {
         $db           = db_connect();
@@ -80,15 +72,13 @@ class PlatformSubscriptions extends BaseController
                      ->where('subscription_id', $id)
                      ->get()->getResult();
 
-        $plans        = $this->planModel->getAllActivePlans();
-        $allFeatures  = $db->table('feature_catalog')->orderBy('category')->orderBy('code')->get()->getResult();
-
-        // Effective status from the state machine (may differ from stored if time has passed)
+        $plans           = $this->planModel->getAllActivePlans();
+        $allFeatures     = $db->table('feature_catalog')->orderBy('category')->orderBy('code')->get()->getResult();
         $effectiveStatus = service('subscriptionPolicy')->getStatus((int) $subscription->tenant_id);
 
         return view('platform/subscriptions/show', $this->buildShellViewData([
             'title'           => 'Subscription #' . $id,
-            'pageTitle'       => 'Subscription — ' . esc($tenant?->name ?? 'Unknown'),
+            'pageTitle'       => 'Subscription - ' . esc($tenant?->name ?? 'Unknown'),
             'activeNav'       => 'subscriptions',
             'subscription'    => $subscription,
             'tenant'          => $tenant,
@@ -102,10 +92,6 @@ class PlatformSubscriptions extends BaseController
         ]));
     }
 
-    // ------------------------------------------------------------------
-    // ATTACH — create a new subscription for a tenant
-    // ------------------------------------------------------------------
-
     public function attach(): \CodeIgniter\HTTP\RedirectResponse
     {
         $tenantId     = (int) $this->request->getPost('tenant_id');
@@ -117,14 +103,13 @@ class PlatformSubscriptions extends BaseController
             return redirect()->back()->with('error', 'Tenant and plan are required.');
         }
 
-        if (! in_array($billingCycle, ['monthly', 'yearly'])) {
+        if (! in_array($billingCycle, ['monthly', 'yearly'], true)) {
             $billingCycle = 'monthly';
         }
 
         $subscriptionPolicy = service('subscriptionPolicy');
+        $existing           = $this->subscriptionModel->getActiveForTenant($tenantId);
 
-        // If tenant already has an active subscription, cancel it first
-        $existing = $this->subscriptionModel->getActiveForTenant($tenantId);
         if ($existing) {
             $subscriptionPolicy->transitionTo(
                 (int) $existing->id,
@@ -134,21 +119,15 @@ class PlatformSubscriptions extends BaseController
             );
         }
 
-        // Create new trial subscription
         $subscription = $subscriptionPolicy->createTrialSubscription($tenantId, $planId, $trialDays);
 
-        // Update billing cycle on the new subscription
         db_connect()->table('subscriptions')
                     ->where('id', $subscription->id)
                     ->update(['billing_cycle' => $billingCycle, 'updated_at' => date('Y-m-d H:i:s')]);
 
         return redirect()->to("/platform/subscriptions/{$subscription->id}")
-                         ->with('message', "Subscription created — {$trialDays}-day trial started.");
+                         ->with('message', "Subscription created - {$trialDays}-day trial started.");
     }
-
-    // ------------------------------------------------------------------
-    // UPDATE STATUS — manual status transition
-    // ------------------------------------------------------------------
 
     public function updateStatus(int $id): \CodeIgniter\HTTP\RedirectResponse
     {
@@ -157,10 +136,10 @@ class PlatformSubscriptions extends BaseController
             return redirect()->to('/platform/subscriptions')->with('error', 'Subscription not found.');
         }
 
-        $newStatus = $this->request->getPost('status');
+        $newStatus     = $this->request->getPost('status');
         $validStatuses = ['trial', 'active', 'grace', 'suspended', 'cancelled', 'expired'];
 
-        if (! in_array($newStatus, $validStatuses)) {
+        if (! in_array($newStatus, $validStatuses, true)) {
             return redirect()->back()->with('error', 'Invalid status.');
         }
 
@@ -176,10 +155,6 @@ class PlatformSubscriptions extends BaseController
         return redirect()->to("/platform/subscriptions/{$id}")
                          ->with('message', "Status changed to {$newStatus}.");
     }
-
-    // ------------------------------------------------------------------
-    // SET OVERRIDE — per-subscription feature/limit override
-    // ------------------------------------------------------------------
 
     public function setOverride(int $id): \CodeIgniter\HTTP\RedirectResponse
     {
@@ -220,16 +195,11 @@ class PlatformSubscriptions extends BaseController
             ]));
         }
 
-        // Flush feature gate cache so changes take effect immediately
         service('featureGate')->flushCache((int) $subscription->tenant_id);
 
         return redirect()->to("/platform/subscriptions/{$id}")
                          ->with('message', "Override set for {$featureCode}.");
     }
-
-    // ------------------------------------------------------------------
-    // DELETE — hard-delete a cancelled/expired subscription
-    // ------------------------------------------------------------------
 
     public function delete(int $id): \CodeIgniter\HTTP\RedirectResponse
     {
@@ -238,7 +208,7 @@ class PlatformSubscriptions extends BaseController
             return redirect()->to('/platform/subscriptions')->with('error', 'Subscription not found.');
         }
 
-        if (in_array($subscription->status, ['trial', 'active', 'grace'])) {
+        if (in_array($subscription->status, ['trial', 'active', 'grace'], true)) {
             return redirect()->to("/platform/subscriptions/{$id}")
                              ->with('error', 'Cannot delete an active subscription. Cancel it first.');
         }

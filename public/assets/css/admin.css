@@ -188,6 +188,10 @@ a {
     font-weight: 600;
 }
 
+.shell-button:hover {
+    filter: brightness(0.98);
+}
+
 .shell-button--ghost {
     background: var(--brand-soft);
     border-color: #bce3db;
@@ -223,7 +227,8 @@ a {
     font-size: .8125rem;
 }
 
-.form-card--danger {
+.form-card--danger,
+.detail-card--danger {
     border: 1px solid #f5c6cb;
     background: #fff9f9;
 }
@@ -263,7 +268,8 @@ a {
     gap: 18px;
 }
 
-.metrics-grid {
+.metrics-grid,
+.stats-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
@@ -271,7 +277,8 @@ a {
 
 .metric-card,
 .panel-card,
-.list-card {
+.list-card,
+.detail-card {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 8px;
@@ -372,9 +379,19 @@ a {
     color: var(--success);
 }
 
+.status-badge--info {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
 .status-badge--warm {
     background: var(--accent-soft);
     color: var(--accent);
+}
+
+.status-badge--warning {
+    background: #fef3c7;
+    color: var(--warning);
 }
 
 .status-badge--neutral {
@@ -410,8 +427,13 @@ a {
     color: var(--muted);
 }
 
+.text-muted {
+    color: var(--muted);
+}
+
 .table-card,
-.form-card {
+.form-card,
+.detail-card {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 8px;
@@ -445,6 +467,10 @@ a {
 
 .data-table tbody tr:last-child td {
     border-bottom: 0;
+}
+
+.table-wrap {
+    overflow-x: auto;
 }
 
 .entity-cell {
@@ -482,14 +508,21 @@ a {
     gap: 8px;
 }
 
-.field span {
+.field span,
+.shell-label {
     font-weight: 700;
     font-size: 14px;
 }
 
+.shell-label {
+    display: inline-block;
+    color: var(--text);
+}
+
 .field input,
 .field select,
-.field textarea {
+.field textarea,
+.shell-input {
     width: 100%;
     min-height: 44px;
     border: 1px solid var(--line);
@@ -498,6 +531,11 @@ a {
     font: inherit;
     background: #fff;
     color: var(--text);
+}
+
+.shell-input--sm {
+    min-height: 38px;
+    padding: 8px 10px;
 }
 
 .field--full {
@@ -567,13 +605,102 @@ a {
     gap: 10px;
 }
 
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    align-items: start;
+}
+
+.detail-card {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+}
+
+.detail-card--wide {
+    grid-column: span 3;
+}
+
+.detail-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.detail-card__title {
+    margin: 0;
+    font-size: 22px;
+}
+
+.detail-card__title--danger {
+    color: var(--danger);
+}
+
+.detail-card__subtitle {
+    margin: 6px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.detail-card__row {
+    display: grid;
+    grid-template-columns: minmax(120px, 1.2fr) minmax(80px, 0.8fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+}
+
+.detail-card__row:first-of-type {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.detail-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.inline-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: end;
+}
+
+.inline-form--subscription > .field {
+    flex: 1 1 220px;
+}
+
+.inline-form__action {
+    display: flex;
+    align-items: end;
+}
+
+.stack-form {
+    display: grid;
+    gap: 16px;
+}
+
 @media (max-width: 1120px) {
     .metrics-grid,
     .panel-grid,
     .choice-grid,
     .privilege-groups,
-    .settings-grid {
+    .settings-grid,
+    .stats-grid {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .detail-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .detail-card--wide {
+        grid-column: span 2;
     }
 }
 
@@ -605,8 +732,19 @@ a {
     .choice-grid,
     .form-grid,
     .privilege-groups,
-    .settings-grid {
+    .settings-grid,
+    .stats-grid,
+    .detail-grid {
         grid-template-columns: 1fr;
+    }
+
+    .detail-card--wide {
+        grid-column: span 1;
+    }
+
+    .detail-card__row {
+        grid-template-columns: 1fr;
+        align-items: start;
     }
 }
 
@@ -625,6 +763,20 @@ a {
 
     .module-toolbar,
     .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .detail-card,
+    .table-card,
+    .form-card,
+    .panel-card,
+    .list-card {
+        padding: 16px;
+    }
+
+    .inline-form,
+    .detail-card__actions {
         flex-direction: column;
         align-items: stretch;
     }
