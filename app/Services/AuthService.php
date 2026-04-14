@@ -357,20 +357,28 @@ class AuthService
 
     /**
      * Write an entry to audit_logs.
+     * Silently swallowed on failure — audit writes must never block login or logout.
      */
     protected function writeAudit(int $tenantId, ?int $userId, string $action, string $summary): void
     {
-        $this->db->table('audit_logs')->insert([
-            'tenant_id'   => $tenantId,
-            'user_id'     => $userId,
-            'entity_type' => 'auth',
-            'entity_id'   => $userId,
-            'action'      => $action,
-            'summary'     => $summary,
-            'ip_address'  => $this->getClientIp(),
-            'user_agent'  => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),
-            'created_at'  => date('Y-m-d H:i:s'),
-        ]);
+        try {
+            // Only write if the tenant still exists (guards against deleted tenants in session)
+            $tenantExists = $this->db->table('tenants')->where('id', $tenantId)->countAllResults() > 0;
+
+            $this->db->table('audit_logs')->insert([
+                'tenant_id'   => $tenantExists ? $tenantId : null,
+                'user_id'     => $userId,
+                'entity_type' => 'auth',
+                'entity_id'   => $userId,
+                'action'      => $action,
+                'summary'     => $summary,
+                'ip_address'  => $this->getClientIp(),
+                'user_agent'  => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),
+                'created_at'  => date('Y-m-d H:i:s'),
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'writeAudit failed: ' . $e->getMessage());
+        }
     }
 
     /**
