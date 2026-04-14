@@ -105,12 +105,13 @@ class AuthService
     {
         $session = session();
 
-        if (session_status() !== PHP_SESSION_ACTIVE && method_exists($session, 'start')) {
-            $session->start();
+        // Regenerate session ID on real active PHP sessions to prevent session fixation.
+        // In CLI/database-test runtime there may be no active native session, and
+        // forcing a session start through the framework can fail because the HTTP
+        // request lifecycle is not fully booted there.
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $session->regenerate(true);
         }
-
-        // Regenerate session ID — security critical
-        $session->regenerate(true);
 
         // Load role details
         $role = $this->getRoleForUser($user);
