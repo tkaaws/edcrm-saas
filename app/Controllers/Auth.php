@@ -60,7 +60,7 @@ class Auth extends BaseController
         $tenantId = $this->resolveTenantId();
 
         if (! $tenantId) {
-            return redirect()->back()->withInput()->with('error', 'Invalid tenant. Please contact support.');
+            return redirect()->back()->withInput()->with('error', 'Institute not found or not active. Check your institute slug and try again.');
         }
 
         $result = $this->auth->attempt($tenantId, $email, $password);
@@ -219,18 +219,32 @@ class Auth extends BaseController
 
     /**
      * Resolve tenant ID for login.
-     * v1: reads from APP_TENANT_ID in .env (single-tenant deployment).
-     * Future: resolve from subdomain or slug in URL.
+     *
+     * Resolution order:
+     * 1. slug posted from login form (multi-tenant shared domain)
+     * 2. APP_TENANT_ID in .env (single-tenant dedicated deployment)
+     * 3. first active tenant fallback (dev/demo only)
      */
     protected function resolveTenantId(): ?int
     {
-        $tenantId = env('APP_TENANT_ID');
-
-        if ($tenantId) {
-            return (int) $tenantId;
+        // 1. Slug from login form
+        $slug = trim((string) $this->request->getPost('tenant_slug'));
+        if ($slug !== '') {
+            $tenant = $this->tenantModel->findBySlug(strtolower($slug));
+            if ($tenant && $tenant->status === 'active') {
+                return (int) $tenant->id;
+            }
+            // Slug provided but not found or not active — return null to show error
+            return null;
         }
 
-        // Fallback: first active tenant (dev/demo mode only)
+        // 2. Env override (dedicated deployment or platform login)
+        $envTenantId = env('APP_TENANT_ID');
+        if ($envTenantId) {
+            return (int) $envTenantId;
+        }
+
+        // 3. Dev/demo fallback: first active tenant
         $tenant = $this->tenantModel->where('status', 'active')->first();
         return $tenant ? (int) $tenant->id : null;
     }
