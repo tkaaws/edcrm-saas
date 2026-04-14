@@ -603,6 +603,39 @@ Phase 1A is complete when:
 
 ## 5. Phase 1B - Billing, Plans, Entitlements, and Restriction Engine
 
+### 5.0 Implementation Status
+Last updated: 2026-04-14
+| # | Task | Status | Notes |
+|---|------|--------|-------|
+| 1 | Billing catalog schema | Done | `feature_catalog`, `plans`, `plan_prices`, `plan_features`, `plan_limits` migrated |
+| 2 | Billing seed data | Done | standard feature catalog and starter plan definitions seeded |
+| 3 | Subscription schema | Done | `subscriptions`, `subscription_add_ons`, `subscription_feature_overrides`, `billing_events` migrated |
+| 4 | Subscription state machine | Done | `SubscriptionPolicyService` supports trial, active, grace, suspended, cancelled, expired |
+| 5 | Entitlement engine | Done | `FeatureGateService` resolves plan features plus overrides |
+| 6 | Usage limit service | Done | `UsageLimitService` enforces users and branches against `plan_limits` |
+| 7 | Suspension enforcement | Done | `SuspensionFilter` and tenant access policy wired to subscription state |
+| 8 | Platform plan management UI | Done | platform plans, pricing, feature assignment, and limit update screens working |
+| 9 | Platform subscription management UI | Done | attach, view, switch plan, cancel, delete-safe actions, and event visibility are live |
+| 10 | Platform tenant-to-plan assignment | Done | assign or replace plan from tenant list and tenant detail |
+| 11 | Tenant billing summary | Done | tenant billing workspace shows plan, module access, renewal/trial dates, and capacity usage |
+| 12 | Route and menu gating | In Progress | feature-gated routes are wired; full menu polish continues as modules are built |
+| 13 | Automated billing tests | In Progress | initial PHPUnit suite exists; coverage still needs expansion |
+
+### 5.0.1 Verified runtime notes
+
+- DigitalOcean production deploy is active through GitHub Actions
+- Billing migrations and limit updates have been applied on production
+- Platform admin can:
+  - create and edit plans
+  - update prices, features, and limits
+  - attach subscriptions
+  - switch tenant plans
+  - cancel live subscriptions
+  - delete only cancelled or expired subscriptions
+- Tenant billing workspace is read-only by design
+- Quarterly billing cycle is supported in the current subscription assignment flow
+- Remaining Phase 1B work is now mostly hardening, test expansion, and tighter module gating
+
 ### 5.1 Objectives
 
 By the end of Phase 1B, the system must support:
@@ -1145,23 +1178,32 @@ All Phase 1A items validated on production 2026-04-14:
 - TenantAccessPolicy service — done
 - Multi-tenant slug-based login — done
 
-### 11.2 Phase 1B — Ready to start
+### 11.2 Phase 1B - Functionally implemented
 
-Phase 1B implementation order:
+Phase 1B is no longer "ready to start"; it is functionally in place.
 
-1. **Billing catalog schema** — migrations for feature_catalog, plans, plan_prices, plan_features, plan_limits
-2. **Seed billing catalog** — seed standard features (crm_core, admissions, placement, etc.) and starter plan definitions
-3. **Subscriptions schema** — migrations for subscriptions, subscription_add_ons, subscription_feature_overrides
-4. **Subscription state machine** — SubscriptionPolicyService with trial/active/grace/suspended/cancelled/expired transitions
-5. **Entitlement engine** — FeatureGateService (feature enabled?), UsageLimitService (under limit?)
-6. **Wire into SuspensionFilter** — extend TenantAccessPolicy.check() with subscription state
-7. **Platform admin billing UI** — plan management, pricing, feature assignment, subscription management
-8. **Tenant owner billing summary** — current plan, renewal date, usage, module summary
-9. **Route and menu gating** — hide/block modules the tenant has not purchased
+Delivered:
+
+1. **Billing catalog schema** - complete
+2. **Seed billing catalog** - complete
+3. **Subscriptions schema** - complete
+4. **Subscription state machine** - complete
+5. **Entitlement engine** - complete
+6. **Suspension integration** - complete
+7. **Platform admin billing UI** - complete
+8. **Tenant owner billing summary** - complete
+9. **Plan limit updates** - complete
+
+Remaining Phase 1B hardening work:
+
+1. **Module-by-module menu gating polish** - align every tenant menu entry to feature entitlement
+2. **Plan-aware user privilege filtering** - show only plan-relevant module privileges during user and role assignment
+3. **Expanded automated test coverage** - add feature and service coverage around cancellation, switching, limits, and gating
+4. **Production-safe seed strategy review** - keep demo data manual while production tenants are real customers
 
 ### 11.3 Before Phase 1B begins
 
-Set up a local database for Phase 1B development — billing state changes and Razorpay webhooks must not be tested directly on production:
+Phase 1B development has already begun and the shared local database recommendation still stands for ongoing work and future Phase 1C development. Billing state changes and payment gateway work must not be tested directly on production:
 
 ```bash
 # XAMPP phpMyAdmin or MySQL Workbench
