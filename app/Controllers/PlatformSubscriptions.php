@@ -226,4 +226,30 @@ class PlatformSubscriptions extends BaseController
         return redirect()->to("/platform/subscriptions/{$id}")
                          ->with('message', "Override set for {$featureCode}.");
     }
+
+    // ------------------------------------------------------------------
+    // DELETE — hard-delete a cancelled/expired subscription
+    // ------------------------------------------------------------------
+
+    public function delete(int $id): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $subscription = $this->subscriptionModel->find($id);
+        if (! $subscription) {
+            return redirect()->to('/platform/subscriptions')->with('error', 'Subscription not found.');
+        }
+
+        if (in_array($subscription->status, ['trial', 'active', 'grace'])) {
+            return redirect()->to("/platform/subscriptions/{$id}")
+                             ->with('error', 'Cannot delete an active subscription. Cancel it first.');
+        }
+
+        $db = db_connect();
+        $db->table('subscription_feature_overrides')->where('subscription_id', $id)->delete();
+        $db->table('subscription_add_ons')->where('subscription_id', $id)->delete();
+        $db->table('billing_events')->where('subscription_id', $id)->delete();
+        $this->subscriptionModel->delete($id);
+
+        return redirect()->to('/platform/subscriptions')
+                         ->with('message', 'Subscription #' . $id . ' deleted.');
+    }
 }

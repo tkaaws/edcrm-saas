@@ -77,6 +77,102 @@ class PlatformTenants extends BaseController
         ]));
     }
 
+    public function edit(int $id): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        $tenant = $this->tenantModel->find($id);
+
+        if (! $tenant) {
+            return redirect()->to('/platform/tenants')->with('error', 'Tenant not found.');
+        }
+
+        return view('platform/tenants/edit', $this->buildShellViewData([
+            'title'       => 'Edit — ' . esc($tenant->name),
+            'pageTitle'   => 'Edit Tenant',
+            'activeNav'   => 'tenants',
+            'tenantLabel' => 'Platform scope',
+            'tenant'      => $tenant,
+        ]));
+    }
+
+    public function update(int $id): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $tenant = $this->tenantModel->find($id);
+
+        if (! $tenant) {
+            return redirect()->to('/platform/tenants')->with('error', 'Tenant not found.');
+        }
+
+        $name          = trim((string) $this->request->getPost('name'));
+        $legalName     = trim((string) $this->request->getPost('legal_name'));
+        $ownerName     = trim((string) $this->request->getPost('owner_name'));
+        $ownerEmail    = strtolower(trim((string) $this->request->getPost('owner_email')));
+        $ownerPhone    = trim((string) $this->request->getPost('owner_phone'));
+        $timezone      = trim((string) $this->request->getPost('default_timezone'));
+        $currencyCode  = strtoupper(trim((string) $this->request->getPost('default_currency_code')));
+        $countryCode   = strtoupper(trim((string) $this->request->getPost('country_code')));
+        $localeCode    = trim((string) $this->request->getPost('locale_code'));
+
+        $errors = [];
+
+        if ($name === '') {
+            $errors['name'] = 'Institute name is required.';
+        }
+
+        if ($ownerEmail !== '' && ! filter_var($ownerEmail, FILTER_VALIDATE_EMAIL)) {
+            $errors['owner_email'] = 'Owner email must be a valid email address.';
+        } elseif ($ownerEmail !== '' && $ownerEmail !== $tenant->owner_email) {
+            $existing = $this->tenantModel->where('owner_email', $ownerEmail)->where('id !=', $id)->countAllResults();
+            if ($existing > 0) {
+                $errors['owner_email'] = 'This email is already registered to another tenant.';
+            }
+        }
+
+        if (! empty($errors)) {
+            return redirect()->back()->withInput()->with('fieldErrors', $errors);
+        }
+
+        $this->tenantModel->update($id, [
+            'name'                  => $name,
+            'legal_name'            => $legalName,
+            'owner_name'            => $ownerName,
+            'owner_email'           => $ownerEmail,
+            'owner_phone'           => $ownerPhone,
+            'default_timezone'      => $timezone,
+            'default_currency_code' => $currencyCode,
+            'country_code'          => $countryCode,
+            'locale_code'           => $localeCode,
+        ]);
+
+        return redirect()->to('/platform/tenants/' . $id)
+                         ->with('message', 'Tenant profile updated.');
+    }
+
+    public function delete(int $id): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $tenant = $this->tenantModel->find($id);
+
+        if (! $tenant) {
+            return redirect()->to('/platform/tenants')->with('error', 'Tenant not found.');
+        }
+
+        // Safety: block delete if tenant has any active subscriptions
+        $activeSub = db_connect()->table('subscriptions')
+                                 ->whereIn('status', ['trial', 'active', 'grace'])
+                                 ->where('tenant_id', $id)
+                                 ->countAllResults();
+
+        if ($activeSub > 0) {
+            return redirect()->to('/platform/tenants/' . $id)
+                             ->with('error', 'Cannot delete — tenant has an active subscription. Cancel the subscription first.');
+        }
+
+        // Hard delete — FK cascades handle branches, users, roles, settings
+        $this->tenantModel->delete($id);
+
+        return redirect()->to('/platform/tenants')
+                         ->with('message', 'Tenant "' . $tenant->name . '" has been permanently deleted.');
+    }
+
     public function updateStatus(int $id)
     {
         $tenant = $this->tenantModel->find($id);

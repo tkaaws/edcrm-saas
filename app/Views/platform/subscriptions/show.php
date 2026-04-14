@@ -38,6 +38,25 @@
             </dl>
         </div>
 
+        <!-- TENANT LINK -->
+        <?php if ($tenant): ?>
+        <div class="detail-card">
+            <h3 class="detail-card__title">Tenant</h3>
+            <dl class="context-list">
+                <div><dt>Name</dt><dd><?= esc($tenant->name) ?></dd></div>
+                <div><dt>Slug</dt><dd><code><?= esc($tenant->slug) ?></code></dd></div>
+                <div><dt>Status</dt><dd>
+                    <span class="status-badge <?= $tenant->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
+                        <?= esc(ucfirst($tenant->status)) ?>
+                    </span>
+                </dd></div>
+            </dl>
+            <div style="margin-top:1rem;">
+                <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View tenant</a>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- CHANGE STATUS -->
         <div class="detail-card">
             <h3 class="detail-card__title">Change Status</h3>
@@ -169,6 +188,17 @@
                     </tbody>
                 </table>
             <?php endif; ?>
+        </div>
+
+        <!-- DANGER ZONE -->
+        <div class="detail-card">
+            <h3 class="detail-card__title" style="color:var(--red,#c0392b);">Danger zone</h3>
+            <p style="color:var(--muted);font-size:.875rem;margin-bottom:1rem;">Delete this subscription record. Only allowed when status is cancelled or expired.</p>
+            <form method="post" action="<?= site_url("platform/subscriptions/{$subscription->id}/delete") ?>"
+                  onsubmit="return confirm('Delete subscription #<?= $subscription->id ?> permanently?')">
+                <?= csrf_field() ?>
+                <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete subscription</button>
+            </form>
         </div>
 
     </div>

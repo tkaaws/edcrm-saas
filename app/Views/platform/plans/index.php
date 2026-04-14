@@ -7,11 +7,8 @@
             <h2 class="module-title">Billing plans</h2>
             <p class="module-subtitle">Manage plan catalog, pricing, feature entitlements, and capacity limits.</p>
         </div>
+        <a class="shell-button shell-button--primary" href="<?= site_url('platform/plans/create') ?>">Create plan</a>
     </div>
-
-    <?php if (session()->getFlashdata('message')): ?>
-        <div class="shell-alert shell-alert--success"><?= esc(session()->getFlashdata('message')) ?></div>
-    <?php endif; ?>
 
     <div class="table-card">
         <table class="data-table">
@@ -19,10 +16,10 @@
                 <tr>
                     <th>Plan</th>
                     <th>Code</th>
-                    <th>Monthly (INR)</th>
-                    <th>Yearly (INR)</th>
-                    <th>Max users</th>
-                    <th>Max branches</th>
+                    <th>Monthly (₹)</th>
+                    <th>Yearly (₹)</th>
+                    <th>Users</th>
+                    <th>Branches</th>
                     <th>Status</th>
                     <th></th>
                 </tr>
@@ -33,14 +30,13 @@
                         <td colspan="8" class="empty-state">No plans found.</td>
                     </tr>
                 <?php endif; ?>
-                <?php foreach ($plans as $plan): ?>
-                    <?php
-                        $db       = db_connect();
-                        $monthly  = $db->table('plan_prices')->where('plan_id', $plan->id)->where('billing_cycle', 'monthly')->get()->getRow();
-                        $yearly   = $db->table('plan_prices')->where('plan_id', $plan->id)->where('billing_cycle', 'yearly')->get()->getRow();
-                        $maxUsers = $db->table('plan_limits')->where('plan_id', $plan->id)->where('limit_code', 'max_users')->get()->getRow();
-                        $maxBranches = $db->table('plan_limits')->where('plan_id', $plan->id)->where('limit_code', 'max_branches')->get()->getRow();
-                    ?>
+                <?php foreach ($plans as $plan):
+                    $db          = db_connect();
+                    $monthly     = $db->table('plan_prices')->where('plan_id', $plan->id)->where('billing_cycle', 'monthly')->get()->getRow();
+                    $yearly      = $db->table('plan_prices')->where('plan_id', $plan->id)->where('billing_cycle', 'yearly')->get()->getRow();
+                    $maxUsers    = $db->table('plan_limits')->where('plan_id', $plan->id)->where('limit_code', 'max_users')->get()->getRow();
+                    $maxBranches = $db->table('plan_limits')->where('plan_id', $plan->id)->where('limit_code', 'max_branches')->get()->getRow();
+                ?>
                     <tr>
                         <td>
                             <div class="entity-cell">
@@ -50,18 +46,10 @@
                         </td>
                         <td><code><?= esc($plan->code) ?></code></td>
                         <td>
-                            <?php if ($monthly): ?>
-                                ₹<?= number_format($monthly->price_amount / 100, 0) ?>
-                            <?php else: ?>
-                                <span class="text-muted">—</span>
-                            <?php endif; ?>
+                            <?= $monthly ? '₹' . number_format($monthly->price_amount / 100, 0) : '<span class="text-muted">—</span>' ?>
                         </td>
                         <td>
-                            <?php if ($yearly): ?>
-                                ₹<?= number_format($yearly->price_amount / 100, 0) ?>
-                            <?php else: ?>
-                                <span class="text-muted">—</span>
-                            <?php endif; ?>
+                            <?= $yearly ? '₹' . number_format($yearly->price_amount / 100, 0) : '<span class="text-muted">—</span>' ?>
                         </td>
                         <td><?= $maxUsers ? ($maxUsers->limit_value == -1 ? '∞' : $maxUsers->limit_value) : '—' ?></td>
                         <td><?= $maxBranches ? ($maxBranches->limit_value == -1 ? '∞' : $maxBranches->limit_value) : '—' ?></td>
@@ -73,8 +61,13 @@
                                 <span class="status-badge status-badge--neutral">Private</span>
                             <?php endif; ?>
                         </td>
-                        <td>
+                        <td class="table-actions">
                             <a href="<?= site_url("platform/plans/{$plan->id}") ?>" class="shell-button shell-button--ghost shell-button--sm">Manage</a>
+                            <form method="post" action="<?= site_url("platform/plans/{$plan->id}/delete") ?>" style="display:inline;"
+                                  onsubmit="return confirm('Delete plan <?= esc(addslashes($plan->name)) ?>? This cannot be undone.')">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>

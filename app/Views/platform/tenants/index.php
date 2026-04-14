@@ -5,9 +5,9 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Platform tenants</h2>
-            <p class="module-subtitle">Provision and review institute accounts from the platform administration layer.</p>
+            <p class="module-subtitle">Provision and manage institute accounts.</p>
         </div>
-        <a class="shell-button shell-button--primary" href="<?= site_url('platform/tenants/create') ?>">Create tenant</a>
+        <a class="shell-button shell-button--primary" href="<?= site_url('platform/tenants/create') ?>">Add tenant</a>
     </div>
 
     <div class="table-card">
@@ -18,14 +18,14 @@
                     <th>Slug</th>
                     <th>Owner email</th>
                     <th>Timezone</th>
-                    <th>Currency</th>
                     <th>Status</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 <?php if ($tenants === []): ?>
                     <tr>
-                        <td colspan="6" class="empty-state">No tenants yet. Create the first institute from platform onboarding.</td>
+                        <td colspan="6" class="empty-state">No tenants yet.</td>
                     </tr>
                 <?php endif; ?>
 
@@ -34,17 +34,20 @@
                         <td>
                             <div class="entity-cell">
                                 <strong><?= esc($tenant->name) ?></strong>
-                                <span><?= esc($tenant->legal_name ?: 'No legal name set') ?></span>
+                                <span><?= esc($tenant->legal_name ?: '—') ?></span>
                             </div>
                         </td>
-                        <td><?= esc($tenant->slug) ?></td>
-                        <td><?= esc($tenant->owner_email ?: 'Not set') ?></td>
+                        <td><code><?= esc($tenant->slug) ?></code></td>
+                        <td><?= esc($tenant->owner_email ?: '—') ?></td>
                         <td><?= esc($tenant->default_timezone ?: 'UTC') ?></td>
-                        <td><?= esc($tenant->default_currency_code ?: 'USD') ?></td>
                         <td>
-                            <span class="status-badge <?= $tenant->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
+                            <span class="status-badge <?= $tenant->status === 'active' ? 'status-badge--good' : ($tenant->status === 'suspended' ? 'status-badge--warm' : 'status-badge--neutral') ?>">
                                 <?= esc(ucfirst($tenant->status)) ?>
                             </span>
+                        </td>
+                        <td class="table-actions">
+                            <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View</a>
+                            <a href="<?= site_url('platform/tenants/' . $tenant->id . '/edit') ?>" class="shell-button shell-button--ghost shell-button--sm">Edit</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>

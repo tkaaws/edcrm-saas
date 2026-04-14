@@ -89,12 +89,20 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->get('tenants/(:num)', 'PlatformTenants::show/$1');
     $routes->post('tenants/(:num)/status', 'PlatformTenants::updateStatus/$1');
 
+    // Tenants (edit/update/delete)
+    $routes->get('tenants/(:num)/edit', 'PlatformTenants::edit/$1');
+    $routes->post('tenants/(:num)/update', 'PlatformTenants::update/$1');
+    $routes->post('tenants/(:num)/delete', 'PlatformTenants::delete/$1');
+
     // Plans
     $routes->get('plans', 'PlatformPlans::index');
+    $routes->get('plans/create', 'PlatformPlans::create');
+    $routes->post('plans', 'PlatformPlans::store');
     $routes->get('plans/(:num)', 'PlatformPlans::show/$1');
     $routes->post('plans/(:num)/price', 'PlatformPlans::updatePrice/$1');
     $routes->post('plans/(:num)/feature', 'PlatformPlans::updateFeature/$1');
     $routes->post('plans/(:num)/limit', 'PlatformPlans::updateLimit/$1');
+    $routes->post('plans/(:num)/delete', 'PlatformPlans::delete/$1');
 
     // Subscriptions
     $routes->get('subscriptions', 'PlatformSubscriptions::index');
@@ -102,4 +110,5 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->get('subscriptions/(:num)', 'PlatformSubscriptions::show/$1');
     $routes->post('subscriptions/(:num)/status', 'PlatformSubscriptions::updateStatus/$1');
     $routes->post('subscriptions/(:num)/override', 'PlatformSubscriptions::setOverride/$1');
+    $routes->post('subscriptions/(:num)/delete', 'PlatformSubscriptions::delete/$1');
 });

@@ -206,6 +206,28 @@ a {
     color: var(--text);
 }
 
+.shell-button--danger {
+    background: #fff0f0;
+    border-color: #f5c6cb;
+    color: #c0392b;
+}
+
+.shell-button--danger:hover {
+    background: #c0392b;
+    border-color: #c0392b;
+    color: #fff;
+}
+
+.shell-button--sm {
+    padding: 6px 10px;
+    font-size: .8125rem;
+}
+
+.form-card--danger {
+    border: 1px solid #f5c6cb;
+    background: #fff9f9;
+}
+
 .shell-content {
     display: grid;
     gap: 18px;
