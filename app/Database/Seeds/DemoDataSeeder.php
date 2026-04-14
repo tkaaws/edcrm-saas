@@ -29,7 +29,6 @@ class DemoDataSeeder extends Seeder
 
         $existing = $this->db->table('tenants')->where('slug', 'demo-institute')->countAllResults();
         if ($existing > 0) {
-            echo "DemoDataSeeder: demo tenant already exists, skipping.\n";
             return;
         }
 
@@ -49,7 +48,6 @@ class DemoDataSeeder extends Seeder
             'updated_at'            => $now,
         ]);
         $tenantId = $this->db->insertID();
-        echo "DemoDataSeeder: created tenant id={$tenantId}\n";
 
         $this->db->table('tenant_branches')->insert([
             'tenant_id'    => $tenantId,
@@ -68,7 +66,6 @@ class DemoDataSeeder extends Seeder
             'updated_at'   => $now,
         ]);
         $branchId = $this->db->insertID();
-        echo "DemoDataSeeder: created branch id={$branchId}\n";
 
         $existingPlatformRole = $this->db->table('user_roles')
             ->where('tenant_id', null)
@@ -120,13 +117,11 @@ class DemoDataSeeder extends Seeder
             ]);
             $roleIds[$role['code']] = $this->db->insertID();
         }
-        echo "DemoDataSeeder: created " . count($roleIds) . " tenant system roles.\n";
 
         $allPrivileges = $this->db->table('privileges')->get()->getResultArray();
         $privMap = array_column($allPrivileges, 'id', 'code');
 
         if (empty($privMap)) {
-            echo "DemoDataSeeder: no privileges found - run PrivilegesSeeder first.\n";
             return;
         }
 
@@ -199,7 +194,6 @@ class DemoDataSeeder extends Seeder
             }
         }
         $this->db->table('role_privileges')->insertBatch($rpRows);
-        echo "DemoDataSeeder: inserted " . count($rpRows) . " role-privilege mappings.\n";
 
         $this->db->table('users')->insert([
             'tenant_id'           => null,
@@ -224,7 +218,6 @@ class DemoDataSeeder extends Seeder
             'updated_at'          => $now,
         ]);
         $platformUserId = $this->db->insertID();
-        echo "DemoDataSeeder: created platform admin user id={$platformUserId}\n";
 
         $this->db->table('users')->insert([
             'tenant_id'           => $tenantId,
@@ -249,7 +242,6 @@ class DemoDataSeeder extends Seeder
             'updated_at'          => $now,
         ]);
         $tenantOwnerUserId = $this->db->insertID();
-        echo "DemoDataSeeder: created tenant owner user id={$tenantOwnerUserId}\n";
 
         $this->db->table('user_branches')->insert([
             'user_id'    => $tenantOwnerUserId,
@@ -260,7 +252,6 @@ class DemoDataSeeder extends Seeder
             'created_at' => $now,
             'updated_at' => $now,
         ]);
-        echo "DemoDataSeeder: assigned tenant owner to HQ branch.\n";
 
         $this->db->table('tenant_settings')->insert([
             'tenant_id'                 => $tenantId,
@@ -276,11 +267,5 @@ class DemoDataSeeder extends Seeder
             'created_at'                => $now,
             'updated_at'                => $now,
         ]);
-        echo "DemoDataSeeder: created tenant_settings.\n";
-
-        echo "DemoDataSeeder: complete.\n";
-        echo "---\n";
-        echo "Platform login  ->  platform@edcrm.in  /  Demo@1234\n";
-        echo "Tenant login    ->  owner@demo.edcrm.in  /  Demo@1234\n";
     }
 }

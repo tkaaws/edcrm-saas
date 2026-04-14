@@ -13,6 +13,7 @@ class AllowGlobalUserRoles extends Migration
 
     public function down()
     {
+        $this->db->query('DELETE FROM user_roles WHERE tenant_id IS NULL');
         $this->db->query('ALTER TABLE user_roles MODIFY tenant_id BIGINT(20) UNSIGNED NOT NULL');
     }
 }

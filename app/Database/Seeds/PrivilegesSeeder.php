@@ -151,11 +151,9 @@ class PrivilegesSeeder extends Seeder
         // Insert in chunks — skip if already seeded
         $existing = $this->db->table('privileges')->countAllResults();
         if ($existing > 0) {
-            echo "PrivilegesSeeder: already seeded, skipping.\n";
             return;
         }
 
         $this->db->table('privileges')->insertBatch($privileges);
-        echo "PrivilegesSeeder: inserted " . count($privileges) . " privileges.\n";
     }
 }

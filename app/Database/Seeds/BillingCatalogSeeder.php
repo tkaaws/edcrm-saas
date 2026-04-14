@@ -20,7 +20,6 @@ class BillingCatalogSeeder extends Seeder
     {
         // Guard: skip if catalog has already been seeded
         if ($this->db->table('feature_catalog')->countAllResults() > 0) {
-            echo "BillingCatalogSeeder: catalog already seeded, skipping.\n";
             return;
         }
 
@@ -52,7 +51,6 @@ class BillingCatalogSeeder extends Seeder
             ]));
         }
 
-        echo "BillingCatalogSeeder: inserted " . count($features) . " feature catalog entries.\n";
 
         // ----------------------------------------------------------------
         // 2. Plans
@@ -208,6 +206,5 @@ class BillingCatalogSeeder extends Seeder
             ]);
         }
 
-        echo "BillingCatalogSeeder: inserted " . count($plans) . " plans with prices, features, and limits.\n";
     }
 }
