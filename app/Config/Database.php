@@ -194,6 +194,16 @@ class Database extends Config
     {
         parent::__construct();
 
+        $this->tests['hostname'] = env('tests.db.hostname', $this->tests['hostname']);
+        $this->tests['username'] = env('tests.db.username', $this->tests['username']);
+        $this->tests['password'] = env('tests.db.password', $this->tests['password']);
+        $this->tests['database'] = env('tests.db.database', $this->tests['database']);
+        $this->tests['DBDriver'] = env('tests.db.DBDriver', $this->tests['DBDriver']);
+        $this->tests['DBPrefix'] = env('tests.db.DBPrefix', $this->tests['DBPrefix']);
+        $this->tests['port']     = (int) env('tests.db.port', (string) $this->tests['port']);
+        $this->tests['charset']  = env('tests.db.charset', $this->tests['charset']);
+        $this->tests['DBCollat'] = env('tests.db.DBCollat', $this->tests['DBCollat']);
+
         // Ensure that we always set the database group to 'tests' if
         // we are currently running an automated test suite, so that
         // we don't overwrite live data on accident.

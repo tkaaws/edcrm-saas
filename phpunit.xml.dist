@@ -28,6 +28,9 @@
         <testsuite name="feature">
             <directory>./tests/feature</directory>
         </testsuite>
+        <testsuite name="database">
+            <directory>./tests/database/edcrm</directory>
+        </testsuite>
         <testsuite name="session">
             <directory>./tests/session</directory>
         </testsuite>
