@@ -187,8 +187,9 @@ Last updated: 2026-04-14
 | 17 | Branch management CRUD | In Progress | list, create, edit, and status toggle wired |
 | 18 | Role management CRUD | In Progress | list, create, edit, status toggle, and privilege assignment wired |
 | 19 | Tenant settings (SMTP, WhatsApp) | In Progress | profile defaults, visibility modes, SMTP, and WhatsApp settings wired |
-| 20 | TenantAccessPolicy / subscription policy integration | Pending | needed before full Phase 1B restriction enforcement |
+| 20 | TenantAccessPolicy / subscription policy integration | In Progress | TenantAccessPolicy service exists; Phase 1B still needs subscription-state integration on top of status enforcement |
 | 21 | Platform tenant onboarding | Done | tenant list, create/provision, show, and updateStatus wired; platform route group isolated with platform_admin filter; structured per-field validation with platform-wide duplicate email/username checks and password confirmation |
+| 22 | Automated PHPUnit baseline and CI gate | Done | unit, feature, and session suites run in GitHub Actions before deploy job is allowed |
 ### 4.0.1 Handoff note
 This table tracks repository implementation status, not just planning intent.
 - Done means code/files exist and basic verification has been performed
@@ -196,6 +197,7 @@ This table tracks repository implementation status, not just planning intent.
 - Pending means not yet started or not yet ready for handoff
 Current verified runtime facts:
 - DigitalOcean droplet deployment pipeline is live and auto-deploys on push to main
+- GitHub Actions now runs PHPUnit unit, feature, and session suites before droplet deployment
 - Nginx + PHP-FPM are serving the app on http://143.110.247.79
 - GitHub Actions deploy flow is working (~17s deploy time)
 - 16 tables confirmed in edcrm_saas database on production droplet
@@ -1170,4 +1172,3 @@ Phase 1B order:
 8. route and menu gating by entitlement
 
 Only after Phase 1B is stable should enquiry, admissions, service, placement, and student portal module work begin.
-

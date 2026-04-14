@@ -8,8 +8,7 @@
     colors="true"
     columns="max"
     failOnRisky="true"
-    failOnWarning="true"
-    cacheDirectory="build/.phpunit.cache">
+    failOnWarning="true">
     <coverage
         includeUncoveredFiles="true"
         pathCoverage="false"
@@ -23,15 +22,16 @@
         </report>
     </coverage>
     <testsuites>
-        <testsuite name="App">
-            <directory>./tests</directory>
+        <testsuite name="unit">
+            <directory>./tests/unit</directory>
+        </testsuite>
+        <testsuite name="feature">
+            <directory>./tests/feature</directory>
+        </testsuite>
+        <testsuite name="session">
+            <directory>./tests/session</directory>
         </testsuite>
     </testsuites>
-    <logging>
-        <testdoxHtml outputFile="build/logs/testdox.html"/>
-        <testdoxText outputFile="build/logs/testdox.txt"/>
-        <junit outputFile="build/logs/logfile.xml"/>
-    </logging>
     <source>
         <include>
             <directory suffix=".php">./app</directory>
@@ -44,6 +44,8 @@
     <php>
         <server name="app.baseURL" value="http://example.com/"/>
         <server name="CODEIGNITER_SCREAM_DEPRECATIONS" value="0"/>
+        <env name="cache.handler" value="dummy"/>
+        <env name="cache.backupHandler" value="dummy"/>
         <!-- Directory containing phpunit.xml -->
         <const name="HOMEPATH" value="./"/>
         <!-- Directory containing the Paths config file -->
