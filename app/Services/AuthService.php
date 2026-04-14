@@ -103,14 +103,12 @@ class AuthService
      */
     protected function buildSession(object $user, ?int $tenantId): void
     {
-        $session = session();
-
         // Regenerate session ID on real active PHP sessions to prevent session fixation.
         // In CLI/database-test runtime there may be no active native session, and
-        // forcing a session start through the framework can fail because the HTTP
-        // request lifecycle is not fully booted there.
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            $session->regenerate(true);
+        // test runners may carry a lightweight session array without a real native
+        // PHP session lifecycle. Regeneration remains enabled for real requests only.
+        if (ENVIRONMENT !== 'testing' && session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
         }
 
         // Load role details
@@ -122,7 +120,7 @@ class AuthService
         // Load tenant name for shell display (avoids per-request DB lookup in BaseController)
         $tenant = $tenantId !== null ? $this->tenantModel->find($tenantId) : null;
 
-        $session->set([
+        $this->sessionSet([
             'user_id'              => $user->id,
             'tenant_id'            => $tenantId,
             'tenant_name'          => $tenant?->name ?? '',
@@ -169,14 +167,18 @@ class AuthService
      */
     public function logout(): void
     {
-        $userId   = session()->get('user_id');
-        $tenantId = session()->get('tenant_id');
+        $userId   = $this->sessionGet('user_id');
+        $tenantId = $this->sessionGet('tenant_id');
 
         if ($userId) {
             $this->writeAudit($tenantId, $userId, 'logout', 'User logged out');
         }
 
-        session()->destroy();
+        $_SESSION = [];
+
+        if (ENVIRONMENT !== 'testing' && session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
     }
 
     // ---------------------------------------------------------------
@@ -299,8 +301,8 @@ class AuthService
             ->update(['used_at' => date('Y-m-d H:i:s')]);
 
         // Clear must_reset_password from session if user was forced through reset flow
-        if (session()->get('must_reset_password')) {
-            session()->set('must_reset_password', false);
+        if ($this->sessionGet('must_reset_password')) {
+            $this->sessionSet('must_reset_password', false);
         }
 
         $this->writeAudit($user->tenant_id, $user->id, 'password_reset_completed', 'Password reset successful');
@@ -338,7 +340,7 @@ class AuthService
         ]);
 
         // Clear the flag from session so AuthFilter stops redirecting
-        session()->set('must_reset_password', false);
+        $this->sessionSet('must_reset_password', false);
 
         $this->writeAudit($user->tenant_id, $userId, 'password_changed', 'Password changed by user');
 
@@ -425,8 +427,30 @@ class AuthService
     protected function getRoleForUser(object $user): ?object
     {
         return $this->db->table('user_roles')
-                   ->where('id', $user->role_id)
-                   ->get()
-                   ->getRow();
+                       ->where('id', $user->role_id)
+                       ->get()
+                       ->getRow();
+    }
+
+    protected function sessionGet(string $key, mixed $default = null): mixed
+    {
+        return $_SESSION[$key] ?? $default;
+    }
+
+    protected function sessionSet(string|array $key, mixed $value = null): void
+    {
+        if (! isset($_SESSION) || ! is_array($_SESSION)) {
+            $_SESSION = [];
+        }
+
+        if (is_array($key)) {
+            foreach ($key as $sessionKey => $sessionValue) {
+                $_SESSION[$sessionKey] = $sessionValue;
+            }
+
+            return;
+        }
+
+        $_SESSION[$key] = $value;
     }
 }

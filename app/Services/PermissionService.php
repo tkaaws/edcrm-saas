@@ -89,14 +89,14 @@ class PermissionService
         }
 
         // Try session cache first
-        $cached = session()->get(self::SESSION_KEY);
+        $cached = $this->sessionGet(self::SESSION_KEY);
         if (is_array($cached)) {
             $this->cachedCodes = $cached;
             return $this->cachedCodes;
         }
 
         // Load from DB
-        $roleId = session()->get('user_role_id');
+        $roleId = $this->sessionGet('user_role_id');
         if (! $roleId) {
             $this->cachedCodes = [];
             return [];
@@ -106,7 +106,7 @@ class PermissionService
         $this->cachedCodes = $codes;
 
         // Cache in session for this login session
-        session()->set(self::SESSION_KEY, $codes);
+        $this->sessionSet(self::SESSION_KEY, $codes);
 
         return $this->cachedCodes;
     }
@@ -119,7 +119,7 @@ class PermissionService
     {
         $codes = $this->privilegeModel->getPrivilegeCodesForRole($roleId);
         $this->cachedCodes = $codes;
-        session()->set(self::SESSION_KEY, $codes);
+        $this->sessionSet(self::SESSION_KEY, $codes);
     }
 
     /**
@@ -128,7 +128,7 @@ class PermissionService
     public function clearCache(): void
     {
         $this->cachedCodes = null;
-        session()->remove(self::SESSION_KEY);
+        unset($_SESSION[self::SESSION_KEY]);
     }
 
     /**
@@ -139,5 +139,19 @@ class PermissionService
     {
         $this->clearCache();
         $this->getCodes();
+    }
+
+    protected function sessionGet(string $key, mixed $default = null): mixed
+    {
+        return $_SESSION[$key] ?? $default;
+    }
+
+    protected function sessionSet(string $key, mixed $value): void
+    {
+        if (! isset($_SESSION) || ! is_array($_SESSION)) {
+            $_SESSION = [];
+        }
+
+        $_SESSION[$key] = $value;
     }
 }
