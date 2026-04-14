@@ -4,16 +4,19 @@ namespace App\Controllers;
 
 use App\Models\PrivilegeModel;
 use App\Models\RoleModel;
+use App\Services\DelegationGuardService;
 
 class Roles extends BaseController
 {
     protected RoleModel $roleModel;
     protected PrivilegeModel $privilegeModel;
+    protected DelegationGuardService $delegationGuard;
 
     public function __construct()
     {
         $this->roleModel = new RoleModel();
         $this->privilegeModel = new PrivilegeModel();
+        $this->delegationGuard = service('delegationGuard');
     }
 
     public function index(): string
@@ -170,14 +173,21 @@ class Roles extends BaseController
             $errors[] = 'One or more selected privileges are invalid.';
         }
 
+        if ($data['privilege_ids'] !== []
+            && $this->delegationGuard->getInvalidPrivilegeIdsForTenant($tenantId, $data['privilege_ids']) !== []) {
+            $errors[] = 'Selected privileges must stay within the tenant plan and your own delegation scope.';
+        }
+
         return $errors;
     }
 
     protected function buildFormViewData(array $data): array
     {
+        $tenantId = (int) session()->get('tenant_id');
+
         return $this->buildShellViewData(array_merge([
             'activeNav'       => 'roles',
-            'privilegeGroups' => $this->privilegeModel->getAllGroupedByModule(),
+            'privilegeGroups' => $this->delegationGuard->getGroupedAssignablePrivilegesForTenant($tenantId),
         ], $data));
     }
 }

@@ -5,18 +5,24 @@ namespace App\Controllers;
 use App\Models\BranchModel;
 use App\Models\RoleModel;
 use App\Models\UserModel;
+use App\Services\DelegationGuardService;
+use App\Services\UsageLimitService;
 
 class Users extends BaseController
 {
     protected UserModel $userModel;
     protected RoleModel $roleModel;
     protected BranchModel $branchModel;
+    protected DelegationGuardService $delegationGuard;
+    protected UsageLimitService $usageLimit;
 
     public function __construct()
     {
         $this->userModel   = new UserModel();
         $this->roleModel   = new RoleModel();
         $this->branchModel = new BranchModel();
+        $this->delegationGuard = service('delegationGuard');
+        $this->usageLimit = service('usageLimit');
     }
 
     public function index(): string
@@ -50,6 +56,10 @@ class Users extends BaseController
         $tenantId = (int) session()->get('tenant_id');
         $data     = $this->collectPayload();
 
+        if ($this->usageLimit->wouldExceedLimit($tenantId, 'max_users')) {
+            return redirect()->back()->withInput()->with('error', 'User limit reached for the current plan. Upgrade the subscription to add more users.');
+        }
+
         if ($errors = $this->validateUserInput($data, $tenantId)) {
             return redirect()->back()->withInput()->with('error', implode(' ', $errors));
         }
@@ -76,11 +86,16 @@ class Users extends BaseController
         return redirect()->to('/users')->with('message', 'User created successfully.');
     }
 
-    public function edit(int $id): string
+    public function edit(int $id): string|\CodeIgniter\HTTP\RedirectResponse
     {
         $user = $this->userModel->findForTenant($id);
         if (! $user) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $tenantId = (int) session()->get('tenant_id');
+        if (! $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $user->role_id)) {
+            return redirect()->to('/users')->with('error', 'You cannot manage a user whose role is outside your delegation scope.');
         }
 
         $branches = $this->userModel->getBranches($id);
@@ -105,6 +120,10 @@ class Users extends BaseController
 
         if (! $user) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        if (! $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $user->role_id)) {
+            return redirect()->to('/users')->with('error', 'You cannot manage a user whose role is outside your delegation scope.');
         }
 
         $data = $this->collectPayload();
@@ -213,6 +232,8 @@ class Users extends BaseController
         $role = $data['role_id'] > 0 ? $this->roleModel->findForTenant($data['role_id']) : null;
         if ($data['role_id'] > 0 && (! $role || $role->status !== 'active')) {
             $errors[] = 'Choose an active role from this tenant.';
+        } elseif ($role && ! $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $role->id)) {
+            $errors[] = 'You can only assign roles that stay within the tenant plan and your own delegation scope.';
         }
 
         if ($requirePassword && $data['password'] === '') {
@@ -290,9 +311,11 @@ class Users extends BaseController
 
     protected function buildFormViewData(array $data): array
     {
+        $tenantId = (int) session()->get('tenant_id');
+
         return $this->buildShellViewData(array_merge([
             'activeNav' => 'users',
-            'roles'     => $this->roleModel->getActiveRoles(),
+            'roles'     => $this->delegationGuard->getAssignableRolesForTenant($tenantId),
             'branches'  => $this->branchModel->getActiveBranches(),
         ], $data));
     }

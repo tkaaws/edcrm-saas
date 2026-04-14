@@ -13,6 +13,7 @@ use App\Services\TenantAccessPolicy;
 use App\Services\SubscriptionPolicyService;
 use App\Services\FeatureGateService;
 use App\Services\UsageLimitService;
+use App\Services\DelegationGuardService;
 
 /**
  * Services Configuration
@@ -136,5 +137,16 @@ class Services extends BaseService
             return static::getSharedInstance('usageLimit');
         }
         return new UsageLimitService();
+    }
+
+    /**
+     * Delegation guard — plan-aware + actor-aware privilege and role assignment.
+     */
+    public static function delegationGuard(bool $getShared = true): DelegationGuardService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('delegationGuard');
+        }
+        return new DelegationGuardService();
     }
 }

@@ -42,6 +42,10 @@ class Branches extends BaseController
         $tenantId = (int) session()->get('tenant_id');
         $data     = $this->collectPayload();
 
+        if (service('usageLimit')->wouldExceedLimit($tenantId, 'max_branches')) {
+            return redirect()->back()->withInput()->with('error', 'Branch limit reached for the current plan. Upgrade the subscription to add more branches.');
+        }
+
         if ($errors = $this->validateBranchInput($data, $tenantId)) {
             return redirect()->back()->withInput()->with('error', implode(' ', $errors));
         }

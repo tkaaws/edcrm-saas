@@ -11,30 +11,41 @@
     $activeNav       = $activeNav ?? 'dashboard';
     $isPlatformAdmin = $isPlatformAdmin ?? false;
     $enabledModules  = $enabledModules ?? [];
+    $privilegeCodes  = session()->get('user_privilege_codes') ?? [];
 
     // Helper: is a feature module enabled for this tenant?
     $feat = static fn(string $code): bool => in_array($code, $enabledModules, true);
+    $canCode = static fn(string $code): bool => in_array($code, $privilegeCodes, true);
+    $canPrefix = static function (string $prefix) use ($privilegeCodes): bool {
+        foreach ($privilegeCodes as $code) {
+            if (str_starts_with($code, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
 
     $navItems = [
         // Always visible to tenant users
         ['key' => 'dashboard',   'label' => 'Dashboard',   'href' => site_url('dashboard'),          'meta' => 'Home',       'show' => true],
 
         // Core ops — always visible once logged in as tenant user
-        ['key' => 'users',       'label' => 'Users',       'href' => site_url('users'),              'meta' => 'People',     'show' => ! $isPlatformAdmin],
-        ['key' => 'branches',    'label' => 'Branches',    'href' => site_url('branches'),           'meta' => 'Locations',  'show' => ! $isPlatformAdmin],
-        ['key' => 'roles',       'label' => 'Roles',       'href' => site_url('roles'),              'meta' => 'Access',     'show' => ! $isPlatformAdmin],
+        ['key' => 'users',       'label' => 'Users',       'href' => site_url('users'),              'meta' => 'People',     'show' => ! $isPlatformAdmin && $canPrefix('users.')],
+        ['key' => 'branches',    'label' => 'Branches',    'href' => site_url('branches'),           'meta' => 'Locations',  'show' => ! $isPlatformAdmin && $canPrefix('branches.')],
+        ['key' => 'roles',       'label' => 'Roles',       'href' => site_url('roles'),              'meta' => 'Access',     'show' => ! $isPlatformAdmin && $canPrefix('roles.')],
 
         // Feature-gated modules — only shown when plan includes the module
-        ['key' => 'enquiries',   'label' => 'Enquiries',   'href' => site_url('enquiries'),          'meta' => 'CRM',        'show' => ! $isPlatformAdmin && $feat('crm_core')],
-        ['key' => 'admissions',  'label' => 'Admissions',  'href' => site_url('admissions'),         'meta' => 'Enrolment',  'show' => ! $isPlatformAdmin && $feat('admissions')],
-        ['key' => 'batches',     'label' => 'Batches',     'href' => site_url('batches'),            'meta' => 'Scheduling', 'show' => ! $isPlatformAdmin && $feat('batch_management')],
-        ['key' => 'service',     'label' => 'Service',     'href' => site_url('service'),            'meta' => 'Tickets',    'show' => ! $isPlatformAdmin && $feat('service_tickets')],
-        ['key' => 'placement',   'label' => 'Placement',   'href' => site_url('placement'),          'meta' => 'Jobs',       'show' => ! $isPlatformAdmin && $feat('placement')],
-        ['key' => 'reports',     'label' => 'Reports',     'href' => site_url('reports'),            'meta' => 'Analytics',  'show' => ! $isPlatformAdmin && $feat('advanced_reports')],
+        ['key' => 'enquiries',   'label' => 'Enquiries',   'href' => site_url('enquiries'),          'meta' => 'CRM',        'show' => ! $isPlatformAdmin && $feat('crm_core') && ($canPrefix('enquiries.') || $canPrefix('followups.'))],
+        ['key' => 'admissions',  'label' => 'Admissions',  'href' => site_url('admissions'),         'meta' => 'Enrolment',  'show' => ! $isPlatformAdmin && $feat('admissions') && ($canPrefix('admissions.') || $canPrefix('fees.'))],
+        ['key' => 'batches',     'label' => 'Batches',     'href' => site_url('batches'),            'meta' => 'Scheduling', 'show' => ! $isPlatformAdmin && $feat('batch_management') && ($canPrefix('batches.') || $canPrefix('students.'))],
+        ['key' => 'service',     'label' => 'Service',     'href' => site_url('service'),            'meta' => 'Tickets',    'show' => ! $isPlatformAdmin && $feat('service_tickets') && $canPrefix('tickets.')],
+        ['key' => 'placement',   'label' => 'Placement',   'href' => site_url('placement'),          'meta' => 'Jobs',       'show' => ! $isPlatformAdmin && $feat('placement') && $canPrefix('placement.')],
+        ['key' => 'reports',     'label' => 'Reports',     'href' => site_url('reports'),            'meta' => 'Analytics',  'show' => ! $isPlatformAdmin && $feat('advanced_reports') && $canPrefix('reports.')],
 
         // Always at bottom for tenant users
-        ['key' => 'settings',    'label' => 'Settings',    'href' => site_url('settings'),           'meta' => 'Config',     'show' => ! $isPlatformAdmin],
-        ['key' => 'billing',     'label' => 'Billing',     'href' => site_url('billing'),            'meta' => 'Plan',       'show' => ! $isPlatformAdmin],
+        ['key' => 'settings',    'label' => 'Settings',    'href' => site_url('settings'),           'meta' => 'Config',     'show' => ! $isPlatformAdmin && $canPrefix('settings.')],
+        ['key' => 'billing',     'label' => 'Billing',     'href' => site_url('billing'),            'meta' => 'Plan',       'show' => ! $isPlatformAdmin && ($canCode('billing.view') || $canCode('billing.manage'))],
 
         // Platform admin only
         ['key' => 'tenants',       'label' => 'Tenants',       'href' => site_url('platform/tenants'),       'meta' => 'Platform',  'show' => $isPlatformAdmin],
