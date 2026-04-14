@@ -47,11 +47,6 @@ class BranchModel extends BaseModel
         return $this->where('code', $code)->first();
     }
 
-    /**
-     * Return tenant branches for the admin grid.
-     *
-     * @return array<int, object>
-     */
     public function getAdminGrid(int $tenantId): array
     {
         return $this->withoutTenantScope()
@@ -73,19 +68,18 @@ class BranchModel extends BaseModel
         return $builder->countAllResults() > 0;
     }
 
-    /**
-     * Resolve effective timezone for a branch.
-     * Falls back to tenant default if branch has no override.
-     */
+    public function countAssignedUsers(int $branchId): int
+    {
+        return $this->db->table('user_branches')
+                        ->where('branch_id', $branchId)
+                        ->countAllResults();
+    }
+
     public function resolveTimezone(object $branch, object $tenant): string
     {
         return $branch->timezone ?? $tenant->default_timezone ?? 'UTC';
     }
 
-    /**
-     * Resolve effective currency for a branch.
-     * Falls back to tenant default if branch has no override.
-     */
     public function resolveCurrency(object $branch, object $tenant): string
     {
         return $branch->currency_code ?? $tenant->default_currency_code ?? 'USD';

@@ -34,7 +34,6 @@ class UserModel extends BaseModel
         'updated_by',
     ];
 
-    // Never return password_hash in results
     protected $hiddenFields = ['password_hash'];
 
     protected $validationRules = [
@@ -44,10 +43,6 @@ class UserModel extends BaseModel
         'role_id'    => 'required|integer',
     ];
 
-    /**
-     * Find user by email within current tenant scope.
-     * Used for login.
-     */
     public function findByEmail(string $email): ?object
     {
         return $this->where('email', $email)
@@ -55,10 +50,6 @@ class UserModel extends BaseModel
                     ->first();
     }
 
-    /**
-     * Find user by email for a specific tenant.
-     * Used by auth before session tenant is established.
-     */
     public function findByEmailForTenant(string $email, int $tenantId): ?object
     {
         return $this->withoutTenantScope()
@@ -67,9 +58,6 @@ class UserModel extends BaseModel
                     ->first();
     }
 
-    /**
-     * Get branches assigned to a user.
-     */
     public function getBranches(int $userId): array
     {
         return $this->db->table('user_branches ub')
@@ -82,9 +70,6 @@ class UserModel extends BaseModel
                         ->getResultArray();
     }
 
-    /**
-     * Get the primary branch for a user.
-     */
     public function getPrimaryBranch(int $userId): ?object
     {
         return (object) $this->db->table('user_branches ub')
@@ -97,17 +82,11 @@ class UserModel extends BaseModel
                         ->getRowArray() ?: null;
     }
 
-    /**
-     * Verify password against stored hash.
-     */
     public function verifyPassword(string $plainPassword, string $hash): bool
     {
         return password_verify($plainPassword, $hash);
     }
 
-    /**
-     * Update last login timestamp and IP.
-     */
     public function recordLogin(int $userId, string $ip): void
     {
         $this->db->table('users')->where('id', $userId)->update([
@@ -116,9 +95,6 @@ class UserModel extends BaseModel
         ]);
     }
 
-    /**
-     * Count active users for a tenant — used by UsageLimitService.
-     */
     public function countActiveForTenant(int $tenantId): int
     {
         return $this->withoutTenantScope()
@@ -127,19 +103,14 @@ class UserModel extends BaseModel
                     ->countAllResults();
     }
 
-    /**
-     * Assign user to branch.
-     */
     public function assignToBranch(int $userId, int $branchId, bool $isPrimary = false): void
     {
-        // If setting as primary, clear existing primary first
         if ($isPrimary) {
             $this->db->table('user_branches')
                      ->where('user_id', $userId)
                      ->update(['is_primary' => 0]);
         }
 
-        // Check if assignment already exists
         $existing = $this->db->table('user_branches')
                              ->where('user_id', $userId)
                              ->where('branch_id', $branchId)
@@ -161,11 +132,6 @@ class UserModel extends BaseModel
         }
     }
 
-    /**
-     * Return tenant users for the admin grid with role and primary branch.
-     *
-     * @return array<int, object>
-     */
     public function getAdminGrid(int $tenantId): array
     {
         return $this->withoutTenantScope()
@@ -178,10 +144,6 @@ class UserModel extends BaseModel
                     ->findAll();
     }
 
-    /**
-     * Check if an email exists across ALL tenants (platform-level uniqueness).
-     * Used during tenant onboarding to prevent duplicate owner emails.
-     */
     public function emailExistsPlatformWide(string $email): bool
     {
         return $this->withoutTenantScope()
@@ -189,10 +151,6 @@ class UserModel extends BaseModel
                     ->countAllResults() > 0;
     }
 
-    /**
-     * Check if a username exists across ALL tenants (platform-level uniqueness).
-     * Used during tenant onboarding to prevent duplicate owner usernames.
-     */
     public function usernameExistsPlatformWide(string $username): bool
     {
         return $this->withoutTenantScope()
@@ -226,9 +184,21 @@ class UserModel extends BaseModel
         return $builder->countAllResults() > 0;
     }
 
-    /**
-     * Remove user from branch.
-     */
+    public function countActiveUsersByRole(int $tenantId, string $roleCode, ?int $ignoreUserId = null): int
+    {
+        $builder = $this->withoutTenantScope()
+                        ->join('tenant_roles', 'tenant_roles.id = users.role_id')
+                        ->where('users.tenant_id', $tenantId)
+                        ->where('users.is_active', 1)
+                        ->where('tenant_roles.code', $roleCode);
+
+        if ($ignoreUserId !== null) {
+            $builder->where('users.id !=', $ignoreUserId);
+        }
+
+        return $builder->countAllResults();
+    }
+
     public function removeFromBranch(int $userId, int $branchId): void
     {
         $this->db->table('user_branches')

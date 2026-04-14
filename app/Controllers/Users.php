@@ -35,12 +35,12 @@ class Users extends BaseController
     public function create(): string
     {
         return view('users/form', $this->buildFormViewData([
-            'title'      => 'Create User',
-            'pageTitle'  => 'Create User',
-            'formAction' => site_url('users'),
-            'submitText' => 'Create user',
-            'user'       => null,
-            'userBranchIds' => [],
+            'title'           => 'Create User',
+            'pageTitle'       => 'Create User',
+            'formAction'      => site_url('users'),
+            'submitText'      => 'Create user',
+            'user'            => null,
+            'userBranchIds'   => [],
             'primaryBranchId' => null,
         ]));
     }
@@ -113,6 +113,10 @@ class Users extends BaseController
             return redirect()->back()->withInput()->with('error', implode(' ', $errors));
         }
 
+        if ($errors = $this->validateUserStateTransition($user, $data, $tenantId)) {
+            return redirect()->back()->withInput()->with('error', implode(' ', $errors));
+        }
+
         $updateData = [
             'role_id'             => (int) $data['role_id'],
             'employee_code'       => $data['employee_code'],
@@ -140,9 +144,20 @@ class Users extends BaseController
 
     public function updateStatus(int $id)
     {
+        $tenantId = (int) session()->get('tenant_id');
         $user = $this->userModel->findForTenant($id);
         if (! $user) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        if ((int) $user->id === (int) session()->get('user_id')) {
+            return redirect()->to('/users')->with('error', 'You cannot deactivate your own account.');
+        }
+
+        $role = $this->roleModel->findForTenant((int) $user->role_id);
+        if ($user->is_active && $role?->code === 'tenant_owner'
+            && $this->userModel->countActiveUsersByRole($tenantId, 'tenant_owner', (int) $user->id) === 0) {
+            return redirect()->to('/users')->with('error', 'At least one active tenant owner must remain assigned to this institute.');
         }
 
         $this->userModel->updateWithActor($id, [
@@ -152,9 +167,6 @@ class Users extends BaseController
         return redirect()->to('/users')->with('message', 'User status updated.');
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     protected function collectPayload(): array
     {
         $branchIds = array_map('intval', (array) $this->request->getPost('branch_ids'));
@@ -178,9 +190,6 @@ class Users extends BaseController
         ];
     }
 
-    /**
-     * @return list<string>
-     */
     protected function validateUserInput(array $data, int $tenantId, ?int $userId = null, bool $requirePassword = true): array
     {
         $errors = [];
@@ -201,6 +210,11 @@ class Users extends BaseController
             $errors[] = 'Please choose a role.';
         }
 
+        $role = $data['role_id'] > 0 ? $this->roleModel->findForTenant($data['role_id']) : null;
+        if ($data['role_id'] > 0 && (! $role || $role->status !== 'active')) {
+            $errors[] = 'Choose an active role from this tenant.';
+        }
+
         if ($requirePassword && $data['password'] === '') {
             $errors[] = 'Password is required.';
         }
@@ -211,6 +225,18 @@ class Users extends BaseController
 
         if ($data['primary_branch_id'] < 1 || ! in_array($data['primary_branch_id'], $data['branch_ids'], true)) {
             $errors[] = 'Choose at least one branch and select a matching primary branch.';
+        }
+
+        $activeBranchIds = array_map(
+            static fn(object $branch): int => (int) $branch->id,
+            $this->branchModel->getActiveBranches()
+        );
+
+        foreach ($data['branch_ids'] as $branchId) {
+            if (! in_array($branchId, $activeBranchIds, true)) {
+                $errors[] = 'All assigned branches must be active branches from this tenant.';
+                break;
+            }
         }
 
         if ($this->userModel->emailExistsForTenant($data['email'], $tenantId, $userId)) {
@@ -224,9 +250,28 @@ class Users extends BaseController
         return $errors;
     }
 
-    /**
-     * @param list<int> $branchIds
-     */
+    protected function validateUserStateTransition(object $user, array $data, int $tenantId): array
+    {
+        $errors = [];
+        $currentRole = $this->roleModel->findForTenant((int) $user->role_id);
+        $nextRole = $this->roleModel->findForTenant((int) $data['role_id']);
+
+        if ((int) $user->id === (int) session()->get('user_id') && (int) $data['is_active'] !== 1) {
+            $errors[] = 'You cannot deactivate your own account.';
+        }
+
+        if ($currentRole?->code === 'tenant_owner') {
+            $ownerCountExcludingCurrent = $this->userModel->countActiveUsersByRole($tenantId, 'tenant_owner', (int) $user->id);
+            $losingOwnerCoverage = (int) $data['is_active'] !== 1 || $nextRole?->code !== 'tenant_owner';
+
+            if ($losingOwnerCoverage && $ownerCountExcludingCurrent === 0) {
+                $errors[] = 'At least one active tenant owner must remain assigned to this institute.';
+            }
+        }
+
+        return $errors;
+    }
+
     protected function syncUserBranches(int $userId, array $branchIds, int $primaryBranchId): void
     {
         $existingBranches = $this->userModel->getBranches($userId);
@@ -243,11 +288,6 @@ class Users extends BaseController
         }
     }
 
-    /**
-     * @param array<string, mixed> $data
-     *
-     * @return array<string, mixed>
-     */
     protected function buildFormViewData(array $data): array
     {
         return $this->buildShellViewData(array_merge([
