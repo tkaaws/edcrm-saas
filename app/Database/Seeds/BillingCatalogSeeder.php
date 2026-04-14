@@ -18,6 +18,12 @@ class BillingCatalogSeeder extends Seeder
 {
     public function run()
     {
+        // Guard: skip if catalog has already been seeded
+        if ($this->db->table('feature_catalog')->countAllResults() > 0) {
+            echo "BillingCatalogSeeder: catalog already seeded, skipping.\n";
+            return;
+        }
+
         $now = date('Y-m-d H:i:s');
 
         // ----------------------------------------------------------------
