@@ -33,11 +33,7 @@
             <label class="field">
                 <span>Email</span>
                 <input type="email" name="email" value="<?= esc(old('email', $user->email ?? '')) ?>" required>
-            </label>
-
-            <label class="field">
-                <span>Username</span>
-                <input type="text" name="username" value="<?= esc(old('username', $user->username ?? '')) ?>" required>
+                <small>This email will be used as the login ID.</small>
             </label>
 
             <label class="field">
@@ -143,7 +139,7 @@
         </div>
 
         <p class="module-subtitle" style="margin-top:1rem;">
-            Access is now derived from the selected role. Hierarchy roles use reporting head relationships, branch roles use assigned branches, and tenant admin roles can see the full institute.
+            Access is now derived from the selected role. Hierarchy roles use reporting head relationships, branch roles use assigned branches, tenant admin roles can see the full institute, and login always uses email.
         </p>
 
         <div class="form-actions">

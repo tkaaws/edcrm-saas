@@ -389,8 +389,9 @@ Suggested fields:
 - `updated_at`
 
 Rules:
-- unique email within tenant
-- unique username within tenant
+- login identity should be `email`
+- keep `username` temporarily for compatibility, auto-filled from `email`
+- email should remain globally unique
 - no password reset or token clutter inside the main user table
 
 #### `user_branches`

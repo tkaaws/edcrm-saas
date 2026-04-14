@@ -170,16 +170,12 @@
                 <label class="field <?= isset($fieldErrors['owner_email']) ? 'field--error' : '' ?>">
                     <span>Owner email</span>
                     <input type="email" name="owner_email" value="<?= esc(old('owner_email')) ?>" required>
+                    <small>This email will be used as the owner login ID.</small>
                     <?php if (isset($fieldErrors['owner_email'])): ?><span class="field-error"><?= esc($fieldErrors['owner_email']) ?></span><?php endif; ?>
                 </label>
                 <label class="field">
                     <span>Owner phone</span>
                     <input type="text" name="owner_phone" value="<?= esc(old('owner_phone')) ?>">
-                </label>
-                <label class="field <?= isset($fieldErrors['owner_username']) ? 'field--error' : '' ?>">
-                    <span>Owner username</span>
-                    <input type="text" name="owner_username" value="<?= esc(old('owner_username')) ?>" required>
-                    <?php if (isset($fieldErrors['owner_username'])): ?><span class="field-error"><?= esc($fieldErrors['owner_username']) ?></span><?php endif; ?>
                 </label>
                 <label class="field">
                     <span>Owner employee code</span>

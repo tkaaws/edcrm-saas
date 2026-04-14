@@ -335,7 +335,7 @@ class PlatformTenants extends BaseController
             'owner_last_name'           => $ownerLastName,
             'owner_email'               => strtolower(trim((string) $this->request->getPost('owner_email'))),
             'owner_phone'               => trim((string) $this->request->getPost('owner_phone')),
-            'owner_username'            => strtolower(trim((string) $this->request->getPost('owner_username'))),
+            'owner_username'            => strtolower(trim((string) $this->request->getPost('owner_email'))),
             'owner_employee_code'       => trim((string) $this->request->getPost('owner_employee_code')),
             'owner_password'            => (string) $this->request->getPost('owner_password'),
             'default_timezone'          => trim((string) $this->request->getPost('default_timezone')),
@@ -401,14 +401,6 @@ class PlatformTenants extends BaseController
             $errors['owner_email'] = 'This email is already registered as a tenant owner.';
         } elseif ($this->userModel->emailExistsPlatformWide($data['owner_email'])) {
             $errors['owner_email'] = 'This email is already in use by another user.';
-        }
-
-        if ($data['owner_username'] === '') {
-            $errors['owner_username'] = 'Owner username is required.';
-        } elseif (! preg_match('/^[a-z0-9._-]+$/', $data['owner_username'])) {
-            $errors['owner_username'] = 'Owner username may contain lowercase letters, numbers, dots, underscores, and hyphens only.';
-        } elseif ($this->userModel->usernameExistsPlatformWide($data['owner_username'])) {
-            $errors['owner_username'] = 'This username is already taken.';
         }
 
         if ($data['owner_password'] === '') {

@@ -39,7 +39,7 @@
                     <tr>
                         <td>
                             <div class="entity-cell">
-                                <strong><?= esc(trim($user->first_name . ' ' . $user->last_name) ?: $user->username) ?></strong>
+                                <strong><?= esc(trim($user->first_name . ' ' . $user->last_name) ?: $user->email) ?></strong>
                                 <span><?= esc($user->email) ?></span>
                             </div>
                         </td>

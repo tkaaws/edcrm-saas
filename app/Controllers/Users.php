@@ -230,10 +230,11 @@ class Users extends BaseController
     {
         $branchIds = array_map('intval', (array) $this->request->getPost('branch_ids'));
 
+        $email = strtolower(trim((string) $this->request->getPost('email')));
+
         return [
             'employee_code'       => trim((string) $this->request->getPost('employee_code')),
-            'username'            => trim((string) $this->request->getPost('username')),
-            'email'               => strtolower(trim((string) $this->request->getPost('email'))),
+            'email'               => $email,
             'first_name'          => trim((string) $this->request->getPost('first_name')),
             'last_name'           => trim((string) $this->request->getPost('last_name')),
             'mobile_number'       => trim((string) $this->request->getPost('mobile_number')),
@@ -248,6 +249,7 @@ class Users extends BaseController
             'primary_branch_id'   => (int) $this->request->getPost('primary_branch_id'),
             'is_active'           => $this->request->getPost('is_active') ? 1 : 0,
             'must_reset_password' => $this->request->getPost('must_reset_password') ? 1 : 0,
+            'username'            => $email,
         ];
     }
 
@@ -257,10 +259,6 @@ class Users extends BaseController
 
         if ($data['first_name'] === '') {
             $errors[] = 'First name is required.';
-        }
-
-        if ($data['username'] === '') {
-            $errors[] = 'Username is required.';
         }
 
         if ($data['email'] === '' || ! filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
@@ -310,8 +308,8 @@ class Users extends BaseController
             $errors[] = 'Email already exists for this tenant.';
         }
 
-        if ($this->userModel->usernameExistsForTenant($data['username'], $tenantId, $userId)) {
-            $errors[] = 'Username already exists for this tenant.';
+        if ($this->userModel->usernameExistsForTenant($data['email'], $tenantId, $userId)) {
+            $errors[] = 'This email conflicts with an existing login identity in this tenant.';
         }
 
         if ($data['manager_user_id'] > 0) {

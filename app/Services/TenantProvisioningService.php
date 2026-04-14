@@ -117,30 +117,31 @@ class TenantProvisioningService
     protected function createSystemRoles(int $tenantId, string $now): array
     {
         $definitions = [
-            ['code' => 'tenant_owner', 'name' => 'Tenant Owner'],
-            ['code' => 'tenant_admin', 'name' => 'Tenant Admin'],
-            ['code' => 'branch_manager', 'name' => 'Branch Manager'],
-            ['code' => 'counsellor', 'name' => 'Counsellor'],
-            ['code' => 'accounts', 'name' => 'Accounts'],
-            ['code' => 'operations', 'name' => 'Operations'],
-            ['code' => 'placement', 'name' => 'Placement'],
-            ['code' => 'faculty', 'name' => 'Faculty'],
-            ['code' => 'support_agent', 'name' => 'Support Agent'],
+            ['code' => 'tenant_owner', 'name' => 'Tenant Owner', 'access_behavior' => 'tenant'],
+            ['code' => 'tenant_admin', 'name' => 'Tenant Admin', 'access_behavior' => 'tenant'],
+            ['code' => 'branch_manager', 'name' => 'Branch Manager', 'access_behavior' => 'branch'],
+            ['code' => 'counsellor', 'name' => 'Counsellor', 'access_behavior' => 'hierarchy'],
+            ['code' => 'accounts', 'name' => 'Accounts', 'access_behavior' => 'branch'],
+            ['code' => 'operations', 'name' => 'Operations', 'access_behavior' => 'branch'],
+            ['code' => 'placement', 'name' => 'Placement', 'access_behavior' => 'branch'],
+            ['code' => 'faculty', 'name' => 'Faculty', 'access_behavior' => 'hierarchy'],
+            ['code' => 'support_agent', 'name' => 'Support Agent', 'access_behavior' => 'branch'],
         ];
 
         $roleIds = [];
 
         foreach ($definitions as $definition) {
             $this->db->table('user_roles')->insert([
-                'tenant_id'  => $tenantId,
-                'name'       => $definition['name'],
-                'code'       => $definition['code'],
-                'is_system'  => 1,
-                'status'     => 'active',
-                'created_by' => null,
-                'updated_by' => null,
-                'created_at' => $now,
-                'updated_at' => $now,
+                'tenant_id'        => $tenantId,
+                'name'             => $definition['name'],
+                'code'             => $definition['code'],
+                'access_behavior'  => $definition['access_behavior'],
+                'is_system'        => 1,
+                'status'           => 'active',
+                'created_by'       => null,
+                'updated_by'       => null,
+                'created_at'       => $now,
+                'updated_at'       => $now,
             ]);
 
             $roleIds[$definition['code']] = (int) $this->db->insertID();
@@ -233,7 +234,7 @@ class TenantProvisioningService
             'tenant_id'           => $tenantId,
             'role_id'             => $roleId,
             'employee_code'       => $data['owner_employee_code'],
-            'username'            => $data['owner_username'],
+            'username'            => $data['owner_email'],
             'email'               => $data['owner_email'],
             'first_name'          => $data['owner_first_name'],
             'last_name'           => $data['owner_last_name'],
