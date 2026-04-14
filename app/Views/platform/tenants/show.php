@@ -2,7 +2,7 @@
 
 <?= $this->section('content') ?>
 <?php
-    $db          = db_connect();
+    $db           = db_connect();
     $subscription = $db->query("
         SELECT s.*, p.name AS plan_name, p.code AS plan_code
         FROM subscriptions s
@@ -28,7 +28,7 @@
 
     <div class="settings-grid">
 
-        {{-- Profile --}}
+        <!-- Profile -->
         <div class="form-card">
             <div class="module-toolbar" style="margin-bottom:1rem;">
                 <h3 class="module-title module-title--small">Profile</h3>
@@ -57,10 +57,9 @@
 
         <div style="display:flex;flex-direction:column;gap:1.5rem;">
 
-            {{-- Status control --}}
+            <!-- Status control -->
             <div class="form-card">
                 <h3 class="module-title module-title--small" style="margin-bottom:1rem;">Status control</h3>
-
                 <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/status') ?>">
                     <?= csrf_field() ?>
                     <div class="form-grid">
@@ -79,26 +78,20 @@
                 </form>
             </div>
 
-            {{-- Subscription / permissions --}}
+            <!-- Subscription & permissions -->
             <div class="form-card">
                 <h3 class="module-title module-title--small" style="margin-bottom:1rem;">Subscription &amp; permissions</h3>
-
                 <?php if ($subscription): ?>
                     <dl class="context-list context-list--wide">
                         <div><dt>Plan</dt><dd><?= esc($subscription->plan_name) ?> <code style="font-size:.75rem;"><?= esc($subscription->plan_code) ?></code></dd></div>
                         <div><dt>Cycle</dt><dd><?= esc(ucfirst($subscription->billing_cycle)) ?></dd></div>
-                        <div><dt>Status</dt>
-                            <dd>
-                                <span class="status-badge <?= in_array($subscription->status, ['trial','active']) ? 'status-badge--good' : ($subscription->status === 'grace' ? 'status-badge--warm' : 'status-badge--neutral') ?>">
-                                    <?= esc(ucfirst($subscription->status)) ?>
-                                </span>
-                            </dd>
-                        </div>
+                        <div><dt>Status</dt><dd>
+                            <span class="status-badge <?= in_array($subscription->status, ['trial','active']) ? 'status-badge--good' : ($subscription->status === 'grace' ? 'status-badge--warm' : 'status-badge--neutral') ?>">
+                                <?= esc(ucfirst($subscription->status)) ?>
+                            </span>
+                        </dd></div>
                         <?php if ($subscription->trial_ends_at): ?>
                             <div><dt>Trial ends</dt><dd><?= esc($subscription->trial_ends_at) ?></dd></div>
-                        <?php endif; ?>
-                        <?php if ($subscription->current_period_ends_at): ?>
-                            <div><dt>Renews</dt><dd><?= esc($subscription->current_period_ends_at) ?></dd></div>
                         <?php endif; ?>
                     </dl>
                     <div class="form-actions">
@@ -106,17 +99,18 @@
                     </div>
                 <?php else: ?>
                     <p style="color:var(--muted);margin-bottom:1rem;">No active subscription. Assign a plan to unlock module access.</p>
-                    <a href="<?= site_url('platform/subscriptions?tenant_id=' . $tenant->id) ?>" class="shell-button shell-button--primary">Assign subscription</a>
+                    <a href="<?= site_url('platform/subscriptions') ?>" class="shell-button shell-button--primary">Assign subscription</a>
                 <?php endif; ?>
             </div>
 
-            {{-- Danger zone --}}
+            <!-- Danger zone -->
             <div class="form-card form-card--danger">
-                <h3 class="module-title module-title--small" style="margin-bottom:.5rem;color:var(--red,#c0392b);">Danger zone</h3>
-                <p style="color:var(--muted);margin-bottom:1rem;font-size:.875rem;">Permanently deletes the tenant and all associated data — branches, users, roles, settings. This cannot be undone.</p>
-
+                <h3 class="module-title module-title--small" style="margin-bottom:.5rem;color:#c0392b;">Danger zone</h3>
+                <p style="color:var(--muted);margin-bottom:1rem;font-size:.875rem;">
+                    Permanently deletes this tenant and all its data — users, branches, roles, settings. Cannot be undone.
+                </p>
                 <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/delete') ?>"
-                      onsubmit="return confirm('Delete <?= esc(addslashes($tenant->name)) ?> permanently? This cannot be undone.')">
+                      onsubmit="return confirm('Delete <?= esc(addslashes($tenant->name)) ?> permanently?\n\nThis will remove all users, branches and data. Cannot be undone.')">
                     <?= csrf_field() ?>
                     <button type="submit" class="shell-button shell-button--danger">Delete tenant</button>
                 </form>

@@ -48,6 +48,11 @@
                         <td class="table-actions">
                             <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View</a>
                             <a href="<?= site_url('platform/tenants/' . $tenant->id . '/edit') ?>" class="shell-button shell-button--ghost shell-button--sm">Edit</a>
+                            <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/delete') ?>" style="display:inline;"
+                                  onsubmit="return confirm('Delete <?= esc(addslashes($tenant->name)) ?> permanently?\nThis removes all users, branches and data.')">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>
