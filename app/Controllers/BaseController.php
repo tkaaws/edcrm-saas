@@ -62,7 +62,14 @@ abstract class BaseController extends Controller
         $branchName = session()->get('branch_name');
 
         $platformTenantId = (int) env('APP_PLATFORM_TENANT_ID', 0);
-        $isPlatformAdmin  = $tenantId > 0 && $platformTenantId > 0 && $tenantId === $platformTenantId;
+
+        if ($platformTenantId > 0) {
+            // Production: exact tenant match
+            $isPlatformAdmin = $tenantId > 0 && $tenantId === $platformTenantId;
+        } else {
+            // Dev fallback: no env set — allow tenant_owner role (mirrors PlatformAdminFilter dev fallback)
+            $isPlatformAdmin = ENVIRONMENT === 'development' && $roleCode === 'tenant_owner';
+        }
 
         return array_merge([
             'title'            => 'EDCRM SaaS',
