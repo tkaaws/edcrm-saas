@@ -13,6 +13,12 @@
     <form class="form-card" method="post" action="<?= esc($formAction) ?>">
         <?= csrf_field() ?>
 
+        <?php if ($privilegeGroups === []): ?>
+            <div class="alert alert--warning">
+                No assignable privileges are available for your current access scope and tenant plan.
+            </div>
+        <?php endif; ?>
+
         <div class="form-grid">
             <label class="field">
                 <span>Role name</span>
@@ -69,7 +75,7 @@
 
         <div class="form-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('roles') ?>">Cancel</a>
-            <button class="shell-button shell-button--primary" type="submit"><?= esc($submitText) ?></button>
+            <button class="shell-button shell-button--primary" type="submit" <?= $privilegeGroups === [] ? 'disabled' : '' ?>><?= esc($submitText) ?></button>
         </div>
     </form>
 </section>

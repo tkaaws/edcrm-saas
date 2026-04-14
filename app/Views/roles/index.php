@@ -2,12 +2,17 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
+    <?php $codes = session()->get('user_privilege_codes') ?? []; ?>
+    <?php $canCreateRoles = in_array('roles.create', $codes, true); ?>
+    <?php $canEditRoles = in_array('roles.edit', $codes, true); ?>
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Tenant roles</h2>
             <p class="module-subtitle">Manage access templates and privilege bundles for institute users.</p>
         </div>
-        <a class="shell-button shell-button--primary" href="<?= site_url('roles/create') ?>">Create role</a>
+        <?php if ($canCreateRoles): ?>
+            <a class="shell-button shell-button--primary" href="<?= site_url('roles/create') ?>">Create role</a>
+        <?php endif; ?>
     </div>
 
     <div class="table-card">
@@ -45,13 +50,15 @@
                         </td>
                         <td class="data-table__actions">
                             <div class="table-actions">
-                                <a class="shell-button shell-button--ghost" href="<?= site_url('roles/' . $role->id . '/edit') ?>">Edit</a>
-                                <form method="post" action="<?= site_url('roles/' . $role->id . '/status') ?>">
-                                    <?= csrf_field() ?>
-                                    <button class="shell-button shell-button--soft" type="submit">
-                                        <?= $role->status === 'active' ? 'Deactivate' : 'Activate' ?>
-                                    </button>
-                                </form>
+                                <?php if ($canEditRoles): ?>
+                                    <a class="shell-button shell-button--ghost" href="<?= site_url('roles/' . $role->id . '/edit') ?>">Edit</a>
+                                    <form method="post" action="<?= site_url('roles/' . $role->id . '/status') ?>">
+                                        <?= csrf_field() ?>
+                                        <button class="shell-button shell-button--soft" type="submit">
+                                            <?= $role->status === 'active' ? 'Deactivate' : 'Activate' ?>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                             </div>
                         </td>
                     </tr>

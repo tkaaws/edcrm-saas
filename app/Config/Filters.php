@@ -17,6 +17,7 @@ use App\Filters\TenantFilter;
 use App\Filters\SuspensionFilter;
 use App\Filters\PlatformAdminFilter;
 use App\Filters\FeatureFilter;
+use App\Filters\PermissionFilter;
 
 class Filters extends BaseFilters
 {
@@ -44,6 +45,7 @@ class Filters extends BaseFilters
         'suspension'      => SuspensionFilter::class,
         'platform_admin'  => PlatformAdminFilter::class,
         'feature'         => FeatureFilter::class,
+        'privilege'       => PermissionFilter::class,
     ];
 
     /**

@@ -203,7 +203,7 @@ Current verified runtime facts:
 - APP_PLATFORM_TENANT_ID=1 set in production .env
 - Multi-tenant login validated: slug kiran-academy-1 resolves to provisioned tenant
 - Platform admin login: demo@edcrm.in / Demo@1234 (slug: demo-institute or blank)
-- Phase 1B enforcement now includes plan-aware delegation guard for roles/users plus user/branch limit blocking on create actions
+- Phase 1B enforcement now includes plan-aware delegation guard for roles/users, user/branch limit blocking on create actions, role/user direct-URL protection, and route-level privilege filters for core CRM screens
 Production credentials summary (platform admin):
 - Tenant slug: demo-institute
 - Email: demo@edcrm.in

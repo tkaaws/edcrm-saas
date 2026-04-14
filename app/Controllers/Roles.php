@@ -66,11 +66,16 @@ class Roles extends BaseController
         return redirect()->to('/roles')->with('message', 'Role created successfully.');
     }
 
-    public function edit(int $id): string
+    public function edit(int $id): string|\CodeIgniter\HTTP\RedirectResponse
     {
         $role = $this->roleModel->findForTenant($id);
         if (! $role) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $tenantId = (int) session()->get('tenant_id');
+        if (! $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $role->id)) {
+            return redirect()->to('/roles')->with('error', 'You cannot manage a role outside your delegation scope.');
         }
 
         return view('roles/form', $this->buildFormViewData([
@@ -91,6 +96,10 @@ class Roles extends BaseController
 
         if (! $role) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        if (! $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $role->id)) {
+            return redirect()->to('/roles')->with('error', 'You cannot manage a role outside your delegation scope.');
         }
 
         $data = $this->collectPayload();
@@ -116,9 +125,14 @@ class Roles extends BaseController
 
     public function updateStatus(int $id)
     {
+        $tenantId = (int) session()->get('tenant_id');
         $role = $this->roleModel->findForTenant($id);
         if (! $role) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        if (! $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $role->id)) {
+            return redirect()->to('/roles')->with('error', 'You cannot manage a role outside your delegation scope.');
         }
 
         if ($role->code === 'tenant_owner' && $role->status === 'active') {

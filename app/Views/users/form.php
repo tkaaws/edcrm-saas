@@ -13,6 +13,12 @@
     <form class="form-card" method="post" action="<?= esc($formAction) ?>">
         <?= csrf_field() ?>
 
+        <?php if (($canSubmit ?? true) === false): ?>
+            <div class="alert alert--warning">
+                No assignable roles are available for your current access scope and tenant plan.
+            </div>
+        <?php endif; ?>
+
         <div class="form-grid">
             <label class="field">
                 <span>First name</span>
@@ -73,7 +79,7 @@
 
             <label class="field field--full">
                 <span>Password <?= $user ? '(leave blank to keep existing)' : '' ?></span>
-                <input type="password" name="password" <?= $user ? '' : 'required' ?>>
+                <input type="password" name="password" minlength="8" <?= $user ? '' : 'required' ?>>
             </label>
         </div>
 
@@ -119,7 +125,7 @@
 
         <div class="form-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('users') ?>">Cancel</a>
-            <button class="shell-button shell-button--primary" type="submit"><?= esc($submitText) ?></button>
+            <button class="shell-button shell-button--primary" type="submit" <?= ($canSubmit ?? true) ? '' : 'disabled' ?>><?= esc($submitText) ?></button>
         </div>
     </form>
 </section>

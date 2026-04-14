@@ -20,42 +20,41 @@ $routes->group('auth', static function (RouteCollection $routes): void {
 });
 
 $routes->get('dashboard', 'Dashboard::index', [
-    'filter' => ['auth', 'tenant', 'suspension'],
+    'filter' => ['auth', 'tenant', 'suspension', 'feature:crm_core'],
 ]);
 
-// Tenant billing summary — auth + tenant isolation + suspension (read-only page, warnings still shown)
-$routes->get('billing', 'Billing::index', ['filter' => ['auth', 'tenant', 'suspension']]);
+$routes->get('billing', 'Billing::index', [
+    'filter' => ['auth', 'tenant', 'suspension', 'feature:crm_core', 'privilege:billing.view,billing.manage'],
+]);
 
-// Tenant-scoped operational routes — auth + tenant isolation + suspension enforcement
 $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static function (RouteCollection $routes): void {
-    $routes->get('users', 'Users::index');
-    $routes->get('users/create', 'Users::create');
-    $routes->post('users', 'Users::store');
-    $routes->get('users/(:num)/edit', 'Users::edit/$1');
-    $routes->post('users/(:num)', 'Users::update/$1');
-    $routes->post('users/(:num)/status', 'Users::updateStatus/$1');
-    $routes->get('branches', 'Branches::index');
-    $routes->get('branches/create', 'Branches::create');
-    $routes->post('branches', 'Branches::store');
-    $routes->get('branches/(:num)/edit', 'Branches::edit/$1');
-    $routes->post('branches/(:num)', 'Branches::update/$1');
-    $routes->post('branches/(:num)/status', 'Branches::updateStatus/$1');
-    $routes->get('roles', 'Roles::index');
-    $routes->get('roles/create', 'Roles::create');
-    $routes->post('roles', 'Roles::store');
-    $routes->get('roles/(:num)/edit', 'Roles::edit/$1');
-    $routes->post('roles/(:num)', 'Roles::update/$1');
-    $routes->post('roles/(:num)/status', 'Roles::updateStatus/$1');
-    $routes->get('settings', 'Settings::index');
-    $routes->post('settings/profile', 'Settings::updateProfile');
-    $routes->post('settings/preferences', 'Settings::updatePreferences');
-    $routes->post('settings/email', 'Settings::updateEmailConfig');
-    $routes->post('settings/whatsapp', 'Settings::updateWhatsappConfig');
-});
+    $routes->get('users', 'Users::index', ['filter' => ['feature:crm_core', 'privilege:users.view']]);
+    $routes->get('users/create', 'Users::create', ['filter' => ['feature:crm_core', 'privilege:users.create']]);
+    $routes->post('users', 'Users::store', ['filter' => ['feature:crm_core', 'privilege:users.create']]);
+    $routes->get('users/(:num)/edit', 'Users::edit/$1', ['filter' => ['feature:crm_core', 'privilege:users.edit']]);
+    $routes->post('users/(:num)', 'Users::update/$1', ['filter' => ['feature:crm_core', 'privilege:users.edit']]);
+    $routes->post('users/(:num)/status', 'Users::updateStatus/$1', ['filter' => ['feature:crm_core', 'privilege:users.edit']]);
 
-// Feature-gated module routes — auth + tenant + suspension + feature gate
-// Each group is locked behind its feature_catalog code.
-// Add module controllers here as Phase 2 is built out.
+    $routes->get('branches', 'Branches::index', ['filter' => ['feature:crm_core', 'privilege:branches.view']]);
+    $routes->get('branches/create', 'Branches::create', ['filter' => ['feature:crm_core', 'privilege:branches.create']]);
+    $routes->post('branches', 'Branches::store', ['filter' => ['feature:crm_core', 'privilege:branches.create']]);
+    $routes->get('branches/(:num)/edit', 'Branches::edit/$1', ['filter' => ['feature:crm_core', 'privilege:branches.edit']]);
+    $routes->post('branches/(:num)', 'Branches::update/$1', ['filter' => ['feature:crm_core', 'privilege:branches.edit']]);
+    $routes->post('branches/(:num)/status', 'Branches::updateStatus/$1', ['filter' => ['feature:crm_core', 'privilege:branches.edit']]);
+
+    $routes->get('roles', 'Roles::index', ['filter' => ['feature:crm_core', 'privilege:roles.view']]);
+    $routes->get('roles/create', 'Roles::create', ['filter' => ['feature:crm_core', 'privilege:roles.create']]);
+    $routes->post('roles', 'Roles::store', ['filter' => ['feature:crm_core', 'privilege:roles.create']]);
+    $routes->get('roles/(:num)/edit', 'Roles::edit/$1', ['filter' => ['feature:crm_core', 'privilege:roles.edit']]);
+    $routes->post('roles/(:num)', 'Roles::update/$1', ['filter' => ['feature:crm_core', 'privilege:roles.edit']]);
+    $routes->post('roles/(:num)/status', 'Roles::updateStatus/$1', ['filter' => ['feature:crm_core', 'privilege:roles.edit']]);
+
+    $routes->get('settings', 'Settings::index', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
+    $routes->post('settings/profile', 'Settings::updateProfile', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
+    $routes->post('settings/preferences', 'Settings::updatePreferences', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
+    $routes->post('settings/email', 'Settings::updateEmailConfig', ['filter' => ['feature:crm_core', 'privilege:settings.smtp']]);
+    $routes->post('settings/whatsapp', 'Settings::updateWhatsappConfig', ['filter' => ['feature:crm_core', 'privilege:settings.whatsapp']]);
+});
 
 $routes->group('enquiries', ['filter' => ['auth', 'tenant', 'suspension', 'feature:crm_core']], static function (RouteCollection $routes): void {
     $routes->get('/', 'Enquiries::index');
@@ -81,7 +80,6 @@ $routes->group('reports', ['filter' => ['auth', 'tenant', 'suspension', 'feature
     $routes->get('/', 'Reports::index');
 });
 
-// Platform admin routes — auth + platform_admin guard (no tenant or suspension filters)
 $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static function (RouteCollection $routes): void {
     $routes->get('tenants', 'PlatformTenants::index');
     $routes->get('tenants/create', 'PlatformTenants::create');
@@ -90,12 +88,10 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->post('tenants/(:num)/status', 'PlatformTenants::updateStatus/$1');
     $routes->post('tenants/(:num)/plan', 'PlatformTenants::updatePlan/$1');
 
-    // Tenants (edit/update/delete)
     $routes->get('tenants/(:num)/edit', 'PlatformTenants::edit/$1');
     $routes->post('tenants/(:num)/update', 'PlatformTenants::update/$1');
     $routes->post('tenants/(:num)/delete', 'PlatformTenants::delete/$1');
 
-    // Plans
     $routes->get('plans', 'PlatformPlans::index');
     $routes->get('plans/create', 'PlatformPlans::create');
     $routes->post('plans', 'PlatformPlans::store');
@@ -105,7 +101,6 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->post('plans/(:num)/limit', 'PlatformPlans::updateLimit/$1');
     $routes->post('plans/(:num)/delete', 'PlatformPlans::delete/$1');
 
-    // Subscriptions
     $routes->get('subscriptions', 'PlatformSubscriptions::index');
     $routes->post('subscriptions/attach', 'PlatformSubscriptions::attach');
     $routes->get('subscriptions/(:num)', 'PlatformSubscriptions::show/$1');

@@ -173,10 +173,18 @@ class Users extends BaseController
             return redirect()->to('/users')->with('error', 'You cannot deactivate your own account.');
         }
 
+        if (! $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $user->role_id)) {
+            return redirect()->to('/users')->with('error', 'You cannot manage a user whose role is outside your delegation scope.');
+        }
+
         $role = $this->roleModel->findForTenant((int) $user->role_id);
         if ($user->is_active && $role?->code === 'tenant_owner'
             && $this->userModel->countActiveUsersByRole($tenantId, 'tenant_owner', (int) $user->id) === 0) {
             return redirect()->to('/users')->with('error', 'At least one active tenant owner must remain assigned to this institute.');
+        }
+
+        if (! $user->is_active && $this->usageLimit->wouldExceedLimit($tenantId, 'max_users')) {
+            return redirect()->to('/users')->with('error', 'User limit reached for the current plan. Upgrade the subscription to reactivate this user.');
         }
 
         $this->userModel->updateWithActor($id, [
@@ -312,11 +320,13 @@ class Users extends BaseController
     protected function buildFormViewData(array $data): array
     {
         $tenantId = (int) session()->get('tenant_id');
+        $roles = $this->delegationGuard->getAssignableRolesForTenant($tenantId);
 
         return $this->buildShellViewData(array_merge([
             'activeNav' => 'users',
-            'roles'     => $this->delegationGuard->getAssignableRolesForTenant($tenantId),
+            'roles'     => $roles,
             'branches'  => $this->branchModel->getActiveBranches(),
+            'canSubmit' => $roles !== [],
         ], $data));
     }
 }
