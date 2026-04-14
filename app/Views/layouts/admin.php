@@ -10,13 +10,36 @@
     <?php
     $activeNav       = $activeNav ?? 'dashboard';
     $isPlatformAdmin = $isPlatformAdmin ?? false;
+    $enabledModules  = $enabledModules ?? [];
+
+    // Helper: is a feature module enabled for this tenant?
+    $feat = static fn(string $code): bool => in_array($code, $enabledModules, true);
+
     $navItems = [
-        ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => site_url('dashboard'),        'meta' => 'Home',     'show' => true],
-        ['key' => 'users',     'label' => 'Users',     'href' => site_url('users'),            'meta' => 'People',   'show' => ! $isPlatformAdmin],
-        ['key' => 'branches',  'label' => 'Branches',  'href' => site_url('branches'),         'meta' => 'Locations','show' => ! $isPlatformAdmin],
-        ['key' => 'roles',     'label' => 'Roles',     'href' => site_url('roles'),            'meta' => 'Access',   'show' => ! $isPlatformAdmin],
-        ['key' => 'settings',  'label' => 'Settings',  'href' => site_url('settings'),         'meta' => 'Config',   'show' => ! $isPlatformAdmin],
-        ['key' => 'tenants',   'label' => 'Tenants',   'href' => site_url('platform/tenants'), 'meta' => 'Platform', 'show' => $isPlatformAdmin],
+        // Always visible to tenant users
+        ['key' => 'dashboard',   'label' => 'Dashboard',   'href' => site_url('dashboard'),          'meta' => 'Home',       'show' => true],
+
+        // Core ops — always visible once logged in as tenant user
+        ['key' => 'users',       'label' => 'Users',       'href' => site_url('users'),              'meta' => 'People',     'show' => ! $isPlatformAdmin],
+        ['key' => 'branches',    'label' => 'Branches',    'href' => site_url('branches'),           'meta' => 'Locations',  'show' => ! $isPlatformAdmin],
+        ['key' => 'roles',       'label' => 'Roles',       'href' => site_url('roles'),              'meta' => 'Access',     'show' => ! $isPlatformAdmin],
+
+        // Feature-gated modules — only shown when plan includes the module
+        ['key' => 'enquiries',   'label' => 'Enquiries',   'href' => site_url('enquiries'),          'meta' => 'CRM',        'show' => ! $isPlatformAdmin && $feat('crm_core')],
+        ['key' => 'admissions',  'label' => 'Admissions',  'href' => site_url('admissions'),         'meta' => 'Enrolment',  'show' => ! $isPlatformAdmin && $feat('admissions')],
+        ['key' => 'batches',     'label' => 'Batches',     'href' => site_url('batches'),            'meta' => 'Scheduling', 'show' => ! $isPlatformAdmin && $feat('batch_management')],
+        ['key' => 'service',     'label' => 'Service',     'href' => site_url('service'),            'meta' => 'Tickets',    'show' => ! $isPlatformAdmin && $feat('service_tickets')],
+        ['key' => 'placement',   'label' => 'Placement',   'href' => site_url('placement'),          'meta' => 'Jobs',       'show' => ! $isPlatformAdmin && $feat('placement')],
+        ['key' => 'reports',     'label' => 'Reports',     'href' => site_url('reports'),            'meta' => 'Analytics',  'show' => ! $isPlatformAdmin && $feat('advanced_reports')],
+
+        // Always at bottom for tenant users
+        ['key' => 'settings',    'label' => 'Settings',    'href' => site_url('settings'),           'meta' => 'Config',     'show' => ! $isPlatformAdmin],
+        ['key' => 'billing',     'label' => 'Billing',     'href' => site_url('billing'),            'meta' => 'Plan',       'show' => ! $isPlatformAdmin],
+
+        // Platform admin only
+        ['key' => 'tenants',       'label' => 'Tenants',       'href' => site_url('platform/tenants'),       'meta' => 'Platform',  'show' => $isPlatformAdmin],
+        ['key' => 'plans',         'label' => 'Plans',         'href' => site_url('platform/plans'),         'meta' => 'Billing',   'show' => $isPlatformAdmin],
+        ['key' => 'subscriptions', 'label' => 'Subscriptions', 'href' => site_url('platform/subscriptions'), 'meta' => 'Accounts',  'show' => $isPlatformAdmin],
     ];
     ?>
     <div class="shell">

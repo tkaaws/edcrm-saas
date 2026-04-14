@@ -34,9 +34,26 @@ class TenantAccessPolicy
 
     protected TenantModel $tenantModel;
 
+    /** Lazily resolved; can be replaced in tests via replaceSubscriptionPolicy(). */
+    protected ?SubscriptionPolicyService $subscriptionPolicyInstance = null;
+
     public function __construct()
     {
         $this->tenantModel = new TenantModel();
+    }
+
+    /**
+     * Lazy-load the subscription policy service.
+     * Stored as a property so tests can inject a mock without touching the
+     * global service container.
+     */
+    protected function getSubscriptionPolicy(): SubscriptionPolicyService
+    {
+        if ($this->subscriptionPolicyInstance === null) {
+            $this->subscriptionPolicyInstance = $this->getSubscriptionPolicy();
+        }
+
+        return $this->subscriptionPolicyInstance;
     }
 
     /**
@@ -85,7 +102,7 @@ class TenantAccessPolicy
      */
     public function checkSubscription(int $tenantId, string $roleCode, string $httpMethod): string
     {
-        $subscriptionPolicy = service('subscriptionPolicy');
+        $subscriptionPolicy = $this->getSubscriptionPolicy();
         $status             = $subscriptionPolicy->getStatus($tenantId);
 
         return match ($status) {
@@ -115,7 +132,7 @@ class TenantAccessPolicy
         $tenant = $this->tenantModel->find($tenantId);
 
         // Check subscription state first for more specific messaging
-        $subscriptionPolicy = service('subscriptionPolicy');
+        $subscriptionPolicy = $this->getSubscriptionPolicy();
         $subStatus          = $subscriptionPolicy->getStatus($tenantId);
 
         if ($subStatus === 'expired') {
@@ -135,7 +152,7 @@ class TenantAccessPolicy
      */
     public function getWarningContext(int $tenantId): string
     {
-        $subscriptionPolicy = service('subscriptionPolicy');
+        $subscriptionPolicy = $this->getSubscriptionPolicy();
         $status             = $subscriptionPolicy->getStatus($tenantId);
 
         if ($status === 'grace') {

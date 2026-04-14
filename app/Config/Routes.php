@@ -23,6 +23,9 @@ $routes->get('dashboard', 'Dashboard::index', [
     'filter' => ['auth', 'tenant', 'suspension'],
 ]);
 
+// Tenant billing summary — auth + tenant isolation + suspension (read-only page, warnings still shown)
+$routes->get('billing', 'Billing::index', ['filter' => ['auth', 'tenant', 'suspension']]);
+
 // Tenant-scoped operational routes — auth + tenant isolation + suspension enforcement
 $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static function (RouteCollection $routes): void {
     $routes->get('users', 'Users::index');
@@ -50,6 +53,34 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->post('settings/whatsapp', 'Settings::updateWhatsappConfig');
 });
 
+// Feature-gated module routes — auth + tenant + suspension + feature gate
+// Each group is locked behind its feature_catalog code.
+// Add module controllers here as Phase 2 is built out.
+
+$routes->group('enquiries', ['filter' => ['auth', 'tenant', 'suspension', 'feature:crm_core']], static function (RouteCollection $routes): void {
+    $routes->get('/', 'Enquiries::index');
+});
+
+$routes->group('admissions', ['filter' => ['auth', 'tenant', 'suspension', 'feature:admissions']], static function (RouteCollection $routes): void {
+    $routes->get('/', 'Admissions::index');
+});
+
+$routes->group('batches', ['filter' => ['auth', 'tenant', 'suspension', 'feature:batch_management']], static function (RouteCollection $routes): void {
+    $routes->get('/', 'Batches::index');
+});
+
+$routes->group('service', ['filter' => ['auth', 'tenant', 'suspension', 'feature:service_tickets']], static function (RouteCollection $routes): void {
+    $routes->get('/', 'Service::index');
+});
+
+$routes->group('placement', ['filter' => ['auth', 'tenant', 'suspension', 'feature:placement']], static function (RouteCollection $routes): void {
+    $routes->get('/', 'Placement::index');
+});
+
+$routes->group('reports', ['filter' => ['auth', 'tenant', 'suspension', 'feature:advanced_reports']], static function (RouteCollection $routes): void {
+    $routes->get('/', 'Reports::index');
+});
+
 // Platform admin routes — auth + platform_admin guard (no tenant or suspension filters)
 $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static function (RouteCollection $routes): void {
     $routes->get('tenants', 'PlatformTenants::index');
@@ -57,4 +88,18 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->post('tenants', 'PlatformTenants::store');
     $routes->get('tenants/(:num)', 'PlatformTenants::show/$1');
     $routes->post('tenants/(:num)/status', 'PlatformTenants::updateStatus/$1');
+
+    // Plans
+    $routes->get('plans', 'PlatformPlans::index');
+    $routes->get('plans/(:num)', 'PlatformPlans::show/$1');
+    $routes->post('plans/(:num)/price', 'PlatformPlans::updatePrice/$1');
+    $routes->post('plans/(:num)/feature', 'PlatformPlans::updateFeature/$1');
+    $routes->post('plans/(:num)/limit', 'PlatformPlans::updateLimit/$1');
+
+    // Subscriptions
+    $routes->get('subscriptions', 'PlatformSubscriptions::index');
+    $routes->post('subscriptions/attach', 'PlatformSubscriptions::attach');
+    $routes->get('subscriptions/(:num)', 'PlatformSubscriptions::show/$1');
+    $routes->post('subscriptions/(:num)/status', 'PlatformSubscriptions::updateStatus/$1');
+    $routes->post('subscriptions/(:num)/override', 'PlatformSubscriptions::setOverride/$1');
 });

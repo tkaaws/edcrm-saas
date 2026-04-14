@@ -71,6 +71,18 @@ abstract class BaseController extends Controller
             $isPlatformAdmin = ENVIRONMENT === 'development' && $roleCode === 'tenant_owner';
         }
 
+        // Resolve enabled feature modules for nav gating.
+        // Platform admins have no tenant subscription — skip gate lookup.
+        $enabledModules = [];
+        if ($tenantId && ! $isPlatformAdmin) {
+            try {
+                $enabledModules = service('featureGate')->getEnabledModules($tenantId);
+            } catch (\Throwable) {
+                // Billing catalog not yet seeded or service unavailable — degrade gracefully
+                $enabledModules = [];
+            }
+        }
+
         return array_merge([
             'title'            => 'EDCRM SaaS',
             'pageTitle'        => 'Operations Workspace',
@@ -85,6 +97,7 @@ abstract class BaseController extends Controller
             'userEmail'        => session()->get('user_email'),
             'firstName'        => $firstName,
             'isPlatformAdmin'  => $isPlatformAdmin,
+            'enabledModules'   => $enabledModules,
         ], $data);
     }
 }
