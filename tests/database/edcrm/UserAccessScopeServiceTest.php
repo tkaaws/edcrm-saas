@@ -120,7 +120,7 @@ final class UserAccessScopeServiceTest extends CIUnitTestCase
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
-        $branchManagerId = $this->createBranchManager();
+        [$branchManagerId] = $this->createBranchManager();
         $targetManager = $this->db->table('users')->where('id', $branchManagerId)->get()->getRow();
         $self = $this->db->table('users')->where('id', $userId)->get()->getRow();
 
@@ -159,9 +159,10 @@ final class UserAccessScopeServiceTest extends CIUnitTestCase
         $owner = $this->db->table('users')->where('email', 'owner@demo.edcrm.in')->get()->getRow();
 
         session()->set([
-            'user_id'        => (int) $owner->id,
-            'tenant_id'      => (int) $owner->tenant_id,
-            'user_role_code' => 'tenant_owner',
+            'user_id'               => (int) $owner->id,
+            'tenant_id'             => (int) $owner->tenant_id,
+            'user_role_code'        => 'tenant_owner',
+            'user_privilege_codes'  => $this->getPrivilegeCodesForRole((int) $owner->role_id),
         ]);
 
         $service = new UserAccessScopeService();
@@ -238,5 +239,20 @@ final class UserAccessScopeServiceTest extends CIUnitTestCase
             ->get()
             ->getRow()
             ->id;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getPrivilegeCodesForRole(int $roleId): array
+    {
+        $rows = $this->db->table('role_privileges rp')
+            ->select('p.code')
+            ->join('privileges p', 'p.id = rp.privilege_id')
+            ->where('rp.role_id', $roleId)
+            ->get()
+            ->getResultArray();
+
+        return array_column($rows, 'code');
     }
 }

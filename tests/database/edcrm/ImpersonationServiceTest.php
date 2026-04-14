@@ -2,6 +2,7 @@
 
 use App\Database\Seeds\DatabaseSeeder;
 use App\Services\ImpersonationService;
+use App\Services\SettingsResolverService;
 use CodeIgniter\Test\CIUnitTestCase;
 use CodeIgniter\Test\DatabaseTestTrait;
 
@@ -104,6 +105,9 @@ final class ImpersonationServiceTest extends CIUnitTestCase
             'created_at'  => date('Y-m-d H:i:s'),
             'updated_at'  => date('Y-m-d H:i:s'),
         ]);
+
+        $resolver = new SettingsResolverService();
+        $this->assertFalse((bool) $resolver->getEffectiveSetting((int) $tenantOwner->tenant_id, null, 'tenant.security.allow_impersonation'));
 
         session()->set([
             'user_id'               => (int) $tenantOwner->id,
