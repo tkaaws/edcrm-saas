@@ -54,37 +54,41 @@ class AuthService
     // ---------------------------------------------------------------
 
     /**
-     * Attempt login for a given tenant (by tenant_id).
+     * Attempt login by email + password — platform-wide lookup, no tenant slug needed.
      *
+     * Email is globally unique across all tenants.
      * Returns one of the LOGIN_* constants.
      * On success, session is fully populated and ready.
      */
-    public function attempt(int $tenantId, string $email, string $password): string
+    public function attempt(string $email, string $password): string
     {
-        $user = $this->userModel->findByEmailForTenant($email, $tenantId);
+        // Platform-wide lookup — email is unique across all tenants
+        $user = $this->db->table('users')
+                         ->where('email', $email)
+                         ->get()->getRow();
 
         if (! $user) {
-            $this->writeAudit($tenantId, null, 'login_failed', "No user found for email: {$email}");
+            $this->writeAudit(0, null, 'login_failed', "No user found for email: {$email}");
             return self::LOGIN_INVALID;
         }
 
         if (! $this->userModel->verifyPassword($password, $user->password_hash)) {
-            $this->writeAudit($tenantId, $user->id, 'login_failed', 'Wrong password');
+            $this->writeAudit((int) $user->tenant_id, $user->id, 'login_failed', 'Wrong password');
             return self::LOGIN_INVALID;
         }
 
         if (! $user->is_active) {
-            $this->writeAudit($tenantId, $user->id, 'login_blocked', 'Account inactive');
+            $this->writeAudit((int) $user->tenant_id, $user->id, 'login_blocked', 'Account inactive');
             return self::LOGIN_INACTIVE;
         }
 
         // All checks passed — build session
-        $this->buildSession($user, $tenantId);
+        $this->buildSession($user, (int) $user->tenant_id);
 
         // Record login metadata
         $this->userModel->recordLogin($user->id, $this->getClientIp());
 
-        $this->writeAudit($tenantId, $user->id, 'login_success', 'Login successful');
+        $this->writeAudit((int) $user->tenant_id, $user->id, 'login_success', 'Login successful');
 
         if ($user->must_reset_password) {
             return self::LOGIN_MUST_RESET;
@@ -163,9 +167,9 @@ class AuthService
      * to prevent user enumeration attacks.
      * Caller should show a generic "if email exists, reset sent" message.
      */
-    public function forgotPassword(int $tenantId, string $email): bool
+    public function forgotPassword(string $email): bool
     {
-        $user = $this->userModel->findByEmailForTenant($email, $tenantId);
+        $user = $this->db->table('users')->where('email', $email)->get()->getRow();
 
         if (! $user) {
             // Silent — do not disclose whether email exists
@@ -397,7 +401,7 @@ class AuthService
      */
     protected function getRoleForUser(object $user): ?object
     {
-        return $this->db->table('tenant_roles')
+        return $this->db->table('user_roles')
                    ->where('id', $user->role_id)
                    ->get()
                    ->getRow();

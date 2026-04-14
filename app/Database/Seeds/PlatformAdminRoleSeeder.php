@@ -37,7 +37,7 @@ class PlatformAdminRoleSeeder extends Seeder
         // ----------------------------------------------------------------
         // 2. Create platform_admin role if it does not exist
         // ----------------------------------------------------------------
-        $existingRole = $this->db->table('tenant_roles')
+        $existingRole = $this->db->table('user_roles')
             ->where('tenant_id', $tenantId)
             ->where('code', 'platform_admin')
             ->get()->getRow();
@@ -46,7 +46,7 @@ class PlatformAdminRoleSeeder extends Seeder
             $platformAdminRoleId = (int) $existingRole->id;
             echo "PlatformAdminRoleSeeder: platform_admin role already exists id={$platformAdminRoleId}\n";
         } else {
-            $this->db->table('tenant_roles')->insert([
+            $this->db->table('user_roles')->insert([
                 'tenant_id'  => $tenantId,
                 'name'       => 'Platform Admin',
                 'code'       => 'platform_admin',

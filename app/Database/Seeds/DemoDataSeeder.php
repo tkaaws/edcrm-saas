@@ -94,7 +94,7 @@ class DemoDataSeeder extends Seeder
 
         $roleIds = [];
         foreach ($roleDefs as $role) {
-            $this->db->table('tenant_roles')->insert([
+            $this->db->table('user_roles')->insert([
                 'tenant_id'  => $tenantId,
                 'name'       => $role['name'],
                 'code'       => $role['code'],

@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Models\TenantModel;
 use App\Services\AuthService;
 
 /**
@@ -15,7 +14,6 @@ use App\Services\AuthService;
 class Auth extends BaseController
 {
     protected AuthService $auth;
-    protected TenantModel $tenantModel;
 
     public function initController(
         \CodeIgniter\HTTP\RequestInterface $request,
@@ -23,8 +21,7 @@ class Auth extends BaseController
         \Psr\Log\LoggerInterface $logger
     ): void {
         parent::initController($request, $response, $logger);
-        $this->auth        = service('auth');
-        $this->tenantModel = new TenantModel();
+        $this->auth = service('auth');
     }
 
     // ------------------------------------------------------------------
@@ -56,24 +53,21 @@ class Auth extends BaseController
         $email    = $this->request->getPost('email');
         $password = $this->request->getPost('password');
 
-        // Resolve tenant from domain/slug — v1: single tenant via config
-        $tenantId = $this->resolveTenantId();
-
-        if (! $tenantId) {
-            return redirect()->back()->withInput()->with('error', 'Institute not found or not active. Check your institute slug and try again.');
-        }
-
-        $result = $this->auth->attempt($tenantId, $email, $password);
+        $result = $this->auth->attempt($email, $password);
 
         return match ($result) {
-            AuthService::LOGIN_SUCCESS      => redirect()->to('/dashboard'),
-            AuthService::LOGIN_MUST_RESET   => redirect()->to('/auth/change-password'),
-            AuthService::LOGIN_INACTIVE     => redirect()->back()->withInput()
-                                                ->with('error', 'Your account is inactive. Contact your administrator.'),
-            AuthService::LOGIN_INVALID      => redirect()->back()->withInput()
-                                                ->with('error', 'Invalid email or password.'),
-            default                         => redirect()->back()->withInput()
-                                                ->with('error', 'Login failed. Please try again.'),
+            AuthService::LOGIN_SUCCESS    => redirect()->to(
+                session()->get('user_role_code') === 'platform_admin'
+                    ? '/platform/tenants'
+                    : '/dashboard'
+            ),
+            AuthService::LOGIN_MUST_RESET => redirect()->to('/auth/change-password'),
+            AuthService::LOGIN_INACTIVE   => redirect()->back()->withInput()
+                                              ->with('error', 'Your account is inactive. Contact your administrator.'),
+            AuthService::LOGIN_INVALID    => redirect()->back()->withInput()
+                                              ->with('error', 'Invalid email or password.'),
+            default                       => redirect()->back()->withInput()
+                                              ->with('error', 'Login failed. Please try again.'),
         };
     }
 
@@ -104,11 +98,10 @@ class Auth extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $tenantId = $this->resolveTenantId();
-        $email    = $this->request->getPost('email');
+        $email = $this->request->getPost('email');
 
         // Always true — prevents user enumeration
-        $this->auth->forgotPassword((int) $tenantId, $email);
+        $this->auth->forgotPassword($email);
 
         return redirect()->to('/auth/forgot-password')
                          ->with('message', 'If that email exists, a reset link has been sent.');
@@ -213,39 +206,4 @@ class Auth extends BaseController
                          ->with('error', $errorMessages[$result] ?? 'Password change failed.');
     }
 
-    // ------------------------------------------------------------------
-    // HELPER
-    // ------------------------------------------------------------------
-
-    /**
-     * Resolve tenant ID for login.
-     *
-     * Resolution order:
-     * 1. slug posted from login form (multi-tenant shared domain)
-     * 2. APP_TENANT_ID in .env (single-tenant dedicated deployment)
-     * 3. first active tenant fallback (dev/demo only)
-     */
-    protected function resolveTenantId(): ?int
-    {
-        // 1. Slug from login form
-        $slug = trim((string) $this->request->getPost('tenant_slug'));
-        if ($slug !== '') {
-            $tenant = $this->tenantModel->findBySlug(strtolower($slug));
-            if ($tenant && $tenant->status === 'active') {
-                return (int) $tenant->id;
-            }
-            // Slug provided but not found or not active — return null to show error
-            return null;
-        }
-
-        // 2. Env override (dedicated deployment or platform login)
-        $envTenantId = env('APP_TENANT_ID');
-        if ($envTenantId) {
-            return (int) $envTenantId;
-        }
-
-        // 3. Dev/demo fallback: first active tenant
-        $tenant = $this->tenantModel->where('status', 'active')->first();
-        return $tenant ? (int) $tenant->id : null;
-    }
 }

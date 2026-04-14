@@ -135,8 +135,8 @@ class UserModel extends BaseModel
     public function getAdminGrid(int $tenantId): array
     {
         return $this->withoutTenantScope()
-                    ->select('users.*, tenant_roles.name as role_name, tenant_roles.code as role_code, tenant_branches.name as primary_branch_name')
-                    ->join('tenant_roles', 'tenant_roles.id = users.role_id', 'left')
+                    ->select('users.*, user_roles.name as role_name, user_roles.code as role_code, tenant_branches.name as primary_branch_name')
+                    ->join('user_roles', 'user_roles.id = users.role_id', 'left')
                     ->join('user_branches', 'user_branches.user_id = users.id AND user_branches.is_primary = 1', 'left')
                     ->join('tenant_branches', 'tenant_branches.id = user_branches.branch_id', 'left')
                     ->where('users.tenant_id', $tenantId)
@@ -187,10 +187,10 @@ class UserModel extends BaseModel
     public function countActiveUsersByRole(int $tenantId, string $roleCode, ?int $ignoreUserId = null): int
     {
         $builder = $this->withoutTenantScope()
-                        ->join('tenant_roles', 'tenant_roles.id = users.role_id')
+                        ->join('user_roles', 'user_roles.id = users.role_id')
                         ->where('users.tenant_id', $tenantId)
                         ->where('users.is_active', 1)
-                        ->where('tenant_roles.code', $roleCode);
+                        ->where('user_roles.code', $roleCode);
 
         if ($ignoreUserId !== null) {
             $builder->where('users.id !=', $ignoreUserId);

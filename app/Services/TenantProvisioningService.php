@@ -126,7 +126,7 @@ class TenantProvisioningService
         $roleIds = [];
 
         foreach ($definitions as $definition) {
-            $this->db->table('tenant_roles')->insert([
+            $this->db->table('user_roles')->insert([
                 'tenant_id'  => $tenantId,
                 'name'       => $definition['name'],
                 'code'       => $definition['code'],

@@ -12,7 +12,7 @@
             <div class="shell-brand__mark">E</div>
             <div>
                 <div class="shell-brand__name">EDCRM SaaS</div>
-                <div class="shell-brand__meta">Sign in to your institute</div>
+                <div class="shell-brand__meta">Sign in to your account</div>
             </div>
         </div>
 
@@ -37,14 +37,8 @@
 
             <div class="form-grid form-grid--single">
                 <label class="field">
-                    <span>Institute slug</span>
-                    <input type="text" name="tenant_slug" value="<?= esc(old('tenant_slug')) ?>" placeholder="e.g. demo-institute" autocomplete="organization">
-                    <small class="field-hint">Leave blank if you have a dedicated login URL.</small>
-                </label>
-
-                <label class="field">
                     <span>Email</span>
-                    <input type="email" name="email" value="<?= esc(old('email')) ?>" required autocomplete="email">
+                    <input type="email" name="email" value="<?= esc(old('email')) ?>" required autocomplete="email" autofocus>
                 </label>
 
                 <label class="field">

@@ -15,7 +15,7 @@ use CodeIgniter\HTTP\ResponseInterface;
  *   session user_role_code === 'platform_admin'
  *
  * No environment variables needed — any user with the platform_admin
- * role code (set in tenant_roles) is granted access.
+ * role code (set in user_roles) is granted access.
  */
 class PlatformAdminFilter implements FilterInterface
 {

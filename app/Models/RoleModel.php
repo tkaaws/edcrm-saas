@@ -9,7 +9,7 @@ namespace App\Models;
  */
 class RoleModel extends BaseModel
 {
-    protected $table      = 'tenant_roles';
+    protected $table      = 'user_roles';
     protected $primaryKey = 'id';
     protected $returnType = 'object';
 

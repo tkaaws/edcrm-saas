@@ -37,6 +37,19 @@
 # database.default.DBDriver = MySQLi
 # database.default.DBPrefix =
 # database.default.port = 3306
+CI_ENVIRONMENT = development
+
+app.baseURL = 'http://143.110.247.79/'
+
+database.default.hostname = localhost
+database.default.database = edcrm_saas
+database.default.username = edcrm_user
+database.default.password = Edcrm@2026!Secure#1
+database.default.DBDriver = MySQLi
+database.default.port = 3306
+database.default.charset = utf8mb4
+database.default.DBCollat = utf8mb4_unicode_ci
+
 
 # If you use MySQLi as tests, first update the values of Config\Database::$tests.
 # database.tests.hostname = localhost
