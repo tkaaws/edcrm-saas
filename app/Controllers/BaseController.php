@@ -52,25 +52,32 @@ abstract class BaseController extends Controller
      */
     protected function buildShellViewData(array $data = []): array
     {
-        $firstName = session()->get('user_first_name');
-        $lastName  = session()->get('user_last_name');
-        $roleCode  = session()->get('user_role_code');
-        $tenantId  = session()->get('tenant_id');
-        $branchId  = session()->get('branch_id');
+        $firstName  = session()->get('user_first_name');
+        $lastName   = session()->get('user_last_name');
+        $roleCode   = session()->get('user_role_code');
+        $roleName   = session()->get('user_role_name');
+        $tenantId   = (int) session()->get('tenant_id');
+        $branchId   = session()->get('branch_id');
+        $tenantName = session()->get('tenant_name');
+        $branchName = session()->get('branch_name');
+
+        $platformTenantId = (int) env('APP_PLATFORM_TENANT_ID', 0);
+        $isPlatformAdmin  = $tenantId > 0 && $platformTenantId > 0 && $tenantId === $platformTenantId;
 
         return array_merge([
-            'title'           => 'EDCRM SaaS',
-            'pageTitle'       => 'Operations Workspace',
-            'activeNav'       => 'dashboard',
-            'tenantId'        => $tenantId,
-            'branchId'        => $branchId,
-            'roleCode'        => $roleCode,
-            'tenantLabel'     => $tenantId ? 'Tenant #' . $tenantId : 'Tenant not loaded',
-            'branchLabel'     => $branchId ? 'Branch #' . $branchId : 'Branch not assigned',
-            'roleLabel'       => $roleCode ?: 'Role pending',
-            'userDisplayName' => trim((string) $firstName . ' ' . (string) $lastName) ?: 'EDCRM User',
-            'userEmail'       => session()->get('user_email'),
-            'firstName'       => $firstName,
+            'title'            => 'EDCRM SaaS',
+            'pageTitle'        => 'Operations Workspace',
+            'activeNav'        => 'dashboard',
+            'tenantId'         => $tenantId,
+            'branchId'         => $branchId,
+            'roleCode'         => $roleCode,
+            'tenantLabel'      => $tenantName ?: ($tenantId ? 'Tenant #' . $tenantId : 'Not resolved'),
+            'branchLabel'      => $branchName ?: ($branchId ? 'Branch #' . $branchId : 'Not assigned'),
+            'roleLabel'        => $roleName ?: ($roleCode ?: 'Unknown'),
+            'userDisplayName'  => trim((string) $firstName . ' ' . (string) $lastName) ?: 'EDCRM User',
+            'userEmail'        => session()->get('user_email'),
+            'firstName'        => $firstName,
+            'isPlatformAdmin'  => $isPlatformAdmin,
         ], $data);
     }
 }

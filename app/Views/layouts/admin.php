@@ -8,14 +8,15 @@
 </head>
 <body class="shell-body">
     <?php
-    $activeNav = $activeNav ?? 'dashboard';
+    $activeNav       = $activeNav ?? 'dashboard';
+    $isPlatformAdmin = $isPlatformAdmin ?? false;
     $navItems = [
-        ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => site_url('dashboard'), 'meta' => 'Live', 'enabled' => true],
-        ['key' => 'users', 'label' => 'Users', 'href' => site_url('users'), 'meta' => 'Live', 'enabled' => true],
-        ['key' => 'branches', 'label' => 'Branches', 'href' => site_url('branches'), 'meta' => 'Live', 'enabled' => true],
-        ['key' => 'roles', 'label' => 'Roles', 'href' => site_url('roles'), 'meta' => 'Live', 'enabled' => true],
-        ['key' => 'settings', 'label' => 'Settings', 'href' => site_url('settings'), 'meta' => 'Live', 'enabled' => true],
-        ['key' => 'tenants', 'label' => 'Tenants', 'href' => site_url('platform/tenants'), 'meta' => 'Live', 'enabled' => true],
+        ['key' => 'dashboard', 'label' => 'Dashboard', 'href' => site_url('dashboard'),        'meta' => 'Home',     'show' => true],
+        ['key' => 'users',     'label' => 'Users',     'href' => site_url('users'),            'meta' => 'People',   'show' => ! $isPlatformAdmin],
+        ['key' => 'branches',  'label' => 'Branches',  'href' => site_url('branches'),         'meta' => 'Locations','show' => ! $isPlatformAdmin],
+        ['key' => 'roles',     'label' => 'Roles',     'href' => site_url('roles'),            'meta' => 'Access',   'show' => ! $isPlatformAdmin],
+        ['key' => 'settings',  'label' => 'Settings',  'href' => site_url('settings'),         'meta' => 'Config',   'show' => ! $isPlatformAdmin],
+        ['key' => 'tenants',   'label' => 'Tenants',   'href' => site_url('platform/tenants'), 'meta' => 'Platform', 'show' => $isPlatformAdmin],
     ];
     ?>
     <div class="shell">
@@ -24,24 +25,18 @@
                 <div class="shell-brand__mark">E</div>
                 <div>
                     <div class="shell-brand__name">EDCRM SaaS</div>
-                    <div class="shell-brand__meta">Phase 1A foundation</div>
+                    <div class="shell-brand__meta"><?= esc($isPlatformAdmin ? 'Platform admin' : ($tenantLabel ?? 'Loading…')) ?></div>
                 </div>
             </div>
 
             <nav class="shell-nav" aria-label="Primary">
                 <?php foreach ($navItems as $item): ?>
+                    <?php if (! $item['show']) continue; ?>
                     <?php $classes = 'shell-nav__item' . ($activeNav === $item['key'] ? ' shell-nav__item--active' : ''); ?>
-                    <?php if ($item['enabled']): ?>
-                        <a class="<?= esc($classes) ?>" href="<?= esc($item['href']) ?>">
-                            <span><?= esc($item['label']) ?></span>
-                            <small><?= esc($item['meta']) ?></small>
-                        </a>
-                    <?php else: ?>
-                        <span class="<?= esc($classes) ?>">
-                            <span><?= esc($item['label']) ?></span>
-                            <small><?= esc($item['meta']) ?></small>
-                        </span>
-                    <?php endif; ?>
+                    <a class="<?= esc($classes) ?>" href="<?= esc($item['href']) ?>">
+                        <span><?= esc($item['label']) ?></span>
+                        <small><?= esc($item['meta']) ?></small>
+                    </a>
                 <?php endforeach; ?>
             </nav>
 

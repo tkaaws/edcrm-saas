@@ -110,15 +110,21 @@ class AuthService
         // Load primary branch
         $primaryBranch = $this->userModel->getPrimaryBranch($user->id);
 
+        // Load tenant name for shell display (avoids per-request DB lookup in BaseController)
+        $tenant = $this->tenantModel->find($tenantId);
+
         $session->set([
             'user_id'         => $user->id,
             'tenant_id'       => $tenantId,
+            'tenant_name'     => $tenant?->name ?? '',
             'user_role_id'    => $user->role_id,
             'user_role_code'  => $role?->code ?? '',
+            'user_role_name'  => $role?->name ?? '',
             'user_first_name' => $user->first_name,
             'user_last_name'  => $user->last_name,
             'user_email'      => $user->email,
             'branch_id'       => $primaryBranch?->id ?? null,
+            'branch_name'     => $primaryBranch?->name ?? '',
         ]);
 
         // Load and cache privilege codes into session

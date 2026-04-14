@@ -9,6 +9,7 @@ use App\Services\PermissionService;
 use App\Services\CurrentUserContext;
 use App\Services\AuthService;
 use App\Services\TenantProvisioningService;
+use App\Services\TenantAccessPolicy;
 
 /**
  * Services Configuration
@@ -87,5 +88,17 @@ class Services extends BaseService
             return static::getSharedInstance('tenantProvisioning');
         }
         return new TenantProvisioningService();
+    }
+
+    /**
+     * Evaluates whether a tenant's status allows the current operation.
+     * Used by SuspensionFilter; extended in Phase 1B for subscription checks.
+     */
+    public static function tenantAccessPolicy(bool $getShared = true): TenantAccessPolicy
+    {
+        if ($getShared) {
+            return static::getSharedInstance('tenantAccessPolicy');
+        }
+        return new TenantAccessPolicy();
     }
 }
