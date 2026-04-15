@@ -54,6 +54,7 @@
                         $formKey = $field['formKey'];
                         $value = old($formKey, $field['value']);
                         $options = $field['options'];
+                        $optionLabels = $field['optionLabels'] ?? [];
                         $isLocked = $field['isLocked'];
                         $valueType = (string) $definition->value_type;
                         ?>
@@ -70,7 +71,7 @@
                                 <select name="<?= esc($formKey) ?>" <?= $isLocked ? 'disabled' : '' ?>>
                                     <?php foreach ($options as $option): ?>
                                         <option value="<?= esc($option) ?>" <?= (string) $value === $option ? 'selected' : '' ?>>
-                                            <?= esc(ucwords(str_replace(['_', '-'], ' ', $option))) ?>
+                                            <?= esc($optionLabels[$option] ?? ucwords(str_replace(['_', '-'], ' ', $option))) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>

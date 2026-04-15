@@ -52,6 +52,7 @@
                         $lockMode = old($formKey . '__lock_mode', $field['lockMode']);
                         $notes = old($formKey . '__notes', $field['notes']);
                         $options = $field['options'];
+                        $optionLabels = $field['optionLabels'] ?? [];
                         $valueType = (string) $definition->value_type;
                         $platformOnly = $section['scope'] === 'platform_policy';
                         ?>
@@ -68,7 +69,7 @@
                                 <select name="<?= esc($formKey) ?>">
                                     <?php foreach ($options as $option): ?>
                                         <option value="<?= esc($option) ?>" <?= (string) $value === $option ? 'selected' : '' ?>>
-                                            <?= esc(ucwords(str_replace(['_', '-'], ' ', $option))) ?>
+                                            <?= esc($optionLabels[$option] ?? ucwords(str_replace(['_', '-'], ' ', $option))) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>

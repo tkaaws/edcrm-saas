@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\BranchModel;
 use App\Models\BranchSettingValueModel;
 use App\Models\SettingDefinitionModel;
+use App\Support\RegionalOptions;
 
 class BranchSettings extends BaseController
 {
@@ -137,7 +138,8 @@ class BranchSettings extends BaseController
                     'value'      => service('settingsResolver')->getEffectiveSetting($tenantId, (int) $branch->id, $definition->key),
                     'lockMode'   => service('settingsResolver')->getLockModeForTenant($tenantId, $definition->key),
                     'isLocked'   => in_array(service('settingsResolver')->getLockModeForTenant($tenantId, $definition->key), ['tenant_locked', 'branch_locked', 'platform_enforced'], true),
-                    'options'    => $this->decodeOptions($definition->allowed_options_json),
+                    'options'    => $this->resolveOptionsForDefinition($definition),
+                    'optionLabels' => $this->resolveOptionLabels($definition),
                 ];
             }
 
@@ -216,6 +218,27 @@ class BranchSettings extends BaseController
         }
 
         return array_values(array_filter(array_map('strval', $decoded)));
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function resolveOptionsForDefinition(object $definition): array
+    {
+        $options = $this->decodeOptions($definition->allowed_options_json);
+        if ($options !== []) {
+            return $options;
+        }
+
+        return RegionalOptions::definitionOptions((string) $definition->key);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function resolveOptionLabels(object $definition): array
+    {
+        return RegionalOptions::definitionOptionLabels((string) $definition->key);
     }
 
     protected function isDefinitionEnabledForTenant(int $tenantId, object $definition): bool

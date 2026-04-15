@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\SettingDefinitionModel;
 use App\Models\TenantModel;
 use App\Models\TenantPolicyOverrideModel;
+use App\Support\RegionalOptions;
 
 class PlatformTenantPolicies extends BaseController
 {
@@ -128,7 +129,8 @@ class PlatformTenantPolicies extends BaseController
                     'value'      => $value,
                     'lockMode'   => $override->lock_mode ?? 'editable',
                     'notes'      => $override->notes ?? '',
-                    'options'    => $this->decodeOptions($definition->allowed_options_json),
+                    'options'    => $this->resolveOptionsForDefinition($definition),
+                    'optionLabels' => $this->resolveOptionLabels($definition),
                     'scope'      => $spec['scope'],
                 ];
             }
@@ -202,6 +204,27 @@ class PlatformTenantPolicies extends BaseController
         }
 
         return array_values(array_filter(array_map('strval', $decoded)));
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function resolveOptionsForDefinition(object $definition): array
+    {
+        $options = $this->decodeOptions($definition->allowed_options_json);
+        if ($options !== []) {
+            return $options;
+        }
+
+        return RegionalOptions::definitionOptions((string) $definition->key);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function resolveOptionLabels(object $definition): array
+    {
+        return RegionalOptions::definitionOptionLabels((string) $definition->key);
     }
 
     protected function decodeValue(?string $value, string $type): mixed

@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\BranchModel;
 use App\Models\TenantModel;
+use App\Support\RegionalOptions;
 
 class Branches extends BaseController
 {
@@ -37,6 +38,7 @@ class Branches extends BaseController
             'formAction' => site_url('branches'),
             'submitText' => 'Create branch',
             'branch'     => null,
+            'regionalInputOptions' => $this->regionalInputOptions(),
         ]));
     }
 
@@ -86,6 +88,7 @@ class Branches extends BaseController
             'formAction' => site_url('branches/' . $id),
             'submitText' => 'Save changes',
             'branch'     => $branch,
+            'regionalInputOptions' => $this->regionalInputOptions(),
         ]));
     }
 
@@ -216,5 +219,17 @@ class Branches extends BaseController
         }
 
         return $this->tenantModel->find($tenantId);
+    }
+
+    /**
+     * @return array<string, array<int|string, string>>
+     */
+    protected function regionalInputOptions(): array
+    {
+        return [
+            'timezones' => RegionalOptions::timezones(),
+            'currencies' => RegionalOptions::currencies(),
+            'countries' => RegionalOptions::countries(),
+        ];
     }
 }

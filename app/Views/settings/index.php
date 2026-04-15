@@ -13,6 +13,7 @@
     $timezoneOptions = $regionalInputOptions['timezones'] ?? [];
     $currencyOptions = $regionalInputOptions['currencies'] ?? [];
     $localeOptions = $regionalInputOptions['locales'] ?? [];
+    $countryOptions = $regionalInputOptions['countries'] ?? [];
     ?>
 
     <div class="module-toolbar">
@@ -105,7 +106,14 @@
                         </label>
                         <label class="field">
                             <span>Country</span>
-                            <input type="text" name="country_code" value="<?= esc(old('country_code', $tenant->country_code ?? '')) ?>">
+                            <select name="country_code">
+                                <?php $selectedCountry = old('country_code', $tenant->country_code ?? ''); ?>
+                                <?php foreach ($countryOptions as $code => $label): ?>
+                                    <option value="<?= esc($code) ?>" <?= $selectedCountry === $code ? 'selected' : '' ?>>
+                                        <?= esc($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </label>
                         <label class="field">
                             <span>Language locale</span>

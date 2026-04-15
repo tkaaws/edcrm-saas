@@ -1,6 +1,13 @@
 ﻿<?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
+<?php
+$regionalInputOptions = $regionalInputOptions ?? [];
+$timezoneOptions = $regionalInputOptions['timezones'] ?? [];
+$currencyOptions = $regionalInputOptions['currencies'] ?? [];
+$localeOptions = $regionalInputOptions['locales'] ?? [];
+$countryOptions = $regionalInputOptions['countries'] ?? [];
+?>
 <section class="module-page">
     <div class="module-toolbar">
         <div>
@@ -51,22 +58,50 @@
 
                 <label class="field">
                     <span>Timezone</span>
-                    <input type="text" name="default_timezone" value="<?= esc(old('default_timezone', $tenant->default_timezone)) ?>" placeholder="Asia/Kolkata">
+                    <select name="default_timezone">
+                        <?php $selectedTimezone = old('default_timezone', $tenant->default_timezone); ?>
+                        <?php foreach ($timezoneOptions as $timezone): ?>
+                            <option value="<?= esc($timezone) ?>" <?= $selectedTimezone === $timezone ? 'selected' : '' ?>>
+                                <?= esc($timezone) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
 
                 <label class="field">
-                    <span>Currency code</span>
-                    <input type="text" name="default_currency_code" maxlength="3" value="<?= esc(old('default_currency_code', $tenant->default_currency_code)) ?>" placeholder="INR">
+                    <span>Currency</span>
+                    <select name="default_currency_code">
+                        <?php $selectedCurrency = old('default_currency_code', $tenant->default_currency_code); ?>
+                        <?php foreach ($currencyOptions as $code => $label): ?>
+                            <option value="<?= esc($code) ?>" <?= $selectedCurrency === $code ? 'selected' : '' ?>>
+                                <?= esc($code . ' - ' . $label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
 
                 <label class="field">
-                    <span>Country code</span>
-                    <input type="text" name="country_code" maxlength="2" value="<?= esc(old('country_code', $tenant->country_code)) ?>" placeholder="IN">
+                    <span>Country</span>
+                    <select name="country_code">
+                        <?php $selectedCountry = old('country_code', $tenant->country_code); ?>
+                        <?php foreach ($countryOptions as $code => $label): ?>
+                            <option value="<?= esc($code) ?>" <?= $selectedCountry === $code ? 'selected' : '' ?>>
+                                <?= esc($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
 
                 <label class="field">
-                    <span>Locale</span>
-                    <input type="text" name="locale_code" maxlength="10" value="<?= esc(old('locale_code', $tenant->locale_code)) ?>" placeholder="en">
+                    <span>Language</span>
+                    <select name="locale_code">
+                        <?php $selectedLocale = old('locale_code', $tenant->locale_code); ?>
+                        <?php foreach ($localeOptions as $code => $label): ?>
+                            <option value="<?= esc($code) ?>" <?= $selectedLocale === $code ? 'selected' : '' ?>>
+                                <?= esc($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
             </div>
         </section>

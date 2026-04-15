@@ -2,6 +2,13 @@
 
 <?= $this->section('content') ?>
 <?php $fieldErrors = session('fieldErrors') ?? []; ?>
+<?php
+$regionalInputOptions = $regionalInputOptions ?? [];
+$timezoneOptions = $regionalInputOptions['timezones'] ?? [];
+$currencyOptions = $regionalInputOptions['currencies'] ?? [];
+$localeOptions = $regionalInputOptions['locales'] ?? [];
+$countryOptions = $regionalInputOptions['countries'] ?? [];
+?>
 <section class="module-page">
     <div class="module-toolbar">
         <div>
@@ -66,19 +73,47 @@
                 </label>
                 <label class="field">
                     <span>Default timezone</span>
-                    <input type="text" name="default_timezone" value="<?= esc(old('default_timezone', 'Asia/Kolkata')) ?>">
+                    <select name="default_timezone">
+                        <?php $selectedTimezone = old('default_timezone', 'Asia/Kolkata'); ?>
+                        <?php foreach ($timezoneOptions as $timezone): ?>
+                            <option value="<?= esc($timezone) ?>" <?= $selectedTimezone === $timezone ? 'selected' : '' ?>>
+                                <?= esc($timezone) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
                 <label class="field">
-                    <span>Default currency code</span>
-                    <input type="text" name="default_currency_code" value="<?= esc(old('default_currency_code', 'INR')) ?>">
+                    <span>Default currency</span>
+                    <select name="default_currency_code">
+                        <?php $selectedCurrency = old('default_currency_code', 'INR'); ?>
+                        <?php foreach ($currencyOptions as $code => $label): ?>
+                            <option value="<?= esc($code) ?>" <?= $selectedCurrency === $code ? 'selected' : '' ?>>
+                                <?= esc($code . ' - ' . $label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
                 <label class="field">
-                    <span>Country code</span>
-                    <input type="text" name="country_code" value="<?= esc(old('country_code', 'IN')) ?>">
+                    <span>Country</span>
+                    <select name="country_code">
+                        <?php $selectedCountry = old('country_code', 'IN'); ?>
+                        <?php foreach ($countryOptions as $code => $label): ?>
+                            <option value="<?= esc($code) ?>" <?= $selectedCountry === $code ? 'selected' : '' ?>>
+                                <?= esc($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
                 <label class="field">
-                    <span>Locale code</span>
-                    <input type="text" name="locale_code" value="<?= esc(old('locale_code', 'en')) ?>">
+                    <span>Language</span>
+                    <select name="locale_code">
+                        <?php $selectedLocale = old('locale_code', 'en'); ?>
+                        <?php foreach ($localeOptions as $code => $label): ?>
+                            <option value="<?= esc($code) ?>" <?= $selectedLocale === $code ? 'selected' : '' ?>>
+                                <?= esc($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
                 <label class="field">
                     <span>Branding name</span>
@@ -137,16 +172,32 @@
                     <input type="text" name="branch_city" value="<?= esc(old('branch_city')) ?>">
                 </label>
                 <label class="field">
-                    <span>State code</span>
+                    <span>State / region</span>
                     <input type="text" name="branch_state_code" value="<?= esc(old('branch_state_code')) ?>">
                 </label>
                 <label class="field">
                     <span>Branch timezone</span>
-                    <input type="text" name="branch_timezone" value="<?= esc(old('branch_timezone')) ?>" placeholder="leave blank to inherit company default">
+                    <select name="branch_timezone">
+                        <option value="">Use company default</option>
+                        <?php $selectedBranchTimezone = old('branch_timezone'); ?>
+                        <?php foreach ($timezoneOptions as $timezone): ?>
+                            <option value="<?= esc($timezone) ?>" <?= $selectedBranchTimezone === $timezone ? 'selected' : '' ?>>
+                                <?= esc($timezone) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
                 <label class="field">
-                    <span>Branch currency code</span>
-                    <input type="text" name="branch_currency_code" value="<?= esc(old('branch_currency_code')) ?>" placeholder="leave blank to inherit company default">
+                    <span>Branch currency</span>
+                    <select name="branch_currency_code">
+                        <option value="">Use company default</option>
+                        <?php $selectedBranchCurrency = old('branch_currency_code'); ?>
+                        <?php foreach ($currencyOptions as $code => $label): ?>
+                            <option value="<?= esc($code) ?>" <?= $selectedBranchCurrency === $code ? 'selected' : '' ?>>
+                                <?= esc($code . ' - ' . $label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </label>
                 <label class="field">
                     <span>Postal code</span>

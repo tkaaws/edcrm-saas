@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\PlanModel;
 use App\Models\TenantModel;
 use App\Models\UserModel;
+use App\Support\RegionalOptions;
 
 class PlatformTenants extends BaseController
 {
@@ -60,6 +61,7 @@ class PlatformTenants extends BaseController
             'tenantLabel' => 'Platform scope',
             'branchLabel' => 'Onboarding',
             'roleLabel'   => 'Provisioning',
+            'regionalInputOptions' => $this->regionalInputOptions(),
         ]));
     }
 
@@ -140,6 +142,7 @@ class PlatformTenants extends BaseController
             'activeNav'   => 'tenants',
             'tenantLabel' => 'Platform scope',
             'tenant'      => $tenant,
+            'regionalInputOptions' => $this->regionalInputOptions(),
         ]));
     }
 
@@ -164,7 +167,7 @@ class PlatformTenants extends BaseController
         $errors = [];
 
         if ($name === '') {
-            $errors['name'] = 'Institute name is required.';
+            $errors['name'] = 'Company name is required.';
         }
 
         if ($ownerEmail !== '' && ! filter_var($ownerEmail, FILTER_VALIDATE_EMAIL)) {
@@ -402,7 +405,7 @@ class PlatformTenants extends BaseController
         $allowedModes = ['own', 'restricted', 'all'];
 
         if ($data['name'] === '') {
-            $errors['name'] = 'Institute name is required.';
+            $errors['name'] = 'Company name is required.';
         }
 
         if ($data['slug'] === '') {
@@ -492,5 +495,18 @@ class PlatformTenants extends BaseController
         $slug = strtolower(trim($value));
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
         return trim($slug, '-');
+    }
+
+    /**
+     * @return array<string, array<int|string, string>>
+     */
+    protected function regionalInputOptions(): array
+    {
+        return [
+            'timezones' => RegionalOptions::timezones(),
+            'currencies' => RegionalOptions::currencies(),
+            'locales' => RegionalOptions::locales(),
+            'countries' => RegionalOptions::countries(),
+        ];
     }
 }
