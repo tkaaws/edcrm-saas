@@ -95,21 +95,6 @@
                         <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
                     </label>
                     <label class="field">
-                        <span>Short code</span>
-                        <input type="text" name="code" value="<?= esc(old('code')) ?>" placeholder="optional, auto-generated if left blank">
-                    </label>
-                    <label class="field">
-                        <span>Parent value</span>
-                        <select name="parent_value_id">
-                            <option value="">None</option>
-                            <?php foreach ($values as $value): ?>
-                                <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
-                                    <?= esc($value->label) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
-                    <label class="field">
                         <span>Sort order</span>
                         <input type="number" name="sort_order" value="<?= esc(old('sort_order', '0')) ?>">
                     </label>
@@ -124,6 +109,20 @@
                         <span>Description</span>
                         <textarea name="description" rows="2"><?= esc(old('description')) ?></textarea>
                     </label>
+                    <?php if ((int) $selectedType->supports_hierarchy === 1): ?>
+                        <label class="field">
+                            <span>Parent value</span>
+                            <select name="parent_value_id">
+                                <option value="">None</option>
+                                <?php foreach ($values as $value): ?>
+                                    <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
+                                        <?= esc($value->label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <small>Shown only for lists that use parent and child values.</small>
+                        </label>
+                    <?php endif; ?>
                     <label class="field field--full">
                         <span>Metadata JSON</span>
                         <textarea name="metadata_json" rows="3" placeholder='{"duration_months": 6}'><?= esc(old('metadata_json')) ?></textarea>
@@ -136,6 +135,8 @@
                         <span>Mark as system default</span>
                     </label>
                 </div>
+
+                <p class="module-subtitle">Short code is generated automatically from the name.</p>
 
                 <div class="form-actions">
                     <button class="shell-button shell-button--primary" type="submit">Create value</button>
