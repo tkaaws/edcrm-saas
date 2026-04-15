@@ -56,7 +56,8 @@
     ];
     ?>
     <div class="shell">
-        <aside class="shell-sidebar">
+        <button class="shell-overlay" type="button" aria-label="Close menu"></button>
+        <aside class="shell-sidebar" id="primary-nav">
             <div class="shell-brand">
                 <div class="shell-brand__mark">E</div>
                 <div>
@@ -97,9 +98,12 @@
 
         <div class="shell-main">
             <header class="shell-header">
-                <div>
-                    <p class="shell-header__eyebrow"><?= $isPlatformAdmin ? 'Platform administration' : 'Operations workspace' ?></p>
-                    <h1 class="shell-header__title"><?= esc($pageTitle ?? ($title ?? 'Dashboard')) ?></h1>
+                <div class="shell-header__main">
+                    <button class="shell-button shell-button--ghost shell-menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+                    <div>
+                        <p class="shell-header__eyebrow"><?= $isPlatformAdmin ? 'Platform administration' : 'Operations workspace' ?></p>
+                        <h1 class="shell-header__title"><?= esc($pageTitle ?? ($title ?? 'Dashboard')) ?></h1>
+                    </div>
                 </div>
 
                 <div class="shell-header__actions">
@@ -186,5 +190,56 @@
             </main>
         </div>
     </div>
+    <script>
+    (() => {
+        const body = document.body;
+        const toggle = document.querySelector('.shell-menu-toggle');
+        const overlay = document.querySelector('.shell-overlay');
+        const navLinks = document.querySelectorAll('.shell-nav a');
+        const mobileBreakpoint = window.matchMedia('(max-width: 920px)');
+
+        if (!toggle || !overlay) {
+            return;
+        }
+
+        const closeNav = () => {
+            body.classList.remove('shell-body--nav-open');
+            toggle.setAttribute('aria-expanded', 'false');
+        };
+
+        const openNav = () => {
+            body.classList.add('shell-body--nav-open');
+            toggle.setAttribute('aria-expanded', 'true');
+        };
+
+        toggle.addEventListener('click', () => {
+            if (!mobileBreakpoint.matches) {
+                return;
+            }
+
+            if (body.classList.contains('shell-body--nav-open')) {
+                closeNav();
+            } else {
+                openNav();
+            }
+        });
+
+        overlay.addEventListener('click', closeNav);
+
+        navLinks.forEach((link) => {
+            link.addEventListener('click', () => {
+                if (mobileBreakpoint.matches) {
+                    closeNav();
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (!mobileBreakpoint.matches) {
+                closeNav();
+            }
+        });
+    })();
+    </script>
 </body>
 </html>

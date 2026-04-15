@@ -62,13 +62,14 @@
                                     <span class="status-badge status-badge--neutral">Private</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="table-actions">
-                                <a href="<?= site_url("platform/plans/{$plan->id}") ?>" class="shell-button shell-button--ghost shell-button--sm">Open</a>
-                                <form method="post" action="<?= site_url("platform/plans/{$plan->id}/delete") ?>" style="display:inline;"
-                                      onsubmit="return confirm('Delete plan <?= esc(addslashes($plan->name)) ?>? This cannot be undone.')">
-                                    <?= csrf_field() ?>
-                                    <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete</button>
-                                </form>
+                            <td class="data-table__actions">
+                                <div class="table-actions">
+                                    <a href="<?= site_url("platform/plans/{$plan->id}") ?>" class="shell-button shell-button--ghost shell-button--sm">Open</a>
+                                    <form method="post" action="<?= site_url("platform/plans/{$plan->id}/delete") ?>" onsubmit="return confirm('Delete plan <?= esc(addslashes($plan->name)) ?>? This cannot be undone.')">
+                                        <?= csrf_field() ?>
+                                        <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

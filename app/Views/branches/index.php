@@ -56,12 +56,12 @@
                             <td class="data-table__actions">
                                 <div class="table-actions">
                                     <?php if ($canEditBranches): ?>
-                                        <a class="shell-button shell-button--ghost" href="<?= site_url('branches/' . $branch->id . '/settings') ?>">Settings</a>
-                                        <a class="shell-button shell-button--ghost" href="<?= site_url('branches/' . $branch->id . '/edit') ?>">Edit</a>
+                                        <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('branches/' . $branch->id . '/settings') ?>">Settings</a>
+                                        <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('branches/' . $branch->id . '/edit') ?>">Edit</a>
                                         <form method="post" action="<?= site_url('branches/' . $branch->id . '/status') ?>">
                                             <?= csrf_field() ?>
-                                            <button class="shell-button shell-button--soft" type="submit">
-                                                <?= $branch->status === 'active' ? 'Disable branch' : 'Enable branch' ?>
+                                            <button class="shell-button shell-button--soft shell-button--sm" type="submit">
+                                                <?= $branch->status === 'active' ? 'Disable' : 'Enable' ?>
                                             </button>
                                         </form>
                                     <?php endif; ?>

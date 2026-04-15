@@ -62,20 +62,22 @@
                                     <?= esc(ucfirst($tenant->status)) ?>
                                 </span>
                             </td>
-                            <td class="table-actions">
-                                <?php if (! empty($tenant->tenant_owner_user_id) && (int) ($tenant->tenant_owner_allow_impersonation ?? 1) === 1): ?>
-                                    <form method="post" action="<?= site_url('impersonation/start/' . $tenant->tenant_owner_user_id) ?>">
+                            <td class="data-table__actions">
+                                <div class="table-actions">
+                                    <?php if (! empty($tenant->tenant_owner_user_id) && (int) ($tenant->tenant_owner_allow_impersonation ?? 1) === 1): ?>
+                                        <form method="post" action="<?= site_url('impersonation/start/' . $tenant->tenant_owner_user_id) ?>">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="reason" value="Platform support access from company list">
+                                            <button type="submit" class="shell-button shell-button--soft shell-button--sm">Support login</button>
+                                        </form>
+                                    <?php endif; ?>
+                                    <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">Open</a>
+                                    <a href="<?= site_url('platform/tenants/' . $tenant->id . '/edit') ?>" class="shell-button shell-button--ghost shell-button--sm">Edit</a>
+                                    <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/delete') ?>" onsubmit="return confirm('Delete <?= esc(addslashes($tenant->name)) ?> permanently?\nThis removes all users, branches and data.')">
                                         <?= csrf_field() ?>
-                                        <input type="hidden" name="reason" value="Platform support access from company list">
-                                        <button type="submit" class="shell-button shell-button--soft shell-button--sm">Login as owner</button>
+                                        <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete</button>
                                     </form>
-                                <?php endif; ?>
-                                <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">Open</a>
-                                <a href="<?= site_url('platform/tenants/' . $tenant->id . '/edit') ?>" class="shell-button shell-button--ghost shell-button--sm">Edit</a>
-                                <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/delete') ?>" onsubmit="return confirm('Delete <?= esc(addslashes($tenant->name)) ?> permanently?\nThis removes all users, branches and data.')">
-                                    <?= csrf_field() ?>
-                                    <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete</button>
-                                </form>
+                                </div>
                             </td>
                         </tr>
                         <tr class="data-table__subrow">

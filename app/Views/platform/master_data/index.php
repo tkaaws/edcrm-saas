@@ -119,7 +119,7 @@
                                 <td class="data-table__actions">
                                     <form method="post" action="<?= site_url('platform/master-data/values/' . $value->id . '/status') ?>">
                                         <?= csrf_field() ?>
-                                        <button class="shell-button shell-button--soft" type="submit">
+                                        <button class="shell-button shell-button--soft shell-button--sm" type="submit">
                                             <?= $value->status === 'active' ? 'Hide' : 'Show' ?>
                                         </button>
                                     </form>

@@ -108,8 +108,8 @@
                                         <?php if ((int) $selectedType->allow_tenant_hide_platform_values === 1): ?>
                                             <form method="post" action="<?= site_url('settings/master-data/platform-value/' . $value->id . '/toggle') ?>">
                                                 <?= csrf_field() ?>
-                                                <button class="shell-button shell-button--soft" type="submit">
-                                                    <?= $isVisible ? 'Hide from team' : 'Show for team' ?>
+                                                <button class="shell-button shell-button--soft shell-button--sm" type="submit">
+                                                    <?= $isVisible ? 'Hide for company' : 'Show for company' ?>
                                                 </button>
                                             </form>
                                         <?php else: ?>
@@ -165,7 +165,7 @@
                                         <td class="data-table__actions">
                                             <form method="post" action="<?= site_url('settings/master-data/tenant-value/' . $value->id . '/status') ?>">
                                                 <?= csrf_field() ?>
-                                                <button class="shell-button shell-button--soft" type="submit">
+                                                <button class="shell-button shell-button--soft shell-button--sm" type="submit">
                                                     <?= $value->status === 'active' ? 'Disable' : 'Enable' ?>
                                                 </button>
                                             </form>

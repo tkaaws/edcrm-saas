@@ -50,11 +50,11 @@
                             <td class="data-table__actions">
                                 <div class="table-actions">
                                     <?php if ($canEditRoles): ?>
-                                        <a class="shell-button shell-button--ghost" href="<?= site_url('roles/' . $role->id . '/edit') ?>">Edit</a>
+                                        <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('roles/' . $role->id . '/edit') ?>">Edit</a>
                                         <form method="post" action="<?= site_url('roles/' . $role->id . '/status') ?>">
                                             <?= csrf_field() ?>
-                                            <button class="shell-button shell-button--soft" type="submit">
-                                                <?= $role->status === 'active' ? 'Disable role' : 'Enable role' ?>
+                                            <button class="shell-button shell-button--soft shell-button--sm" type="submit">
+                                                <?= $role->status === 'active' ? 'Disable' : 'Enable' ?>
                                             </button>
                                         </form>
                                     <?php endif; ?>

@@ -90,22 +90,24 @@
                                     -
                                 <?php endif; ?>
                             </td>
-                            <td class="table-actions">
-                                <a href="<?= site_url('platform/subscriptions/' . $subscription->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View</a>
-                                <?php if (in_array($subscription->status, ['trial', 'active', 'grace', 'suspended'], true)): ?>
-                                    <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/status') ?>" onsubmit="return confirm('Cancel subscription #<?= esc((string) $subscription->id) ?> for <?= esc(addslashes($subscription->tenant_name)) ?>?')">
-                                        <?= csrf_field() ?>
-                                        <input type="hidden" name="status" value="cancelled">
-                                        <input type="hidden" name="note" value="Cancelled from subscriptions list">
-                                        <button type="submit" class="shell-button shell-button--soft shell-button--sm">Cancel</button>
-                                    </form>
-                                <?php endif; ?>
-                                <?php if (in_array($subscription->status, ['cancelled', 'expired'], true)): ?>
-                                    <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/delete') ?>" onsubmit="return confirm('Delete subscription #<?= esc((string) $subscription->id) ?> permanently?')">
-                                        <?= csrf_field() ?>
-                                        <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete</button>
-                                    </form>
-                                <?php endif; ?>
+                            <td class="data-table__actions">
+                                <div class="table-actions">
+                                    <a href="<?= site_url('platform/subscriptions/' . $subscription->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View</a>
+                                    <?php if (in_array($subscription->status, ['trial', 'active', 'grace', 'suspended'], true)): ?>
+                                        <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/status') ?>" onsubmit="return confirm('Cancel subscription #<?= esc((string) $subscription->id) ?> for <?= esc(addslashes($subscription->tenant_name)) ?>?')">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="status" value="cancelled">
+                                            <input type="hidden" name="note" value="Cancelled from subscriptions list">
+                                            <button type="submit" class="shell-button shell-button--soft shell-button--sm">Cancel</button>
+                                        </form>
+                                    <?php endif; ?>
+                                    <?php if (in_array($subscription->status, ['cancelled', 'expired'], true)): ?>
+                                        <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/delete') ?>" onsubmit="return confirm('Delete subscription #<?= esc((string) $subscription->id) ?> permanently?')">
+                                            <?= csrf_field() ?>
+                                            <button type="submit" class="shell-button shell-button--danger shell-button--sm">Delete</button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

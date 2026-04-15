@@ -55,10 +55,10 @@
                             <td class="data-table__actions">
                                 <div class="table-actions">
                                     <?php if ($canEditUsers && ! empty($user->can_manage_target)): ?>
-                                        <a class="shell-button shell-button--ghost" href="<?= site_url('users/' . $user->id . '/edit') ?>">Edit</a>
+                                        <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('users/' . $user->id . '/edit') ?>">Edit</a>
                                         <form method="post" action="<?= site_url('users/' . $user->id . '/status') ?>">
                                             <?= csrf_field() ?>
-                                            <button class="shell-button shell-button--soft" type="submit">
+                                            <button class="shell-button shell-button--soft shell-button--sm" type="submit">
                                                 <?= $user->is_active ? 'Disable' : 'Enable' ?>
                                             </button>
                                         </form>
@@ -67,7 +67,7 @@
                                         <form method="post" action="<?= site_url('impersonation/start/' . $user->id) ?>">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="reason" value="Company support access">
-                                            <button class="shell-button shell-button--soft" type="submit">Work as this person</button>
+                                            <button class="shell-button shell-button--soft shell-button--sm" type="submit">Support login</button>
                                         </form>
                                     <?php endif; ?>
                                 </div>
