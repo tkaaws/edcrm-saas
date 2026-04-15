@@ -17,6 +17,7 @@ use App\Services\DelegationGuardService;
 use App\Services\SettingsResolverService;
 use App\Services\UserAccessScopeService;
 use App\Services\ImpersonationService;
+use App\Services\MasterDataService;
 
 /**
  * Services Configuration
@@ -178,5 +179,13 @@ class Services extends BaseService
             return static::getSharedInstance('impersonation');
         }
         return new ImpersonationService();
+    }
+
+    public static function masterData(bool $getShared = true): MasterDataService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('masterData');
+        }
+        return new MasterDataService();
     }
 }
