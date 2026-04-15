@@ -38,6 +38,35 @@ class MasterData extends BaseController
                 array_map(static fn(object $row): int => (int) $row->id, $platformValues)
             )
             : [];
+        $catalogValues = [];
+
+        foreach ($platformValues as $value) {
+            $override = $overrideMap[(int) $value->id] ?? null;
+            $row = clone $value;
+            $row->is_protected = true;
+            $row->is_visible_for_company = ! $override || (int) $override->is_visible === 1;
+            $row->value_kind = 'Standard';
+            $catalogValues[] = $row;
+        }
+
+        foreach ($tenantValues as $value) {
+            $row = clone $value;
+            $row->is_protected = false;
+            $row->is_visible_for_company = true;
+            $row->value_kind = 'Custom';
+            $catalogValues[] = $row;
+        }
+
+        usort($catalogValues, static function (object $left, object $right): int {
+            $leftSort = (int) ($left->sort_order ?? 0);
+            $rightSort = (int) ($right->sort_order ?? 0);
+
+            if ($leftSort !== $rightSort) {
+                return $leftSort <=> $rightSort;
+            }
+
+            return strcmp((string) $left->label, (string) $right->label);
+        });
 
         return view('master_data/index', $this->buildShellViewData([
             'title'            => 'Master Data',
@@ -50,6 +79,7 @@ class MasterData extends BaseController
             'platformValues'   => $platformValues,
             'tenantValues'     => $tenantValues,
             'overrideMap'      => $overrideMap,
+            'catalogValues'    => $catalogValues,
         ]));
     }
 
@@ -117,6 +147,20 @@ class MasterData extends BaseController
 
         $type = $this->typeModel->find((int) $value->type_id);
         return redirect()->to('/settings/master-data?type=' . ($type->code ?? ''))->with('message', 'Tenant master value status updated.');
+    }
+
+    public function deleteTenantValue(int $id)
+    {
+        $tenantId = (int) session()->get('tenant_id');
+        $value = $this->valueModel->findTenantValue($id, $tenantId);
+        if (! $value) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        $this->valueModel->delete($id);
+
+        $type = $this->typeModel->find((int) $value->type_id);
+        return redirect()->to('/settings/master-data?type=' . ($type->code ?? ''))->with('message', 'Custom value removed.');
     }
 
     protected function decodeMetadata(string $raw): mixed

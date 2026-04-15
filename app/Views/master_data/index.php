@@ -5,8 +5,6 @@
     <?php
     $hasSelection = $selectedType !== null;
     $canAddCompanyValue = $hasSelection && (int) $selectedType->allow_tenant_entries === 1;
-    $sharedCount = count($platformValues ?? []);
-    $companyCount = count($tenantValues ?? []);
     ?>
     <div class="module-toolbar">
         <div>
@@ -37,33 +35,16 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Choose a lookup list</h3>
-                    <p class="module-subtitle">Start by choosing one list from the menu above. We will first show the available options, then any company-specific additions.</p>
+                    <p class="module-subtitle">Start by choosing one list from the menu above. We will show the available options and let you add new ones only when needed.</p>
                 </div>
             </div>
         </section>
     <?php else: ?>
-        <div class="catalog-hero">
-            <div class="catalog-hero__copy">
-                <h3 class="module-title module-title--small"><?= esc($selectedType->name) ?></h3>
-                <p class="module-subtitle">Review shared values first, then company-specific values, and add a new value only when needed.</p>
-            </div>
-            <div class="catalog-stats">
-                <div class="catalog-stat">
-                    <span class="catalog-stat__label">Shared values</span>
-                    <strong class="catalog-stat__value"><?= esc((string) $sharedCount) ?></strong>
-                </div>
-                <div class="catalog-stat">
-                    <span class="catalog-stat__label">Company values</span>
-                    <strong class="catalog-stat__value"><?= esc((string) $companyCount) ?></strong>
-                </div>
-            </div>
-        </div>
-
         <section class="form-card">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Available options in <?= esc($selectedType->name) ?></h3>
-                    <p class="module-subtitle">Shared values provided by the EDCRM team. You can hide them for your company when this list allows it.</p>
+                    <h3 class="module-title module-title--small"><?= esc($selectedType->name) ?></h3>
+                    <p class="module-subtitle">Keep this list simple. Standard values stay protected, and your custom values can be managed here.</p>
                 </div>
             </div>
 
@@ -72,48 +53,53 @@
                     <table class="data-table data-table--cards">
                         <thead>
                             <tr>
-                                <th>Option</th>
-                                <th>Visibility</th>
+                                <th>Value</th>
+                                <th>Availability</th>
                                 <th>Status</th>
                                 <th class="data-table__actions">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (($platformValues ?? []) === []): ?>
+                            <?php if (($catalogValues ?? []) === []): ?>
                                 <tr>
-                                    <td colspan="4" class="empty-state">No shared values are available for this list yet.</td>
+                                    <td colspan="4" class="empty-state">No values are available for this list yet.</td>
                                 </tr>
                             <?php endif; ?>
-                            <?php foreach (($platformValues ?? []) as $value): ?>
-                                <?php $override = ($overrideMap ?? [])[(int) $value->id] ?? null; ?>
-                                <?php $isVisible = ! $override || (int) $override->is_visible === 1; ?>
+                            <?php foreach (($catalogValues ?? []) as $value): ?>
                                 <tr>
-                                    <td data-label="Option">
+                                    <td data-label="Value">
                                         <div class="entity-cell">
                                             <strong><?= esc($value->label) ?></strong>
-                                            <span><?= esc($value->description ?: 'Shared default value') ?></span>
+                                            <span><?= esc($value->description ?: ($value->is_protected ? 'Standard value' : 'Custom value')) ?></span>
                                         </div>
                                     </td>
-                                    <td data-label="Visibility">
-                                        <span class="status-badge <?= $isVisible ? 'status-badge--good' : 'status-badge--neutral' ?>">
-                                            <?= $isVisible ? 'Visible' : 'Hidden' ?>
+                                    <td data-label="Availability">
+                                        <span class="status-badge <?= $value->is_visible_for_company ? 'status-badge--good' : 'status-badge--neutral' ?>">
+                                            <?= $value->is_visible_for_company ? 'Available' : 'Hidden' ?>
                                         </span>
                                     </td>
                                     <td data-label="Status">
-                                        <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
-                                            <?= esc(ucfirst($value->status)) ?>
-                                        </span>
+                                        <?php if ($value->is_protected): ?>
+                                            <span class="status-badge status-badge--neutral">Protected</span>
+                                        <?php else: ?>
+                                            <span class="status-badge status-badge--info">Custom</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="data-table__actions" data-label="Action">
-                                        <?php if ((int) $selectedType->allow_tenant_hide_platform_values === 1): ?>
+                                        <?php if ($value->is_protected && (int) $selectedType->allow_tenant_hide_platform_values === 1): ?>
                                             <form method="post" action="<?= site_url('settings/master-data/platform-value/' . $value->id . '/toggle') ?>">
                                                 <?= csrf_field() ?>
                                                 <button class="shell-button shell-button--soft shell-button--sm" type="submit">
-                                                    <?= $isVisible ? 'Hide for company' : 'Show for company' ?>
+                                                    <?= $value->is_visible_for_company ? 'Hide' : 'Show' ?>
                                                 </button>
                                             </form>
+                                        <?php elseif (! $value->is_protected): ?>
+                                            <form method="post" action="<?= site_url('settings/master-data/tenant-value/' . $value->id . '/delete') ?>" onsubmit="return confirm('Remove <?= esc(addslashes($value->label)) ?> from this list?')">
+                                                <?= csrf_field() ?>
+                                                <button class="shell-button shell-button--danger shell-button--sm" type="submit">Remove</button>
+                                            </form>
                                         <?php else: ?>
-                                            <span class="text-muted">Managed by EDCRM</span>
+                                            <span class="text-muted">Always available</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -125,65 +111,12 @@
         </section>
 
         <div class="catalog-grid">
-            <section class="form-card">
-                <div class="module-toolbar">
-                    <div>
-                        <h3 class="module-title module-title--small">Company values for <?= esc($selectedType->name) ?></h3>
-                        <p class="module-subtitle">Company-specific entries added on top of the shared list.</p>
-                    </div>
-                </div>
-
-                <div class="table-card">
-                    <div class="table-wrap">
-                        <table class="data-table data-table--cards">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Status</th>
-                                    <th class="data-table__actions">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (($tenantValues ?? []) === []): ?>
-                                    <tr>
-                                        <td colspan="3" class="empty-state">No company-specific values yet for this list.</td>
-                                    </tr>
-                                <?php endif; ?>
-                                <?php foreach (($tenantValues ?? []) as $value): ?>
-                                    <tr>
-                                        <td data-label="Name">
-                                            <div class="entity-cell">
-                                                <strong><?= esc($value->label) ?></strong>
-                                                <span><?= esc($value->description ?: 'Company-specific value') ?></span>
-                                            </div>
-                                        </td>
-                                        <td data-label="Status">
-                                            <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
-                                                <?= esc(ucfirst($value->status)) ?>
-                                            </span>
-                                        </td>
-                                        <td class="data-table__actions" data-label="Action">
-                                            <form method="post" action="<?= site_url('settings/master-data/tenant-value/' . $value->id . '/status') ?>">
-                                                <?= csrf_field() ?>
-                                                <button class="shell-button shell-button--soft shell-button--sm" type="submit">
-                                                    <?= $value->status === 'active' ? 'Disable' : 'Enable' ?>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
             <form class="form-card" method="post" action="<?= site_url('settings/master-data/' . $selectedType->code) ?>">
                 <?= csrf_field() ?>
                 <div class="module-toolbar">
                     <div>
-                        <h3 class="module-title module-title--small">Add a new company value</h3>
-                        <p class="module-subtitle">Use this only when your company needs an extra option that is not already available above.</p>
+                        <h3 class="module-title module-title--small">Add a new value</h3>
+                        <p class="module-subtitle">Add a value only when your company needs an option that is not already available above.</p>
                     </div>
                 </div>
 
@@ -213,12 +146,7 @@
                                 <span>Parent option</span>
                                 <select name="parent_value_id">
                                     <option value="">No parent</option>
-                                    <?php foreach (($platformValues ?? []) as $value): ?>
-                                        <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
-                                            <?= esc($value->label) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                    <?php foreach (($tenantValues ?? []) as $value): ?>
+                                    <?php foreach (($catalogValues ?? []) as $value): ?>
                                         <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
                                             <?= esc($value->label) ?>
                                         </option>
@@ -230,10 +158,10 @@
                     </div>
 
                     <div class="form-actions">
-                        <button class="shell-button shell-button--primary" type="submit">Create company value</button>
+                        <button class="shell-button shell-button--primary" type="submit">Create value</button>
                     </div>
                 <?php else: ?>
-                    <p class="empty-state">This list is managed by the EDCRM team only. Company-specific additions are turned off for this list.</p>
+                    <p class="empty-state">This list is managed centrally. New values cannot be added for this company.</p>
                 <?php endif; ?>
             </form>
         </div>

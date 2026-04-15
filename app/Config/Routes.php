@@ -57,6 +57,7 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->post('settings/master-data/(:segment)', 'MasterData::storeValue/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/master-data/platform-value/(:num)/toggle', 'MasterData::togglePlatformValue/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/master-data/tenant-value/(:num)/status', 'MasterData::updateTenantValueStatus/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
+    $routes->post('settings/master-data/tenant-value/(:num)/delete', 'MasterData::deleteTenantValue/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/profile', 'Settings::updateProfile', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/preferences', 'Settings::updatePreferences', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/catalog/(:segment)', 'Settings::updateCatalogCategory/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
