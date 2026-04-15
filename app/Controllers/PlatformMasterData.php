@@ -33,8 +33,8 @@ class PlatformMasterData extends BaseController
             : [];
 
         return view('platform/master_data/index', $this->buildShellViewData([
-            'title'            => 'Platform Master Data',
-            'pageTitle'        => 'Platform Master Data',
+            'title'            => 'Platform Business Lookup Data',
+            'pageTitle'        => 'Platform Business Lookup Data',
             'activeNav'        => 'platform_master_data',
             'tenantLabel'      => 'Platform scope',
             'branchLabel'      => 'Catalog management',
@@ -50,7 +50,7 @@ class PlatformMasterData extends BaseController
     {
         $this->callSeeder('MasterDataCatalogSeeder');
 
-        return redirect()->to('/platform/master-data')->with('message', 'Default master-data catalogs initialized.');
+        return redirect()->to('/platform/master-data')->with('message', 'Default lookup lists initialized.');
     }
 
     public function storeType()
@@ -89,7 +89,7 @@ class PlatformMasterData extends BaseController
 
         $this->typeModel->insert($payload);
 
-        return redirect()->to('/platform/master-data?type=' . $payload['code'])->with('message', 'Master data type created.');
+        return redirect()->to('/platform/master-data?type=' . $payload['code'])->with('message', 'Lookup list created.');
     }
 
     public function updateTypeStatus(int $id)
@@ -103,7 +103,7 @@ class PlatformMasterData extends BaseController
             'status' => $type->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        return redirect()->to('/platform/master-data?type=' . $type->code)->with('message', 'Type status updated.');
+        return redirect()->to('/platform/master-data?type=' . $type->code)->with('message', 'Lookup list status updated.');
     }
 
     public function storeValue()
@@ -111,7 +111,7 @@ class PlatformMasterData extends BaseController
         $typeId = (int) $this->request->getPost('type_id');
         $type = $this->typeModel->find($typeId);
         if (! $type) {
-            return redirect()->back()->with('error', 'Master data type not found.');
+            return redirect()->back()->with('error', 'Lookup list not found.');
         }
 
         $payload = [
@@ -147,7 +147,7 @@ class PlatformMasterData extends BaseController
 
         $this->valueModel->insert($payload);
 
-        return redirect()->to('/platform/master-data?type=' . $type->code)->with('message', 'Platform master value created.');
+        return redirect()->to('/platform/master-data?type=' . $type->code)->with('message', 'Platform value created.');
     }
 
     public function updateValueStatus(int $id)
@@ -164,7 +164,7 @@ class PlatformMasterData extends BaseController
             'updated_by' => session()->get('user_id') ?: null,
         ]);
 
-        return redirect()->to('/platform/master-data?type=' . ($type->code ?? ''))->with('message', 'Master value status updated.');
+        return redirect()->to('/platform/master-data?type=' . ($type->code ?? ''))->with('message', 'Lookup value status updated.');
     }
 
     protected function normalizeCode(string $value): string

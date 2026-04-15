@@ -4,7 +4,7 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Platform master data catalog</h2>
+            <h2 class="module-title">Platform Business Lookup Data</h2>
             <p class="module-subtitle">Manage plain-language business lists like Sources, Communication Types, Follow-up Status, and Courses.</p>
         </div>
     </div>
@@ -13,7 +13,7 @@
         <section class="form-card">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Initialize standard catalogs</h3>
+                    <h3 class="module-title module-title--small">Initialize standard lookup lists</h3>
                     <p class="module-subtitle">We already know the common business lists. Start with defaults like Enquiry Source, Communication Type, Follow-up Status, and Course.</p>
                 </div>
             </div>
@@ -30,7 +30,7 @@
             <div class="form-actions">
                 <form method="post" action="<?= site_url('platform/master-data/initialize') ?>">
                     <?= csrf_field() ?>
-                    <button class="shell-button shell-button--primary" type="submit">Load standard catalogs</button>
+                    <button class="shell-button shell-button--primary" type="submit">Load standard lookup lists</button>
                 </form>
             </div>
         </section>
@@ -38,7 +38,7 @@
         <section class="form-card">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Master data menu</h3>
+                    <h3 class="module-title module-title--small">Lookup data menu</h3>
                     <p class="module-subtitle">Choose a list and manage its values.</p>
                 </div>
             </div>
@@ -68,8 +68,8 @@
                             <tbody>
                                 <tr><th>Name</th><td><?= esc($selectedType->name) ?></td></tr>
                                 <tr><th>Used in</th><td><?= esc(ucwords(str_replace('_', ' ', $selectedType->module_code))) ?></td></tr>
-                                <tr><th>Tenant custom entries</th><td><?= (int) $selectedType->allow_tenant_entries === 1 ? 'Allowed' : 'Platform only' ?></td></tr>
-                                <tr><th>Tenant hide/show</th><td><?= (int) $selectedType->allow_tenant_hide_platform_values === 1 ? 'Allowed' : 'Locked' ?></td></tr>
+                                <tr><th>Company custom entries</th><td><?= (int) $selectedType->allow_tenant_entries === 1 ? 'Allowed' : 'Platform only' ?></td></tr>
+                                <tr><th>Company hide/show</th><td><?= (int) $selectedType->allow_tenant_hide_platform_values === 1 ? 'Allowed' : 'Locked' ?></td></tr>
                                 <tr><th>Status</th><td><?= esc(ucfirst($selectedType->status)) ?></td></tr>
                             </tbody>
                         </table>
@@ -150,7 +150,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small"><?= $selectedType ? esc($selectedType->name) : 'Platform values' ?></h3>
-                    <p class="module-subtitle">Shared values available across tenants unless hidden locally.</p>
+                    <p class="module-subtitle">Shared values available across companies unless hidden locally.</p>
                 </div>
             </div>
 
@@ -180,7 +180,8 @@
                                         <span><?= esc($value->description ?: 'Standard platform value') ?></span>
                                     </div>
                                 </td>
-                                <td><?= esc($parentLabels[(int) ($value->parent_value_id ?? 0)] ?: '-') ?></td>
+                                <?php $parentId = (int) ($value->parent_value_id ?? 0); ?>
+                                <td><?= esc($parentLabels[$parentId] ?? '-') ?></td>
                                 <td>
                                     <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                         <?= esc(ucfirst($value->status)) ?>
@@ -231,8 +232,8 @@
                     </label>
                 </div>
                 <div class="choice-list">
-                    <label class="checkbox-row"><input type="checkbox" name="allow_tenant_entries" value="1" <?= old('allow_tenant_entries') ? 'checked' : '' ?>><span>Allow tenant custom entries</span></label>
-                    <label class="checkbox-row"><input type="checkbox" name="allow_tenant_hide_platform_values" value="1" <?= old('allow_tenant_hide_platform_values') ? 'checked' : '' ?>><span>Allow tenant hide/show of platform values</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="allow_tenant_entries" value="1" <?= old('allow_tenant_entries') ? 'checked' : '' ?>><span>Allow company custom entries</span></label>
+                    <label class="checkbox-row"><input type="checkbox" name="allow_tenant_hide_platform_values" value="1" <?= old('allow_tenant_hide_platform_values') ? 'checked' : '' ?>><span>Allow company hide/show of platform values</span></label>
                     <label class="checkbox-row"><input type="checkbox" name="strict_reporting_catalog" value="1" <?= old('strict_reporting_catalog') ? 'checked' : '' ?>><span>Keep reporting catalog strict</span></label>
                     <label class="checkbox-row"><input type="checkbox" name="supports_hierarchy" value="1" <?= old('supports_hierarchy') ? 'checked' : '' ?>><span>Supports parent/child values</span></label>
                 </div>

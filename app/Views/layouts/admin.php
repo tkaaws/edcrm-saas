@@ -52,7 +52,7 @@
         ['key' => 'tenants',       'label' => 'Tenants',       'href' => site_url('platform/tenants'),       'meta' => 'Platform',  'show' => $isPlatformAdmin],
         ['key' => 'plans',         'label' => 'Plans',         'href' => site_url('platform/plans'),         'meta' => 'Billing',   'show' => $isPlatformAdmin],
         ['key' => 'subscriptions', 'label' => 'Subscriptions', 'href' => site_url('platform/subscriptions'), 'meta' => 'Accounts',  'show' => $isPlatformAdmin],
-        ['key' => 'platform_master_data', 'label' => 'Master Data', 'href' => site_url('platform/master-data'), 'meta' => 'Catalogs', 'show' => $isPlatformAdmin],
+        ['key' => 'platform_master_data', 'label' => 'Business Lookup Data', 'href' => site_url('platform/master-data'), 'meta' => 'Catalogs', 'show' => $isPlatformAdmin],
     ];
     ?>
     <div class="shell">
