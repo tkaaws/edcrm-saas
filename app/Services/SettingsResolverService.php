@@ -35,7 +35,7 @@ class SettingsResolverService
         }
 
         $definition = $this->definitions->findByKey($key);
-        $default = $definition ? $this->decodeValue($definition->default_value_json, (string) $definition->value_type) : null;
+        $default = $definition ? $this->decodeDefaultValue($definition->default_value_json, (string) $definition->value_type) : null;
 
         $override = $this->policyOverrides->findByTenantAndKey($tenantId, $key);
         if ($override && $override->override_value !== null) {
@@ -95,5 +95,19 @@ class SettingsResolverService
             'json', 'array', 'object' => json_decode($value, true) ?? [],
             default => $value,
         };
+    }
+
+    protected function decodeDefaultValue(?string $value, string $type): mixed
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $decoded = json_decode($value, true);
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $decoded;
+        }
+
+        return $this->decodeValue($value, $type);
     }
 }

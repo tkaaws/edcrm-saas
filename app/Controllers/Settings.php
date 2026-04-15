@@ -48,6 +48,7 @@ class Settings extends BaseController
             'settings'       => $settings,
             'emailConfig'    => $this->decorateEmailConfig($emailConfig),
             'whatsappConfig' => $this->decorateWhatsappConfig($whatsappConfig),
+            'regionalInputOptions' => $this->regionalInputOptions(),
             'catalogSections' => $this->buildCatalogSections($tenantId),
             'enquiryCatalogSections' => $this->buildEnquirySections($tenantId),
         ]));
@@ -433,7 +434,7 @@ class Settings extends BaseController
                     'value'      => $this->settingsResolver->getEffectiveSetting($tenantId, null, $definition->key),
                     'lockMode'   => $this->settingsResolver->getLockModeForTenant($tenantId, $definition->key),
                     'isLocked'   => $this->settingsResolver->isLockedForTenant($tenantId, $definition->key),
-                    'options'    => $this->decodeOptions($definition->allowed_options_json),
+                    'options'    => $this->resolveOptionsForDefinition($definition),
                     'optionLabels' => $this->resolveOptionLabels($definition),
                 ];
             }
@@ -614,6 +615,32 @@ class Settings extends BaseController
     protected function resolveOptionLabels(object $definition): array
     {
         return match ((string) $definition->key) {
+            'tenant.regional.currency' => [
+                'INR' => 'INR - Indian Rupee',
+                'USD' => 'USD - US Dollar',
+                'EUR' => 'EUR - Euro',
+                'GBP' => 'GBP - British Pound',
+                'AED' => 'AED - UAE Dirham',
+                'SAR' => 'SAR - Saudi Riyal',
+                'SGD' => 'SGD - Singapore Dollar',
+                'AUD' => 'AUD - Australian Dollar',
+                'CAD' => 'CAD - Canadian Dollar',
+                'ZAR' => 'ZAR - South African Rand',
+            ],
+            'tenant.regional.locale' => [
+                'en' => 'English',
+                'en-IN' => 'English (India)',
+                'en-US' => 'English (United States)',
+                'en-GB' => 'English (United Kingdom)',
+                'hi' => 'Hindi',
+                'mr' => 'Marathi',
+                'ar' => 'Arabic',
+            ],
+            'tenant.regional.week_start_day' => [
+                'monday' => 'Monday',
+                'sunday' => 'Sunday',
+                'saturday' => 'Saturday',
+            ],
             'enquiry.visibility.mode' => [
                 'self' => 'Only the enquiry owner',
                 'assigned_branches' => 'People in assigned branches',
@@ -640,6 +667,74 @@ class Settings extends BaseController
             ],
             default => [],
         };
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function resolveOptionsForDefinition(object $definition): array
+    {
+        $options = $this->decodeOptions($definition->allowed_options_json);
+        if ($options !== []) {
+            return $options;
+        }
+
+        return match ((string) $definition->key) {
+            'tenant.regional.timezone' => $this->regionalInputOptions()['timezones'],
+            'tenant.regional.currency' => array_keys($this->regionalInputOptions()['currencies']),
+            'tenant.regional.locale' => array_keys($this->regionalInputOptions()['locales']),
+            'tenant.regional.week_start_day' => array_keys($this->regionalInputOptions()['weekStartDays']),
+            default => [],
+        };
+    }
+
+    /**
+     * @return array<string, array<int|string, string>>
+     */
+    protected function regionalInputOptions(): array
+    {
+        return [
+            'timezones' => [
+                'UTC',
+                'Asia/Kolkata',
+                'Asia/Dubai',
+                'Asia/Singapore',
+                'Asia/Riyadh',
+                'Europe/London',
+                'Europe/Berlin',
+                'America/New_York',
+                'America/Chicago',
+                'America/Denver',
+                'America/Los_Angeles',
+                'Australia/Sydney',
+            ],
+            'currencies' => [
+                'INR' => 'Indian Rupee',
+                'USD' => 'US Dollar',
+                'EUR' => 'Euro',
+                'GBP' => 'British Pound',
+                'AED' => 'UAE Dirham',
+                'SAR' => 'Saudi Riyal',
+                'SGD' => 'Singapore Dollar',
+                'AUD' => 'Australian Dollar',
+                'CAD' => 'Canadian Dollar',
+                'ZAR' => 'South African Rand',
+            ],
+            'locales' => [
+                'en' => 'English',
+                'en-IN' => 'English (India)',
+                'en-US' => 'English (United States)',
+                'en-GB' => 'English (United Kingdom)',
+                'hi' => 'Hindi',
+                'mr' => 'Marathi',
+                'ar' => 'Arabic',
+            ],
+            'weekStartDays' => [
+                'monday' => 'Monday',
+                'sunday' => 'Sunday',
+                'saturday' => 'Saturday',
+            ],
+        ];
     }
 
     protected function isEnquiryCategory(string $category): bool

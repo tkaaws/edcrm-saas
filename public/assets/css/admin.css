@@ -539,10 +539,10 @@ a {
 }
 
 .settings-tabs__button--active {
-    background: var(--brand);
-    border-color: var(--brand);
-    color: #fff;
-    box-shadow: 0 8px 18px rgba(97, 97, 255, 0.18);
+    background: #e8ebff;
+    border-color: #c7cafc;
+    color: var(--brand-strong);
+    box-shadow: inset 0 0 0 1px rgba(97, 97, 255, 0.08);
 }
 
 .settings-tabs__panel[hidden] {
