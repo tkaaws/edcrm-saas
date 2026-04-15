@@ -4,7 +4,6 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title"><?= esc($pageTitle ?? 'Branch') ?></h2>
             <p class="module-subtitle">Add or update a branch for your company.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('branches') ?>">Back to branches</a>

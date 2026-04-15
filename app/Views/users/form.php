@@ -4,7 +4,6 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title"><?= esc($pageTitle ?? 'Team member') ?></h2>
             <p class="module-subtitle">Set up a person, assign their role, and choose where they work.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('users') ?>">Back to team</a>

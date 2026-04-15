@@ -5,7 +5,6 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Create company</h2>
             <p class="module-subtitle">Create a new company with its first branch, owner login, default modules, and settings.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants') ?>">Back to companies</a>

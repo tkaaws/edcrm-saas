@@ -4,7 +4,6 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Add subscription plan</h2>
             <p class="module-subtitle">Create a plan for new companies and assign included modules.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('platform/plans') ?>">Cancel</a>

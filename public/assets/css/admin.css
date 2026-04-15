@@ -1324,10 +1324,15 @@ a {
 
     .shell-header {
         align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .shell-header__main,
+    .shell-header__actions {
+        width: 100%;
     }
 
     .shell-header__actions {
-        width: 100%;
         justify-content: space-between;
     }
 
@@ -1366,21 +1371,99 @@ a {
 
 @media (max-width: 640px) {
     .shell-main {
-        padding: 16px;
+        padding: 14px;
     }
 
     .shell-sidebar {
         padding: 18px 16px;
     }
 
+    .module-page,
+    .shell-content {
+        gap: 14px;
+    }
+
+    .shell-header {
+        padding: 14px;
+        gap: 12px;
+        border-radius: 10px;
+    }
+
+    .shell-header__main {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        align-items: start;
+    }
+
+    .shell-header__actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .shell-header__eyebrow {
+        margin-bottom: 2px;
+        font-size: 12px;
+    }
+
     .shell-header__title {
-        font-size: 26px;
+        font-size: 20px;
+        line-height: 1.15;
+    }
+
+    .shell-user__name {
+        font-size: 15px;
+    }
+
+    .shell-user__meta {
+        font-size: 12px;
+    }
+
+    .shell-menu-toggle,
+    .shell-button {
+        min-height: 36px;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    .shell-alert {
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .shell-alert__actions {
+        width: 100%;
+    }
+
+    .shell-alert__actions .shell-button {
+        width: 100%;
+    }
+
+    .module-title {
+        font-size: 22px;
+    }
+
+    .module-subtitle,
+    .form-note,
+    .entity-cell span,
+    .empty-state {
+        font-size: 14px;
+        line-height: 1.55;
     }
 
     .module-toolbar,
     .form-actions {
         flex-direction: column;
         align-items: stretch;
+        gap: 10px;
+    }
+
+    .module-toolbar {
+        padding: 0 2px;
     }
 
     .settings-tabs__nav {
@@ -1388,12 +1471,26 @@ a {
         display: grid;
     }
 
+    .form-summary-grid {
+        display: none;
+    }
+
     .detail-card,
     .table-card,
     .form-card,
     .panel-card,
     .list-card {
-        padding: 16px;
+        padding: 14px;
+        border-radius: 10px;
+    }
+
+    .form-card--nested,
+    .choice-card,
+    .form-summary-card,
+    .module-list li,
+    .timeline-list li,
+    .list-card li {
+        padding: 14px;
     }
 
     .inline-form,
@@ -1403,9 +1500,14 @@ a {
         align-items: stretch;
     }
 
+    .table-actions .shell-button,
+    .detail-card__actions .shell-button {
+        width: 100%;
+    }
+
     .data-table th,
     .data-table td {
-        padding: 9px 10px;
+        padding: 8px 9px;
     }
 
     .usage-item__top,

@@ -4,8 +4,7 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Edit company</h2>
-            <p class="module-subtitle"><?= esc($tenant->name) ?> — update company profile details.</p>
+            <p class="module-subtitle"><?= esc($tenant->name) ?> - update company profile details.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id) ?>">Cancel</a>
     </div>

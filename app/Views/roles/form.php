@@ -4,7 +4,6 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title"><?= esc($pageTitle ?? 'Role') ?></h2>
             <p class="module-subtitle">Choose what this role allows each team member to see and do.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('roles') ?>">Back to roles</a>
