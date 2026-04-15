@@ -74,13 +74,16 @@
 
                 <label class="field field--full">
                     <span>Public pricing visibility</span>
-                    <div class="checkbox-field">
-                        <input type="checkbox" name="is_public" value="1" <?= old('is_public') ? 'checked' : '' ?>>
-                        <div class="checkbox-field__copy">
-                            <strong>Show this plan in public pricing</strong>
-                            <small>Turn this on only when the plan should appear in public plan listings.</small>
-                        </div>
-                    </div>
+                    <input type="hidden" name="is_public" value="0">
+                    <label class="field-toggle">
+                        <span class="field-toggle__copy">
+                            <strong><?= old('is_public') ? 'Shown in pricing' : 'Hidden from pricing' ?></strong>
+                            <small>Turn this on only when this plan should appear in public pricing.</small>
+                        </span>
+                        <span class="field-toggle__control">
+                            <input type="checkbox" name="is_public" value="1" <?= old('is_public') ? 'checked' : '' ?>>
+                        </span>
+                    </label>
                 </label>
             </div>
         </section>

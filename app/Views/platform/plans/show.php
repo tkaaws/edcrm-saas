@@ -24,7 +24,7 @@
                 }
             ?>
 
-            <div class="detail-card__row">
+            <div class="detail-card__row detail-card__row--form">
                 <strong>Monthly</strong>
                 <span><?= $monthlyPrice ? '₹' . number_format($monthlyPrice->price_amount / 100, 0) : '—' ?></span>
                 <form method="post" action="<?= site_url("platform/plans/{$plan->id}/price") ?>" class="inline-form">
@@ -37,7 +37,7 @@
                 </form>
             </div>
 
-            <div class="detail-card__row">
+            <div class="detail-card__row detail-card__row--form">
                 <strong>Yearly</strong>
                 <span><?= $yearlyPrice ? '₹' . number_format($yearlyPrice->price_amount / 100, 0) : '—' ?></span>
                 <form method="post" action="<?= site_url("platform/plans/{$plan->id}/price") ?>" class="inline-form">
@@ -55,9 +55,9 @@
         <div class="detail-card">
             <h3 class="detail-card__title">Team capacity</h3>
             <?php foreach ($allLimits as $lim): ?>
-                <div class="detail-card__row">
+                <div class="detail-card__row detail-card__row--form">
                     <strong><?= esc($lim->name) ?></strong>
-                    <code><?= esc($lim->code) ?></code>
+                    <span class="detail-card__code"><?= esc($lim->code) ?></span>
                     <span class="text-muted">
                         <?php $cur = $limitMap[$lim->code] ?? null; ?>
                         <?= $cur === null ? 'Not set' : ($cur == -1 ? '∞' : $cur) ?>

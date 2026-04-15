@@ -20,16 +20,29 @@
                 $lockMode = $field['lockMode'];
                 $valueType = $definition->value_type;
                 ?>
+                <?php if ($valueType === 'bool' || $valueType === 'boolean'): ?>
+                    <div class="field<?= $valueType === 'json' ? ' field--full' : '' ?>">
+                        <span><?= esc($definition->label) ?></span>
+                        <input type="hidden" name="<?= esc($formKey) ?>" value="0">
+                        <label class="field-toggle">
+                            <span class="field-toggle__copy">
+                                <strong><?= esc($value ? 'Enabled' : 'Disabled') ?></strong>
+                                <small><?= esc($definition->description ?: 'Turn this on when this rule should apply.') ?></small>
+                            </span>
+                            <span class="field-toggle__control">
+                                <input type="checkbox" name="<?= esc($formKey) ?>" value="1" <?= $value ? 'checked' : '' ?> <?= $isLocked ? 'disabled' : '' ?>>
+                            </span>
+                        </label>
+
+                        <?php if ($isLocked): ?>
+                            <small>This setting is currently locked by platform policy (<?= esc($lockMode) ?>).</small>
+                        <?php endif; ?>
+                    </div>
+                <?php else: ?>
                 <label class="field<?= $valueType === 'json' ? ' field--full' : '' ?>">
                     <span><?= esc($definition->label) ?></span>
 
-                    <?php if ($valueType === 'bool' || $valueType === 'boolean'): ?>
-                        <input type="hidden" name="<?= esc($formKey) ?>" value="0">
-                        <label class="checkbox-row">
-                            <input type="checkbox" name="<?= esc($formKey) ?>" value="1" <?= $value ? 'checked' : '' ?> <?= $isLocked ? 'disabled' : '' ?>>
-                            <span>Enabled</span>
-                        </label>
-                    <?php elseif ($options !== []): ?>
+                    <?php if ($options !== []): ?>
                         <select name="<?= esc($formKey) ?>" <?= $isLocked ? 'disabled' : '' ?>>
                             <?php foreach ($options as $option): ?>
                                 <option value="<?= esc($option) ?>" <?= (string) $value === $option ? 'selected' : '' ?>>
@@ -53,6 +66,7 @@
                         <small>This setting is currently locked by platform policy (<?= esc($lockMode) ?>).</small>
                     <?php endif; ?>
                 </label>
+                <?php endif; ?>
             <?php endforeach; ?>
         </div>
 

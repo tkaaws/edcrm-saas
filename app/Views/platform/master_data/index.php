@@ -212,9 +212,15 @@
                     </div>
 
                     <div class="choice-list">
-                        <label class="checkbox-row">
-                            <input type="checkbox" name="is_system" value="1" <?= old('is_system') ? 'checked' : '' ?>>
-                            <span>Mark as shared system option</span>
+                        <input type="hidden" name="is_system" value="0">
+                        <label class="field-toggle">
+                            <span class="field-toggle__copy">
+                                <strong><?= old('is_system') ? 'Shared platform option' : 'Standard platform option' ?></strong>
+                                <small>Turn this on when this value should be treated as a shared system option.</small>
+                            </span>
+                            <span class="field-toggle__control">
+                                <input type="checkbox" name="is_system" value="1" <?= old('is_system') ? 'checked' : '' ?>>
+                            </span>
                         </label>
                     </div>
 
@@ -255,10 +261,46 @@
                     </label>
                 </div>
                 <div class="choice-list">
-                    <label class="checkbox-row"><input type="checkbox" name="allow_tenant_entries" value="1" <?= old('allow_tenant_entries') ? 'checked' : '' ?>><span>Allow company custom entries</span></label>
-                    <label class="checkbox-row"><input type="checkbox" name="allow_tenant_hide_platform_values" value="1" <?= old('allow_tenant_hide_platform_values') ? 'checked' : '' ?>><span>Allow company hide/show of platform values</span></label>
-                    <label class="checkbox-row"><input type="checkbox" name="strict_reporting_catalog" value="1" <?= old('strict_reporting_catalog') ? 'checked' : '' ?>><span>Keep reporting catalog strict</span></label>
-                    <label class="checkbox-row"><input type="checkbox" name="supports_hierarchy" value="1" <?= old('supports_hierarchy') ? 'checked' : '' ?>><span>Supports parent/child values</span></label>
+                    <input type="hidden" name="allow_tenant_entries" value="0">
+                    <label class="field-toggle">
+                        <span class="field-toggle__copy">
+                            <strong><?= old('allow_tenant_entries') ? 'Company additions allowed' : 'Platform-only values' ?></strong>
+                            <small>Allow companies to add their own values to this list.</small>
+                        </span>
+                        <span class="field-toggle__control">
+                            <input type="checkbox" name="allow_tenant_entries" value="1" <?= old('allow_tenant_entries') ? 'checked' : '' ?>>
+                        </span>
+                    </label>
+                    <input type="hidden" name="allow_tenant_hide_platform_values" value="0">
+                    <label class="field-toggle">
+                        <span class="field-toggle__copy">
+                            <strong><?= old('allow_tenant_hide_platform_values') ? 'Company visibility control on' : 'Platform values locked on' ?></strong>
+                            <small>Let companies hide or show platform values in their own workspace.</small>
+                        </span>
+                        <span class="field-toggle__control">
+                            <input type="checkbox" name="allow_tenant_hide_platform_values" value="1" <?= old('allow_tenant_hide_platform_values') ? 'checked' : '' ?>>
+                        </span>
+                    </label>
+                    <input type="hidden" name="strict_reporting_catalog" value="0">
+                    <label class="field-toggle">
+                        <span class="field-toggle__copy">
+                            <strong><?= old('strict_reporting_catalog') ? 'Strict reporting list' : 'Flexible reporting list' ?></strong>
+                            <small>Keep reporting values tightly controlled when reporting consistency matters.</small>
+                        </span>
+                        <span class="field-toggle__control">
+                            <input type="checkbox" name="strict_reporting_catalog" value="1" <?= old('strict_reporting_catalog') ? 'checked' : '' ?>>
+                        </span>
+                    </label>
+                    <input type="hidden" name="supports_hierarchy" value="0">
+                    <label class="field-toggle">
+                        <span class="field-toggle__copy">
+                            <strong><?= old('supports_hierarchy') ? 'Parent-child values on' : 'Flat value list' ?></strong>
+                            <small>Turn this on only when this list needs parent and child values.</small>
+                        </span>
+                        <span class="field-toggle__control">
+                            <input type="checkbox" name="supports_hierarchy" value="1" <?= old('supports_hierarchy') ? 'checked' : '' ?>>
+                        </span>
+                    </label>
                 </div>
                 <div class="form-actions">
                     <button class="shell-button shell-button--ghost" type="submit">Create advanced type</button>

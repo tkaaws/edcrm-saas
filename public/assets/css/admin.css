@@ -831,6 +831,15 @@ a {
     resize: vertical;
 }
 
+.field input:focus,
+.field select:focus,
+.field textarea:focus,
+.shell-input:focus {
+    outline: 0;
+    border-color: #b8bfff;
+    box-shadow: 0 0 0 3px rgba(97, 97, 255, 0.12);
+}
+
 .field small {
     color: var(--muted);
     font-size: 12px;
@@ -884,21 +893,21 @@ select.shell-input,
 
 .choice-card {
     border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 18px;
+    border-radius: 12px;
+    padding: 14px;
     display: grid;
-    gap: 14px;
+    gap: 12px;
     background: #fbfcff;
 }
 
 .choice-card h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .choice-list {
     display: grid;
-    gap: 12px;
+    gap: 10px;
 }
 
 .checkbox-field {
@@ -929,9 +938,14 @@ select.shell-input,
 
 .checkbox-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     color: var(--text);
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-soft);
+    min-width: 0;
 }
 
 .checkbox-field input[type="checkbox"],
@@ -989,13 +1003,23 @@ select.shell-input,
     align-items: flex-start;
 }
 
+.checkbox-row span,
 .checkbox-row--stacked span {
     display: grid;
     gap: 4px;
+    min-width: 0;
+}
+
+.checkbox-row strong {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.35;
 }
 
 .checkbox-row small {
     color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
 }
 
 .field-toggle {
@@ -1245,6 +1269,40 @@ select.shell-input,
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.detail-card__row--form {
+    grid-template-columns: minmax(108px, 0.9fr) minmax(0, 0.7fr) minmax(140px, 0.9fr) auto;
+    align-items: center;
+}
+
+.detail-card__row--form form {
+    justify-self: end;
+}
+
+.detail-card__row--form .inline-form {
+    gap: 8px;
+}
+
+.detail-card__row--form .shell-input--sm {
+    min-height: 34px;
+    padding: 6px 10px;
+}
+
+.detail-card__row--form .shell-button {
+    min-height: 32px;
+}
+
+.detail-card__code {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
 }
 
 .billing-overview {
@@ -1611,6 +1669,10 @@ select.shell-input,
         align-items: start;
     }
 
+    .detail-card__row--form form {
+        justify-self: stretch;
+    }
+
     .shell-alert--split {
         flex-direction: column;
         align-items: flex-start;
@@ -1884,6 +1946,10 @@ select.shell-input,
         grid-template-columns: 1fr;
         display: grid;
         align-items: start;
+    }
+
+    .checkbox-row {
+        padding: 9px 10px;
     }
 
     .context-list--wide {

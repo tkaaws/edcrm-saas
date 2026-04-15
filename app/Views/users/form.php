@@ -105,7 +105,10 @@
                         <?php $checked = in_array((int) $branch->id, old('branch_ids', $userBranchIds ?? []), true); ?>
                         <label class="checkbox-row">
                             <input type="checkbox" name="branch_ids[]" value="<?= esc((string) $branch->id) ?>" <?= $checked ? 'checked' : '' ?>>
-                            <span><?= esc($branch->name) ?> <small><?= esc($branch->code) ?></small></span>
+                            <span>
+                                <strong><?= esc($branch->name) ?></strong>
+                                <small><?= esc($branch->code) ?></small>
+                            </span>
                         </label>
                     <?php endforeach; ?>
                 </div>
