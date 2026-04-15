@@ -35,29 +35,29 @@
             </div>
         </section>
     <?php else: ?>
+        <section class="form-card">
+            <div class="module-toolbar">
+                <div>
+                    <h3 class="module-title module-title--small">Master data menu</h3>
+                    <p class="module-subtitle">Just pick the list you want to manage. Example: open Enquiry Source to add sources, or open Mode of Communication to add communication types.</p>
+                </div>
+            </div>
+
+            <div class="choice-list" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); display:grid;">
+                <?php foreach ($types as $type): ?>
+                    <a class="shell-button <?= $selectedTypeCode === $type->code ? 'shell-button--primary' : 'shell-button--ghost' ?>" href="<?= site_url('platform/master-data?type=' . $type->code) ?>">
+                        <?= esc($type->name) ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </section>
+
         <div class="settings-grid">
             <section class="form-card">
                 <div class="module-toolbar">
                     <div>
-                        <h3 class="module-title module-title--small">Business catalogs</h3>
-                        <p class="module-subtitle">Pick the list you want to manage. Example: if you need to add Sources, open Enquiry Source.</p>
-                    </div>
-                </div>
-
-                <div class="choice-list">
-                    <?php foreach ($types as $type): ?>
-                        <a class="shell-button <?= $selectedTypeCode === $type->code ? 'shell-button--primary' : 'shell-button--ghost' ?>" href="<?= site_url('platform/master-data?type=' . $type->code) ?>">
-                            <?= esc($type->name) ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-            </section>
-
-            <section class="form-card">
-                <div class="module-toolbar">
-                    <div>
-                        <h3 class="module-title module-title--small">Selected catalog</h3>
-                        <p class="module-subtitle">Business meaning and tenant flexibility for the current list.</p>
+                        <h3 class="module-title module-title--small">Selected list</h3>
+                        <p class="module-subtitle">The current business list you are managing.</p>
                     </div>
                 </div>
 
@@ -66,8 +66,7 @@
                         <table class="data-table">
                             <tbody>
                                 <tr><th>Name</th><td><?= esc($selectedType->name) ?></td></tr>
-                                <tr><th>System code</th><td><code><?= esc($selectedType->code) ?></code></td></tr>
-                                <tr><th>Module</th><td><?= esc($selectedType->module_code) ?></td></tr>
+                                <tr><th>Used in</th><td><?= esc(ucwords(str_replace('_', ' ', $selectedType->module_code))) ?></td></tr>
                                 <tr><th>Tenant custom entries</th><td><?= (int) $selectedType->allow_tenant_entries === 1 ? 'Allowed' : 'Platform only' ?></td></tr>
                                 <tr><th>Tenant hide/show</th><td><?= (int) $selectedType->allow_tenant_hide_platform_values === 1 ? 'Allowed' : 'Locked' ?></td></tr>
                                 <tr><th>Status</th><td><?= esc(ucfirst($selectedType->status)) ?></td></tr>
@@ -83,8 +82,8 @@
             <?= csrf_field() ?>
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Create platform value</h3>
-                    <p class="module-subtitle">Add a shared option under the selected master-data type.</p>
+                    <h3 class="module-title module-title--small">Add value<?= $selectedType ? ' to ' . esc($selectedType->name) : '' ?></h3>
+                    <p class="module-subtitle">Add a plain business option to this list.</p>
                 </div>
             </div>
 
@@ -92,16 +91,12 @@
                 <input type="hidden" name="type_id" value="<?= esc((string) $selectedType->id) ?>">
                 <div class="form-grid">
                     <label class="field">
-                        <span>Master type</span>
-                        <input type="text" value="<?= esc($selectedType->name) ?>" readonly>
-                    </label>
-                    <label class="field">
-                        <span>Label</span>
+                        <span>Name</span>
                         <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
                     </label>
                     <label class="field">
-                        <span>Code</span>
-                        <input type="text" name="code" value="<?= esc(old('code')) ?>" placeholder="auto-generated if left blank">
+                        <span>Short code</span>
+                        <input type="text" name="code" value="<?= esc(old('code')) ?>" placeholder="optional, auto-generated if left blank">
                     </label>
                     <label class="field">
                         <span>Parent value</span>
@@ -153,8 +148,8 @@
         <section class="form-card">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Platform values<?= $selectedType ? ' for ' . esc($selectedType->name) : '' ?></h3>
-                    <p class="module-subtitle">Shared options available across tenants unless hidden locally.</p>
+                    <h3 class="module-title module-title--small"><?= $selectedType ? esc($selectedType->name) : 'Platform values' ?></h3>
+                    <p class="module-subtitle">Shared values available across tenants unless hidden locally.</p>
                 </div>
             </div>
 
@@ -162,9 +157,8 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Label</th>
-                            <th>Code</th>
-                            <th>Scope</th>
+                            <th>Name</th>
+                            <th>Short code</th>
                             <th>Parent</th>
                             <th>Status</th>
                             <th class="data-table__actions">Actions</th>
@@ -186,7 +180,6 @@
                                     </div>
                                 </td>
                                 <td><?= esc($value->code) ?></td>
-                                <td><?= esc(ucfirst($value->scope_type)) ?></td>
                                 <td><?= esc($parentLabels[(int) ($value->parent_value_id ?? 0)] ?? '—') ?></td>
                                 <td>
                                     <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">

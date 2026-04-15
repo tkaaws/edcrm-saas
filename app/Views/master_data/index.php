@@ -5,33 +5,33 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Tenant master data</h2>
-            <p class="module-subtitle">Review the effective catalog, add tenant-specific options, and hide global values when your policy allows it.</p>
+            <p class="module-subtitle">Manage easy business lists like Sources, Communication Types, Follow-up Status, and Courses for this tenant.</p>
         </div>
     </div>
 
+    <section class="form-card">
+        <div class="module-toolbar">
+            <div>
+                <h3 class="module-title module-title--small">Master data menu</h3>
+                <p class="module-subtitle">Pick the list you want to work on. Example: open Enquiry Source to add sources, or open Mode of Communication to add communication types.</p>
+            </div>
+        </div>
+
+        <div class="choice-list" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); display:grid;">
+            <?php foreach ($types as $type): ?>
+                <a class="shell-button <?= $selectedTypeCode === $type->code ? 'shell-button--primary' : 'shell-button--ghost' ?>" href="<?= site_url('settings/master-data?type=' . $type->code) ?>">
+                    <?= esc($type->name) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </section>
+
     <div class="settings-grid">
-        <section class="form-card">
-            <div class="module-toolbar">
-                <div>
-                    <h3 class="module-title module-title--small">Catalog types</h3>
-                    <p class="module-subtitle">Choose the list you want to manage for this tenant.</p>
-                </div>
-            </div>
-
-            <div class="choice-list">
-                <?php foreach ($types as $type): ?>
-                    <a class="shell-button <?= $selectedTypeCode === $type->code ? 'shell-button--primary' : 'shell-button--ghost' ?>" href="<?= site_url('settings/master-data?type=' . $type->code) ?>">
-                        <?= esc($type->name) ?>
-                    </a>
-                <?php endforeach; ?>
-            </div>
-        </section>
-
         <form class="form-card" method="post" action="<?= $selectedType ? site_url('settings/master-data/' . $selectedType->code) : '#' ?>">
             <?= csrf_field() ?>
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Add tenant value</h3>
+                    <h3 class="module-title module-title--small">Add value<?= $selectedType ? ' to ' . esc($selectedType->name) : '' ?></h3>
                     <p class="module-subtitle">Create a custom option for the selected catalog when local additions are allowed.</p>
                 </div>
             </div>
@@ -39,16 +39,12 @@
             <?php if ($selectedType && (int) $selectedType->allow_tenant_entries === 1): ?>
                 <div class="form-grid">
                     <label class="field">
-                        <span>Catalog</span>
-                        <input type="text" value="<?= esc($selectedType->name) ?>" readonly>
-                    </label>
-                    <label class="field">
-                        <span>Label</span>
+                        <span>Name</span>
                         <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
                     </label>
                     <label class="field">
-                        <span>Code</span>
-                        <input type="text" name="code" value="<?= esc(old('code')) ?>" placeholder="auto-generated if left blank">
+                        <span>Short code</span>
+                        <input type="text" name="code" value="<?= esc(old('code')) ?>" placeholder="optional, auto-generated if left blank">
                     </label>
                     <label class="field">
                         <span>Sort order</span>
@@ -86,7 +82,7 @@
         <section class="form-card">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Platform values<?= $selectedType ? ' for ' . esc($selectedType->name) : '' ?></h3>
+                    <h3 class="module-title module-title--small"><?= $selectedType ? esc($selectedType->name) : 'Platform values' ?></h3>
                     <p class="module-subtitle">Shared values seeded by the platform. You can hide them locally when the catalog allows it.</p>
                 </div>
             </div>
@@ -95,8 +91,8 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Label</th>
-                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Short code</th>
                             <th>Visibility</th>
                             <th>Status</th>
                             <th class="data-table__actions">Actions</th>
@@ -151,7 +147,7 @@
         <section class="form-card">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Tenant values<?= $selectedType ? ' for ' . esc($selectedType->name) : '' ?></h3>
+                    <h3 class="module-title module-title--small">Custom values<?= $selectedType ? ' for ' . esc($selectedType->name) : '' ?></h3>
                     <p class="module-subtitle">Tenant-specific entries added on top of the platform catalog.</p>
                 </div>
             </div>
@@ -160,8 +156,8 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Label</th>
-                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Short code</th>
                             <th>Status</th>
                             <th class="data-table__actions">Actions</th>
                         </tr>
