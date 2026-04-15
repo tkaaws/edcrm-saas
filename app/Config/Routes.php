@@ -66,6 +66,7 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
 $routes->group('impersonation', ['filter' => ['auth']], static function (RouteCollection $routes): void {
     $routes->post('start/(:num)', 'Impersonation::start/$1');
     $routes->post('stop', 'Impersonation::stop');
+    $routes->post('stop-all', 'Impersonation::stopAll');
 });
 
 $routes->group('enquiries', ['filter' => ['auth', 'tenant', 'suspension', 'feature:crm_core']], static function (RouteCollection $routes): void {

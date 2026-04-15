@@ -31,4 +31,18 @@ class Impersonation extends BaseController
 
         return redirect()->to($redirect)->with('message', 'Returned to your original account.');
     }
+
+    public function stopAll()
+    {
+        try {
+            service('impersonation')->stopAll();
+        } catch (\Throwable $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
+        }
+
+        $roleCode = (string) session()->get('user_role_code');
+        $redirect = $roleCode === 'platform_admin' ? '/platform/tenants' : '/dashboard';
+
+        return redirect()->to($redirect)->with('message', 'Returned to your original account.');
+    }
 }

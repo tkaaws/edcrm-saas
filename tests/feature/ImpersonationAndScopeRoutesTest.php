@@ -64,6 +64,24 @@ final class ImpersonationAndScopeRoutesTest extends CIUnitTestCase
         $result->assertRedirectTo('/dashboard');
     }
 
+    public function testImpersonationStopAllUsesServiceAndRedirectsPlatformAdminToTenantList(): void
+    {
+        $mock = $this->createMock(ImpersonationService::class);
+        $mock->expects($this->once())
+            ->method('stopAll');
+        Services::injectMock('impersonation', $mock);
+
+        $result = $this->withSession([
+            'user_id'               => 1,
+            'tenant_id'             => null,
+            'user_role_code'        => 'platform_admin',
+            'impersonation_active'  => true,
+            'impersonation_level'   => 2,
+        ])->post('/impersonation/stop-all');
+
+        $result->assertRedirectTo('/platform/tenants');
+    }
+
     private function allowTenantAndFeatures(): void
     {
         $tenantPolicy = $this->createMock(TenantAccessPolicy::class);

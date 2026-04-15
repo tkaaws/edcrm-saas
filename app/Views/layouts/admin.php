@@ -124,21 +124,44 @@
             <?php endif; ?>
 
             <?php if (session()->get('impersonation_active')): ?>
+                <?php
+                $impersonationPath = session()->get('impersonation_path') ?? [];
+                $impersonationLevel = (int) (session()->get('impersonation_level') ?? 1);
+                $impersonationMaxDepth = (int) (session()->get('impersonation_max_depth') ?? 4);
+                $impersonationPathText = '';
+                if (is_array($impersonationPath) && $impersonationPath !== []) {
+                    $impersonationPathText = implode(' > ', array_map(static fn($item): string => (string) $item, $impersonationPath));
+                }
+                ?>
                 <div class="shell-alert shell-alert--warning" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
                     <div>
-                        <strong>Impersonation active.</strong>
+                        <strong>Support session active.</strong>
                         You are viewing the workspace as <?= esc($userDisplayName ?? 'target user') ?>.
                         <?php if (session()->get('impersonation_actor_name')): ?>
                             Original account: <?= esc((string) session()->get('impersonation_actor_name')) ?>.
                         <?php endif; ?>
+                        <?php if ($impersonationPathText !== ''): ?>
+                            Path: <?= esc($impersonationPathText) ?>.
+                        <?php endif; ?>
+                        Level <?= esc((string) $impersonationLevel) ?> of <?= esc((string) $impersonationMaxDepth) ?>.
                         <?php if (session()->get('impersonation_reason')): ?>
                             Reason: <?= esc((string) session()->get('impersonation_reason')) ?>.
                         <?php endif; ?>
                     </div>
-                    <form method="post" action="<?= site_url('impersonation/stop') ?>" style="margin:0;">
-                        <?= csrf_field() ?>
-                        <button class="shell-button shell-button--ghost" type="submit">Return to my account</button>
-                    </form>
+                    <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
+                        <form method="post" action="<?= site_url('impersonation/stop') ?>" style="margin:0;">
+                            <?= csrf_field() ?>
+                            <button class="shell-button shell-button--ghost" type="submit">
+                                <?= $impersonationLevel > 1 ? 'Back one level' : 'Return to previous account' ?>
+                            </button>
+                        </form>
+                        <?php if ($impersonationLevel > 1): ?>
+                            <form method="post" action="<?= site_url('impersonation/stop-all') ?>" style="margin:0;">
+                                <?= csrf_field() ?>
+                                <button class="shell-button shell-button--ghost" type="submit">Return to original account</button>
+                            </form>
+                        <?php endif; ?>
+                    </div>
                 </div>
             <?php endif; ?>
 
