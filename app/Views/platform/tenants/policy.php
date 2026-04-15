@@ -61,9 +61,14 @@
 
                             <?php if (in_array($valueType, ['bool', 'boolean'], true)): ?>
                                 <input type="hidden" name="<?= esc($formKey) ?>" value="0">
-                                <label class="checkbox-row">
-                                    <input type="checkbox" name="<?= esc($formKey) ?>" value="1" <?= $value ? 'checked' : '' ?>>
-                                    <span><?= esc($definition->description ?: 'Enabled') ?></span>
+                                <label class="field-toggle">
+                                    <span class="field-toggle__copy">
+                                        <strong><?= esc($value ? 'Enabled' : 'Disabled') ?></strong>
+                                        <small><?= esc($definition->description ?: 'Turn this on when this rule should be enforced.') ?></small>
+                                    </span>
+                                    <span class="field-toggle__control">
+                                        <input type="checkbox" name="<?= esc($formKey) ?>" value="1" <?= $value ? 'checked' : '' ?>>
+                                    </span>
                                 </label>
                             <?php elseif ($options !== []): ?>
                                 <select name="<?= esc($formKey) ?>">

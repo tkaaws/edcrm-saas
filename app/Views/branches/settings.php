@@ -58,16 +58,29 @@
                         $isLocked = $field['isLocked'];
                         $valueType = (string) $definition->value_type;
                         ?>
+                        <?php if (in_array($valueType, ['bool', 'boolean'], true)): ?>
+                            <div class="field<?= in_array($valueType, ['json', 'array', 'object'], true) ? ' field--full' : '' ?>">
+                                <span><?= esc($definition->label) ?></span>
+                                <input type="hidden" name="<?= esc($formKey) ?>" value="0">
+                                <label class="field-toggle">
+                                    <span class="field-toggle__copy">
+                                        <strong><?= esc($value ? 'Enabled' : 'Disabled') ?></strong>
+                                        <small><?= esc($definition->description ?: 'Turn this on when this branch should use this rule.') ?></small>
+                                    </span>
+                                    <span class="field-toggle__control">
+                                        <input type="checkbox" name="<?= esc($formKey) ?>" value="1" <?= $value ? 'checked' : '' ?> <?= $isLocked ? 'disabled' : '' ?>>
+                                    </span>
+                                </label>
+
+                                <?php if ($isLocked): ?>
+                                    <small>This option is locked by your company or the EDCRM team.</small>
+                                <?php endif; ?>
+                            </div>
+                        <?php else: ?>
                         <label class="field<?= in_array($valueType, ['json', 'array', 'object'], true) ? ' field--full' : '' ?>">
                             <span><?= esc($definition->label) ?></span>
 
-                            <?php if (in_array($valueType, ['bool', 'boolean'], true)): ?>
-                                <input type="hidden" name="<?= esc($formKey) ?>" value="0">
-                                <label class="checkbox-row">
-                                    <input type="checkbox" name="<?= esc($formKey) ?>" value="1" <?= $value ? 'checked' : '' ?> <?= $isLocked ? 'disabled' : '' ?>>
-                                    <span><?= esc($definition->description ?: 'Enabled') ?></span>
-                                </label>
-                            <?php elseif ($options !== []): ?>
+                            <?php if ($options !== []): ?>
                                 <select name="<?= esc($formKey) ?>" <?= $isLocked ? 'disabled' : '' ?>>
                                     <?php foreach ($options as $option): ?>
                                         <option value="<?= esc($option) ?>" <?= (string) $value === $option ? 'selected' : '' ?>>
@@ -91,6 +104,7 @@
                                 <small>This option is locked by your company or the EDCRM team.</small>
                             <?php endif; ?>
                         </label>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
 
