@@ -88,20 +88,26 @@
         <section class="form-card form-card--nested">
             <div class="form-section-header">
                 <h3 class="module-title module-title--small">Included modules</h3>
-                <p class="module-subtitle">Select which feature groups this plan unlocks.</p>
+                <p class="module-subtitle">Choose the product areas this plan should unlock for a company.</p>
             </div>
 
-            <div class="form-grid">
+            <div class="module-selector-grid">
                 <?php foreach ($allFeatures as $feature): ?>
-                    <label class="field field--full">
-                        <div class="checkbox-field">
-                            <input type="checkbox" name="modules[]" value="<?= esc($feature->code) ?>"
-                                <?= in_array($feature->code, (array) old('modules', []), true) ? 'checked' : '' ?>>
-                            <div class="checkbox-field__copy">
+                    <label class="module-option">
+                        <input
+                            class="module-option__input"
+                            type="checkbox"
+                            name="modules[]"
+                            value="<?= esc($feature->code) ?>"
+                            <?= in_array($feature->code, (array) old('modules', []), true) ? 'checked' : '' ?>
+                        >
+                        <span class="module-option__card">
+                            <span class="module-option__indicator" aria-hidden="true"></span>
+                            <span class="module-option__content">
                                 <strong><?= esc($feature->name) ?></strong>
                                 <small><?= esc($feature->description) ?></small>
-                            </div>
-                        </div>
+                            </span>
+                        </span>
                     </label>
                 <?php endforeach; ?>
             </div>
