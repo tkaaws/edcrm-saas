@@ -63,10 +63,6 @@
                             <input type="text" name="name" value="<?= esc(old('name', $tenant->name ?? '')) ?>" required>
                         </label>
                         <label class="field">
-                            <span>Company code</span>
-                            <input type="text" value="<?= esc($tenant->slug ?? '') ?>" readonly>
-                        </label>
-                        <label class="field">
                             <span>Legal name</span>
                             <input type="text" name="legal_name" value="<?= esc(old('legal_name', $tenant->legal_name ?? '')) ?>">
                         </label>

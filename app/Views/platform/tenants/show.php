@@ -13,7 +13,7 @@
                 <form method="post" action="<?= site_url('impersonation/start/' . $tenantOwnerUser->id) ?>">
                     <?= csrf_field() ?>
                     <input type="hidden" name="reason" value="Platform tenant support access">
-                    <button class="shell-button shell-button--ghost" type="submit">Support login</button>
+                    <button class="shell-button shell-button--ghost" type="submit">Open as owner</button>
                 </form>
             <?php endif; ?>
             <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id . '/edit') ?>">Edit</a>
@@ -31,7 +31,7 @@
             </div>
 
             <dl class="context-list context-list--wide">
-                <div><dt>Company ID</dt><dd><code><?= esc($tenant->slug) ?></code></dd></div>
+                <div><dt>Reference ID</dt><dd><code><?= esc($tenant->slug) ?></code></dd></div>
                 <div><dt>Legal name</dt><dd><?= esc($tenant->legal_name ?: '-') ?></dd></div>
                 <div><dt>Primary contact</dt><dd><?= esc($tenant->owner_name ?: '-') ?></dd></div>
                 <div><dt>Contact email</dt><dd><?= esc($tenant->owner_email ?: '-') ?></dd></div>
@@ -79,7 +79,7 @@
                 </div>
                 <?php if ($subscription): ?>
                     <dl class="context-list context-list--wide">
-                        <div><dt>Current plan</dt><dd><?= esc($subscription->plan_name) ?> <code><?= esc($subscription->plan_code) ?></code></dd></div>
+                        <div><dt>Current plan</dt><dd><?= esc($subscription->plan_name) ?></dd></div>
                         <div><dt>Subscription ID</dt><dd>#<?= esc($subscription->id) ?></dd></div>
                         <div><dt>Cycle</dt><dd><?= esc(ucfirst($subscription->billing_cycle)) ?></dd></div>
                         <div><dt>Status</dt><dd><span class="status-badge <?= in_array($subscription->status, ['trial', 'active'], true) ? 'status-badge--good' : ($subscription->status === 'grace' ? 'status-badge--warm' : 'status-badge--neutral') ?>"><?= esc(ucfirst($subscription->status)) ?></span></dd></div>

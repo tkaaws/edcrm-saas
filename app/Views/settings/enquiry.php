@@ -48,7 +48,7 @@
                                 </label>
 
                                 <?php if ($isLocked): ?>
-                                    <small>This setting is currently locked by platform policy (<?= esc($lockMode) ?>).</small>
+                                    <small>This setting is managed by the EDCRM team.</small>
                                 <?php endif; ?>
                             </div>
                         <?php else: ?>
@@ -76,7 +76,7 @@
                             <?php endif; ?>
 
                             <?php if ($isLocked): ?>
-                                <small>This setting is currently locked by platform policy (<?= esc($lockMode) ?>).</small>
+                                <small>This setting is managed by the EDCRM team.</small>
                             <?php endif; ?>
                         </label>
                         <?php endif; ?>

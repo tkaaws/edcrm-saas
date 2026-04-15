@@ -29,8 +29,8 @@
                 <div><dt>Code</dt><dd><?= esc($branchRecord->code) ?></dd></div>
                 <div><dt>Type</dt><dd><?= esc($branchRecord->type ?: 'General branch') ?></dd></div>
                 <div><dt>City</dt><dd><?= esc($branchRecord->city ?: '-') ?></dd></div>
-                <div><dt>Timezone</dt><dd><?= esc($branchRecord->timezone ?: 'Tenant default') ?></dd></div>
-                <div><dt>Currency</dt><dd><?= esc($branchRecord->currency_code ?: 'Tenant default') ?></dd></div>
+                <div><dt>Timezone</dt><dd><?= esc($branchRecord->timezone ?: 'Company default') ?></dd></div>
+                <div><dt>Currency</dt><dd><?= esc($branchRecord->currency_code ?: 'Company default') ?></dd></div>
             </dl>
         </div>
     </div>

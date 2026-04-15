@@ -67,7 +67,7 @@
                                         <form method="post" action="<?= site_url('impersonation/start/' . $user->id) ?>">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="reason" value="Company support access">
-                                            <button class="shell-button shell-button--soft shell-button--sm" type="submit">Support login</button>
+                                            <button class="shell-button shell-button--soft shell-button--sm" type="submit">Open as user</button>
                                         </form>
                                     <?php endif; ?>
                                 </div>

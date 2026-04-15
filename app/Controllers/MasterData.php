@@ -69,8 +69,8 @@ class MasterData extends BaseController
         });
 
         return view('master_data/index', $this->buildShellViewData([
-            'title'            => 'Master Data',
-            'pageTitle'        => 'Master Data',
+            'title'            => 'Business Lookup Data',
+            'pageTitle'        => 'Business Lookup Data',
             'activeNav'        => 'master_data',
             'types'            => $types,
             'selectedType'     => $selectedType,

@@ -5,7 +5,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Subscriptions</h2>
-            <p class="module-subtitle">Manage active, trial, and cancelled subscriptions.</p>
+            <p class="module-subtitle">Manage active, trial, and cancelled company subscriptions.</p>
         </div>
     </div>
 
@@ -17,7 +17,7 @@
         <form method="post" action="<?= site_url('platform/subscriptions/attach') ?>" class="inline-form inline-form--compact">
             <?= csrf_field() ?>
             <select name="tenant_id" class="shell-input input-compact--wide" required>
-                <option value="">- Select tenant -</option>
+                <option value="">Select company</option>
                 <?php foreach ($tenants as $tenant): ?>
                     <option value="<?= esc($tenant->id) ?>"><?= esc($tenant->name) ?></option>
                 <?php endforeach; ?>
@@ -44,7 +44,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Tenant</th>
+                        <th>Company</th>
                         <th>Plan</th>
                         <th>Cycle</th>
                         <th>Status</th>

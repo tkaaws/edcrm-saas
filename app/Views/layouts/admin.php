@@ -49,7 +49,7 @@
         ['key' => 'billing',     'label' => 'Billing',     'href' => site_url('billing'),            'meta' => 'Plan',       'show' => ! $isPlatformAdmin && ($canCode('billing.view') || $canCode('billing.manage'))],
 
         // Platform admin only
-        ['key' => 'tenants',       'label' => 'Tenants',       'href' => site_url('platform/tenants'),       'meta' => 'Platform',  'show' => $isPlatformAdmin],
+        ['key' => 'tenants',       'label' => 'Companies',     'href' => site_url('platform/tenants'),       'meta' => 'Platform',  'show' => $isPlatformAdmin],
         ['key' => 'plans',         'label' => 'Plans',         'href' => site_url('platform/plans'),         'meta' => 'Billing',   'show' => $isPlatformAdmin],
         ['key' => 'subscriptions', 'label' => 'Subscriptions', 'href' => site_url('platform/subscriptions'), 'meta' => 'Accounts',  'show' => $isPlatformAdmin],
         ['key' => 'platform_master_data', 'label' => 'Business Lookup Data', 'href' => site_url('platform/master-data'), 'meta' => 'Catalogs', 'show' => $isPlatformAdmin],

@@ -68,7 +68,7 @@
                                         <form method="post" action="<?= site_url('impersonation/start/' . $tenant->tenant_owner_user_id) ?>">
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="reason" value="Platform support access from company list">
-                                            <button type="submit" class="shell-button shell-button--soft shell-button--sm">Support login</button>
+                                            <button type="submit" class="shell-button shell-button--soft shell-button--sm">Open as owner</button>
                                         </form>
                                     <?php endif; ?>
                                     <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">Open</a>
