@@ -64,7 +64,7 @@
         <div class="detail-grid">
             <article class="detail-card">
                 <h3 class="detail-card__title">Current plan</h3>
-                <dl class="context-list">
+                <dl class="context-list billing-summary">
                     <div><dt>Status</dt><dd><span class="status-badge <?= $statusClass ?>"><?= esc($statusLabel) ?></span></dd></div>
                     <div><dt>Plan</dt><dd><strong><?= esc($plan?->name ?? '-') ?></strong></dd></div>
                     <div><dt>Billing cycle</dt><dd><?= esc(ucfirst($subscription->billing_cycle)) ?></dd></div>

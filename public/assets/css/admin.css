@@ -70,7 +70,7 @@ a {
 
 .shell-brand__meta,
 .shell-nav__item small,
-.context-list dt {
+.shell-sidebar .context-list dt {
     color: rgba(230, 244, 241, 0.72);
 }
 
@@ -120,11 +120,17 @@ a {
 
 .context-list dt {
     font-size: 12px;
+    color: var(--muted);
 }
 
 .context-list dd {
     margin: 0;
     font-size: 15px;
+    color: var(--text);
+    font-weight: 600;
+}
+
+.shell-sidebar .context-list dd {
     color: #ffffff;
 }
 
@@ -711,6 +717,36 @@ a {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+}
+
+.billing-summary {
+    gap: 0;
+}
+
+.billing-summary div {
+    grid-template-columns: minmax(120px, 0.9fr) minmax(0, 1.1fr);
+    gap: 14px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+}
+
+.billing-summary div:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.billing-summary dt {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.billing-summary dd {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 28px;
 }
 
 .inline-form {
