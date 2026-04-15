@@ -398,10 +398,6 @@ class Settings extends BaseController
                 'title' => 'Duplicate checking',
                 'subtitle' => 'Control how duplicate enquiries are detected and what happens when a match is found.',
             ],
-            'enquiry_assignment' => [
-                'title' => 'How enquiries are assigned',
-                'subtitle' => 'Decide whether the owner is chosen manually or assigned automatically.',
-            ],
             'enquiry_lifecycle' => [
                 'title' => 'Expiry and closure',
                 'subtitle' => 'Define when enquiries expire or close after inactivity.',
