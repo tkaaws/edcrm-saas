@@ -1237,7 +1237,13 @@ On 2026-04-14 the next pre-Enquiry foundation slice moved from blueprint into im
 
 This slice is intentionally foundation-first. UI tabs and runtime consumption come next, followed by Enquiry implementation on top of these resolved policies.
 
-Access control was later simplified again so normal user forms no longer expose manual `data_scope`, `manage_scope`, or `hierarchy_mode` choices. Visibility is now derived from the selected role's `access_behavior`, assigned branches, and reporting hierarchy.
+Access control was later simplified again so normal create flows stay operationally light:
+
+- role create now focuses on role name and privileges
+- user create now focuses on identity, role, branches, password, and reporting head
+- branch create now focuses on branch identity, while regional overrides move to edit/settings
+
+Visibility is resolved from assigned branches, reporting hierarchy, and privileged role type rather than exposing low-level access modeling fields in every form.
 
 ### 11.4 Local database reminder
 

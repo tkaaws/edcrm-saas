@@ -37,11 +37,6 @@
             </label>
 
             <label class="field">
-                <span>Employee code</span>
-                <input type="text" name="employee_code" value="<?= esc(old('employee_code', $user->employee_code ?? '')) ?>">
-            </label>
-
-            <label class="field">
                 <span>Role</span>
                 <select name="role_id" required>
                     <option value="">Select role</option>
@@ -51,26 +46,6 @@
                         </option>
                     <?php endforeach; ?>
                 </select>
-            </label>
-
-            <label class="field">
-                <span>Department</span>
-                <input type="text" name="department" value="<?= esc(old('department', $user->department ?? '')) ?>">
-            </label>
-
-            <label class="field">
-                <span>Designation</span>
-                <input type="text" name="designation" value="<?= esc(old('designation', $user->designation ?? '')) ?>">
-            </label>
-
-            <label class="field">
-                <span>Mobile number</span>
-                <input type="text" name="mobile_number" value="<?= esc(old('mobile_number', $user->mobile_number ?? '')) ?>">
-            </label>
-
-            <label class="field">
-                <span>WhatsApp number</span>
-                <input type="text" name="whatsapp_number" value="<?= esc(old('whatsapp_number', $user->whatsapp_number ?? '')) ?>">
             </label>
 
             <label class="field">
@@ -92,6 +67,44 @@
                 <input type="password" name="password" minlength="8" <?= $user ? '' : 'required' ?>>
             </label>
         </div>
+
+        <?php if ($user): ?>
+            <section class="form-card form-card--nested">
+                <div class="module-toolbar">
+                    <div>
+                        <h3 class="module-title module-title--small">Additional details</h3>
+                        <p class="module-subtitle">Optional employee profile and contact information for this user.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <label class="field">
+                        <span>Employee code</span>
+                        <input type="text" name="employee_code" value="<?= esc(old('employee_code', $user->employee_code ?? '')) ?>">
+                    </label>
+
+                    <label class="field">
+                        <span>Department</span>
+                        <input type="text" name="department" value="<?= esc(old('department', $user->department ?? '')) ?>">
+                    </label>
+
+                    <label class="field">
+                        <span>Designation</span>
+                        <input type="text" name="designation" value="<?= esc(old('designation', $user->designation ?? '')) ?>">
+                    </label>
+
+                    <label class="field">
+                        <span>Mobile number</span>
+                        <input type="text" name="mobile_number" value="<?= esc(old('mobile_number', $user->mobile_number ?? '')) ?>">
+                    </label>
+
+                    <label class="field">
+                        <span>WhatsApp number</span>
+                        <input type="text" name="whatsapp_number" value="<?= esc(old('whatsapp_number', $user->whatsapp_number ?? '')) ?>">
+                    </label>
+                </div>
+            </section>
+        <?php endif; ?>
 
         <div class="choice-grid">
             <section class="choice-card">
@@ -121,25 +134,26 @@
                     </select>
                 </label>
 
-                <label class="checkbox-row">
-                    <input type="checkbox" name="is_active" value="1" <?= old('is_active', $user->is_active ?? 1) ? 'checked' : '' ?>>
-                    <span>Active account</span>
-                </label>
+                <?php if ($user): ?>
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="is_active" value="1" <?= old('is_active', $user->is_active ?? 1) ? 'checked' : '' ?>>
+                        <span>Active account</span>
+                    </label>
 
-                <label class="checkbox-row">
-                    <input type="checkbox" name="must_reset_password" value="1" <?= old('must_reset_password', $user->must_reset_password ?? 0) ? 'checked' : '' ?>>
-                    <span>Force password reset on next login</span>
-                </label>
-
-                <label class="checkbox-row">
-                    <input type="checkbox" name="allow_impersonation" value="1" <?= old('allow_impersonation', $user->allow_impersonation ?? 1) ? 'checked' : '' ?>>
-                    <span>Allow impersonation for support and tenant admins</span>
-                </label>
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="must_reset_password" value="1" <?= old('must_reset_password', $user->must_reset_password ?? 0) ? 'checked' : '' ?>>
+                        <span>Force password reset on next login</span>
+                    </label>
+                <?php else: ?>
+                    <p class="module-subtitle" style="margin-top:0.75rem;">
+                        New users start as active accounts and will be asked to reset their password on first login.
+                    </p>
+                <?php endif; ?>
             </section>
         </div>
 
         <p class="module-subtitle" style="margin-top:1rem;">
-            Access is now derived from the selected role. Hierarchy roles use reporting head relationships, branch roles use assigned branches, tenant admin roles can see the full institute, and login always uses email.
+            Access is derived from the selected role, branch assignment, and reporting head relationships. Login always uses email.
         </p>
 
         <div class="form-actions">

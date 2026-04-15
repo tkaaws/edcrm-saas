@@ -21,7 +21,6 @@
                 <tr>
                     <th>Role</th>
                     <th>Code</th>
-                    <th>Access behavior</th>
                     <th>Type</th>
                     <th>Status</th>
                     <th class="data-table__actions">Actions</th>
@@ -30,7 +29,7 @@
             <tbody>
                 <?php if ($roles === []): ?>
                     <tr>
-                        <td colspan="6" class="empty-state">No roles yet. Create the first tenant-specific role.</td>
+                        <td colspan="5" class="empty-state">No roles yet. Create the first tenant-specific role.</td>
                     </tr>
                 <?php endif; ?>
 
@@ -43,7 +42,6 @@
                             </div>
                         </td>
                         <td><?= esc($role->code) ?></td>
-                        <td><?= esc(ucfirst($role->access_behavior ?? 'hierarchy')) ?></td>
                         <td><?= $role->is_system ? 'System' : 'Custom' ?></td>
                         <td>
                             <span class="status-badge <?= $role->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">

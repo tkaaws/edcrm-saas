@@ -5,21 +5,18 @@ namespace App\Controllers;
 use App\Models\PrivilegeModel;
 use App\Models\RoleModel;
 use App\Services\DelegationGuardService;
-use App\Services\UserAccessScopeService;
 
 class Roles extends BaseController
 {
     protected RoleModel $roleModel;
     protected PrivilegeModel $privilegeModel;
     protected DelegationGuardService $delegationGuard;
-    protected UserAccessScopeService $userAccessScope;
 
     public function __construct()
     {
         $this->roleModel = new RoleModel();
         $this->privilegeModel = new PrivilegeModel();
         $this->delegationGuard = service('delegationGuard');
-        $this->userAccessScope = service('userAccessScope');
     }
 
     public function index(): string
@@ -60,9 +57,9 @@ class Roles extends BaseController
             'tenant_id'  => $tenantId,
             'name'       => $data['name'],
             'code'       => $data['code'],
-            'access_behavior' => $data['access_behavior'],
+            'access_behavior' => 'branch',
             'is_system'  => 0,
-            'status'     => $data['status'],
+            'status'     => 'active',
         ]);
 
         $this->roleModel->syncPrivileges((int) $roleId, $data['privilege_ids']);
@@ -107,6 +104,7 @@ class Roles extends BaseController
         }
 
         $data = $this->collectPayload();
+        $data['code'] = (string) $role->code;
 
         if ($errors = $this->validateRoleInput($data, $tenantId, $id, (bool) $role->is_system)) {
             return redirect()->back()->withInput()->with('error', implode(' ', $errors));
@@ -114,13 +112,7 @@ class Roles extends BaseController
 
         $updateData = [
             'name'            => $data['name'],
-            'access_behavior' => $data['access_behavior'],
-            'status'          => $data['status'],
         ];
-
-        if (! $role->is_system) {
-            $updateData['code'] = $data['code'];
-        }
 
         $this->roleModel->updateWithActor($id, $updateData);
         $this->roleModel->syncPrivileges($id, $data['privilege_ids']);
@@ -157,9 +149,7 @@ class Roles extends BaseController
 
         return [
             'name'            => trim((string) $this->request->getPost('name')),
-            'code'            => strtolower(trim((string) $this->request->getPost('code'))),
-            'access_behavior' => (string) $this->request->getPost('access_behavior'),
-            'status'          => $this->request->getPost('status') === 'inactive' ? 'inactive' : 'active',
+            'code'            => $this->buildRoleCode((string) $this->request->getPost('name')),
             'privilege_ids'   => array_values(array_unique(array_filter($privilegeIds))),
         ];
     }
@@ -173,17 +163,11 @@ class Roles extends BaseController
         }
 
         if (! $isSystemRole && $data['code'] === '') {
-            $errors[] = 'Role code is required.';
+            $errors[] = 'Role name must include letters or numbers so a valid internal code can be generated.';
         }
 
         if (! $isSystemRole && $data['code'] !== '' && ! preg_match('/^[a-z0-9_]+$/', $data['code'])) {
             $errors[] = 'Role code may contain lowercase letters, numbers, and underscores only.';
-        }
-
-        if (! in_array($data['access_behavior'], ['hierarchy', 'branch', 'tenant'], true)) {
-            $errors[] = 'Select a valid access behavior.';
-        } elseif (! $this->userAccessScope->canGrantRoleBehavior($data['access_behavior'])) {
-            $errors[] = 'You cannot create or update a role with a broader access behavior than your own.';
         }
 
         if (! $isSystemRole && $this->roleModel->codeExistsForTenant($data['code'], $tenantId, $roleId)) {
@@ -214,25 +198,13 @@ class Roles extends BaseController
         return $this->buildShellViewData(array_merge([
             'activeNav'            => 'roles',
             'privilegeGroups'      => $this->delegationGuard->getGroupedAssignablePrivilegesForTenant($tenantId),
-            'allowedAccessBehaviors' => $this->getAllowedAccessBehaviors(),
         ], $data));
     }
 
-    /**
-     * @return array<string, string>
-     */
-    protected function getAllowedAccessBehaviors(): array
+    protected function buildRoleCode(string $name): string
     {
-        $behaviors = [
-            'hierarchy' => 'Reporting hierarchy',
-            'branch'    => 'Assigned branches',
-            'tenant'    => 'Full tenant visibility',
-        ];
-
-        return array_filter(
-            $behaviors,
-            fn(string $behavior): bool => $this->userAccessScope->canGrantRoleBehavior($behavior),
-            ARRAY_FILTER_USE_KEY
-        );
+        $code = strtolower(trim($name));
+        $code = preg_replace('/[^a-z0-9]+/', '_', $code) ?? '';
+        return trim($code, '_');
     }
 }

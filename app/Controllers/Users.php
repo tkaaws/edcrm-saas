@@ -90,10 +90,10 @@ class Users extends BaseController
             'whatsapp_number'     => $data['whatsapp_number'],
             'department'          => $data['department'],
             'designation'         => $data['designation'],
-            'allow_impersonation' => (int) $data['allow_impersonation'],
+            'allow_impersonation' => 1,
             'password_hash'       => password_hash($data['password'], PASSWORD_BCRYPT),
-            'is_active'           => (int) $data['is_active'],
-            'must_reset_password' => (int) $data['must_reset_password'],
+            'is_active'           => 1,
+            'must_reset_password' => 1,
         ]);
 
         $this->syncUserBranches((int) $userId, $data['branch_ids'], (int) $data['primary_branch_id']);
@@ -173,7 +173,6 @@ class Users extends BaseController
             'whatsapp_number'     => $data['whatsapp_number'],
             'department'          => $data['department'],
             'designation'         => $data['designation'],
-            'allow_impersonation' => (int) $data['allow_impersonation'],
             'is_active'           => (int) $data['is_active'],
             'must_reset_password' => (int) $data['must_reset_password'],
         ];
@@ -242,7 +241,6 @@ class Users extends BaseController
             'department'          => trim((string) $this->request->getPost('department')),
             'designation'         => trim((string) $this->request->getPost('designation')),
             'manager_user_id'     => (int) $this->request->getPost('manager_user_id'),
-            'allow_impersonation' => $this->request->getPost('allow_impersonation') ? 1 : 0,
             'password'            => (string) $this->request->getPost('password'),
             'role_id'             => (int) $this->request->getPost('role_id'),
             'branch_ids'          => array_values(array_unique(array_filter($branchIds))),

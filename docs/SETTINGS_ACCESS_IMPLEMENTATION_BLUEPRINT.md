@@ -404,40 +404,25 @@ Storage:
 - `user_hierarchy.manager_user_id`
 - `user_hierarchy.acting_manager_user_id`
 
-### 6.2 Data scope
-Answers: whose records can this user see?
+### 6.2 Runtime access scope
+Answers: whose records can this user see and manage?
 
-Allowed values:
-- self
-- team
-- branch
-- tenant
-- custom
+EDCRM now keeps normal create/edit flows lighter:
 
-### 6.3 Management scope
-Answers: whose users can this user create/update/manage?
+- roles define privileges
+- branch assignment defines branch coverage
+- reporting relationships define hierarchy coverage
+- tenant owner and platform roles retain broader visibility by role code and policy
 
-Allowed values:
-- none
-- self_only
-- team
-- branch
-- tenant
-
-### 6.4 Hierarchy mode
-Answers: should this user depend on reporting hierarchy or flat branch operations?
-
-Allowed values:
-- hierarchy
-- branch_flat
+That means normal forms no longer ask users to manually choose low-level `data_scope`, `manage_scope`, or `hierarchy_mode` values. Those internal concepts are resolved by services from the user's assigned branches, reporting manager chain, and privileged role type.
 
 Examples:
 
-- counsellor: hierarchy + self
-- team lead: hierarchy + team
-- operations user: branch_flat + branch
-- branch manager: branch_flat + branch
-- tenant owner: branch_flat + tenant
+- counsellor: own records, manager assigned in `user_hierarchy`
+- team lead: own records plus downline
+- operations user: assigned branch coverage
+- branch manager: assigned branch coverage with elevated management privileges
+- tenant owner: tenant-wide visibility
 
 ---
 
