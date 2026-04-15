@@ -34,6 +34,7 @@
         ['key' => 'users',       'label' => 'Users',       'href' => site_url('users'),              'meta' => 'People',     'show' => ! $isPlatformAdmin && $canPrefix('users.')],
         ['key' => 'branches',    'label' => 'Branches',    'href' => site_url('branches'),           'meta' => 'Locations',  'show' => ! $isPlatformAdmin && $canPrefix('branches.')],
         ['key' => 'roles',       'label' => 'Roles',       'href' => site_url('roles'),              'meta' => 'Access',     'show' => ! $isPlatformAdmin && $canPrefix('roles.')],
+        ['key' => 'master_data', 'label' => 'Master Data', 'href' => site_url('settings/master-data'),'meta' => 'Catalogs',   'show' => ! $isPlatformAdmin && $canPrefix('settings.')],
 
         // Feature-gated modules — only shown when plan includes the module
         ['key' => 'enquiries',   'label' => 'Enquiries',   'href' => site_url('enquiries'),          'meta' => 'CRM',        'show' => ! $isPlatformAdmin && $feat('crm_core') && ($canPrefix('enquiries.') || $canPrefix('followups.'))],
@@ -51,6 +52,7 @@
         ['key' => 'tenants',       'label' => 'Tenants',       'href' => site_url('platform/tenants'),       'meta' => 'Platform',  'show' => $isPlatformAdmin],
         ['key' => 'plans',         'label' => 'Plans',         'href' => site_url('platform/plans'),         'meta' => 'Billing',   'show' => $isPlatformAdmin],
         ['key' => 'subscriptions', 'label' => 'Subscriptions', 'href' => site_url('platform/subscriptions'), 'meta' => 'Accounts',  'show' => $isPlatformAdmin],
+        ['key' => 'platform_master_data', 'label' => 'Master Data', 'href' => site_url('platform/master-data'), 'meta' => 'Catalogs', 'show' => $isPlatformAdmin],
     ];
     ?>
     <div class="shell">

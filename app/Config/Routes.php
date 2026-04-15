@@ -52,6 +52,10 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->post('roles/(:num)/status', 'Roles::updateStatus/$1', ['filter' => ['feature:crm_core', 'privilege:roles.edit']]);
 
     $routes->get('settings', 'Settings::index', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
+    $routes->get('settings/master-data', 'MasterData::index', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
+    $routes->post('settings/master-data/(:segment)', 'MasterData::storeValue/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
+    $routes->post('settings/master-data/platform-value/(:num)/toggle', 'MasterData::togglePlatformValue/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
+    $routes->post('settings/master-data/tenant-value/(:num)/status', 'MasterData::updateTenantValueStatus/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/profile', 'Settings::updateProfile', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/preferences', 'Settings::updatePreferences', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/catalog/(:segment)', 'Settings::updateCatalogCategory/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
@@ -118,4 +122,10 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->post('subscriptions/(:num)/switch-plan', 'PlatformSubscriptions::switchPlan/$1');
     $routes->post('subscriptions/(:num)/override', 'PlatformSubscriptions::setOverride/$1');
     $routes->post('subscriptions/(:num)/delete', 'PlatformSubscriptions::delete/$1');
+
+    $routes->get('master-data', 'PlatformMasterData::index');
+    $routes->post('master-data/types', 'PlatformMasterData::storeType');
+    $routes->post('master-data/types/(:num)/status', 'PlatformMasterData::updateTypeStatus/$1');
+    $routes->post('master-data/values', 'PlatformMasterData::storeValue');
+    $routes->post('master-data/values/(:num)/status', 'PlatformMasterData::updateValueStatus/$1');
 });
