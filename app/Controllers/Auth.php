@@ -9,7 +9,7 @@ use App\Services\AuthService;
  * Auth Controller
  *
  * Handles: login, logout, forgot password, reset password,
- *          forced password change (must_reset_password).
+ *          and voluntary password change.
  */
 class Auth extends BaseController
 {
@@ -61,7 +61,6 @@ class Auth extends BaseController
                     ? '/platform/tenants'
                     : '/dashboard'
             ),
-            AuthService::LOGIN_MUST_RESET => redirect()->to('/auth/change-password'),
             AuthService::LOGIN_INACTIVE   => redirect()->back()->withInput()
                                               ->with('error', 'Your account is inactive. Contact your administrator.'),
             AuthService::LOGIN_INVALID    => redirect()->back()->withInput()

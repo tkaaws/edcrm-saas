@@ -93,7 +93,7 @@ class Users extends BaseController
             'allow_impersonation' => 1,
             'password_hash'       => password_hash($data['password'], PASSWORD_BCRYPT),
             'is_active'           => 1,
-            'must_reset_password' => 1,
+            'must_reset_password' => 0,
         ]);
 
         $this->syncUserBranches((int) $userId, $data['branch_ids'], (int) $data['primary_branch_id']);

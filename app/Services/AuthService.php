@@ -18,7 +18,6 @@ use CodeIgniter\Database\BaseConnection;
  * - full session destroy on logout
  * - login events written to audit_logs
  * - last_login_at and last_login_ip recorded on success
- * - must_reset_password flag enforced before any page access
  * - password reset tokens: expiry, single-use, tenant-scoped
  * - password history: prevents reuse of last 5 passwords
  */
@@ -27,8 +26,6 @@ class AuthService
     const LOGIN_SUCCESS         = 'success';
     const LOGIN_INVALID         = 'invalid_credentials';
     const LOGIN_INACTIVE        = 'account_inactive';
-    const LOGIN_MUST_RESET      = 'must_reset_password';
-
     const RESET_TOKEN_EXPIRY_MINS = 60;
     const PASSWORD_HISTORY_DEPTH  = 5;
 
@@ -90,10 +87,6 @@ class AuthService
 
         $this->writeAudit((int) $user->tenant_id, $user->id, 'login_success', 'Login successful');
 
-        if ($user->must_reset_password) {
-            return self::LOGIN_MUST_RESET;
-        }
-
         return self::LOGIN_SUCCESS;
     }
 
@@ -132,7 +125,7 @@ class AuthService
             'user_email'           => $user->email,
             'branch_id'            => $primaryBranch?->id ?? null,
             'branch_name'          => $primaryBranch?->name ?? '',
-            'must_reset_password'  => (bool) $user->must_reset_password,
+            'must_reset_password'  => false,
         ]);
 
         // Load and cache privilege codes into session

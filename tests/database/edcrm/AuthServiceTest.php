@@ -48,7 +48,7 @@ final class AuthServiceTest extends CIUnitTestCase
         $this->assertSame(1, $this->db->table('audit_logs')->where('action', 'login_success')->countAllResults());
     }
 
-    public function testAttemptReturnsMustResetWhenFlagged(): void
+    public function testAttemptStillSucceedsWhenResetFlagIsPresent(): void
     {
         $this->db->table('users')->where('email', 'owner@demo.edcrm.in')->update([
             'must_reset_password' => 1,
@@ -57,8 +57,8 @@ final class AuthServiceTest extends CIUnitTestCase
         $service = new AuthService();
         $result = $service->attempt('owner@demo.edcrm.in', 'Demo@1234');
 
-        $this->assertSame(AuthService::LOGIN_MUST_RESET, $result);
-        $this->assertTrue((bool) session()->get('must_reset_password'));
+        $this->assertSame(AuthService::LOGIN_SUCCESS, $result);
+        $this->assertFalse((bool) session()->get('must_reset_password'));
     }
 
     public function testForgotPasswordInvalidatesOldTokensAndCreatesFreshOne(): void
