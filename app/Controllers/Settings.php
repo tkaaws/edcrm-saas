@@ -380,10 +380,6 @@ class Settings extends BaseController
                 'title' => 'Regional defaults',
                 'subtitle' => 'Timezone, currency, locale, and calendar defaults for the company.',
             ],
-            'visibility' => [
-                'title' => 'Visibility policy',
-                'subtitle' => 'Control how records are visible across branches, teams, and expired pipelines.',
-            ],
             'security' => [
                 'title' => 'Security policy',
                 'subtitle' => 'Password, session, and impersonation rules for tenant users.',
