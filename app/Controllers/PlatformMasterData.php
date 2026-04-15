@@ -46,6 +46,13 @@ class PlatformMasterData extends BaseController
         ]));
     }
 
+    public function initializeDefaults()
+    {
+        $this->callSeeder('MasterDataCatalogSeeder');
+
+        return redirect()->to('/platform/master-data')->with('message', 'Default master-data catalogs initialized.');
+    }
+
     public function storeType()
     {
         $payload = [
@@ -171,5 +178,12 @@ class PlatformMasterData extends BaseController
     {
         $value = trim($value);
         return $value === '' ? null : $value;
+    }
+
+    protected function callSeeder(string $class): void
+    {
+        /** @var \CodeIgniter\Database\Seeder $seeder */
+        $seeder = \Config\Database::seeder();
+        $seeder->call($class);
     }
 }

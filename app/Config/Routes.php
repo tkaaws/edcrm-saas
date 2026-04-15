@@ -124,6 +124,7 @@ $routes->group('platform', ['filter' => ['auth', 'platform_admin']], static func
     $routes->post('subscriptions/(:num)/delete', 'PlatformSubscriptions::delete/$1');
 
     $routes->get('master-data', 'PlatformMasterData::index');
+    $routes->post('master-data/initialize', 'PlatformMasterData::initializeDefaults');
     $routes->post('master-data/types', 'PlatformMasterData::storeType');
     $routes->post('master-data/types/(:num)/status', 'PlatformMasterData::updateTypeStatus/$1');
     $routes->post('master-data/values', 'PlatformMasterData::storeValue');

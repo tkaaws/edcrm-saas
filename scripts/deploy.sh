@@ -28,6 +28,9 @@ sudo find "${APP_DIR}/writable" -type f -exec chmod 664 {} \;
 echo "[deploy] running database migrations"
 php spark migrate --all --no-interaction
 
+echo "[deploy] seeding master data catalogs"
+php spark db:seed MasterDataCatalogSeeder
+
 echo "[deploy] reloading services"
 sudo systemctl reload php8.4-fpm
 sudo systemctl reload nginx
