@@ -24,8 +24,8 @@ Release 1 enquiry settings should cover only:
 
 1. enquiry visibility
 2. duplicate checking
-3. assignment and transfer
-4. expiry and closure
+3. assignment
+4. expiry and closure basics
 
 We should not add admissions, jobs, reports, or generic company-wide visibility settings into this screen.
 
@@ -97,27 +97,6 @@ Behavior:
 Default:
 
 - `assigned_branches`
-
-#### `enquiry.visibility.allow_cross_branch_transfer`
-
-Purpose:
-- controls whether an enquiry can be moved from one branch to another
-
-Type:
-- bool
-
-UI labels:
-
-- `Allow moving enquiries across branches`
-
-Allowed values:
-
-- `0`
-- `1`
-
-Default:
-
-- `1`
 
 #### `enquiry.visibility.show_closed_to_all`
 
@@ -253,22 +232,6 @@ Default:
 
 - `manual`
 
-#### `enquiry.assignment.reassign_allowed`
-
-Purpose:
-- controls whether users with the right privilege can reassign enquiries later
-
-Type:
-- bool
-
-UI label:
-
-- `Allow reassignment after creation`
-
-Default:
-
-- `1`
-
 ---
 
 ### 4.4 Expiry and Closure
@@ -297,32 +260,6 @@ Default:
 
 - `60`
 
-#### `enquiry.lifecycle.reopen_expired_allowed`
-
-Purpose:
-- whether expired enquiries can be reopened
-
-Type:
-- bool
-
-Default:
-
-- `1`
-
-#### `enquiry.lifecycle.reopen_closed_allowed`
-
-Purpose:
-- whether closed enquiries can be reopened
-
-Type:
-- bool
-
-Default:
-
-- `0`
-
----
-
 ## 5. DB Keys
 
 These should be stored using the existing settings catalog model.
@@ -330,18 +267,14 @@ These should be stored using the existing settings catalog model.
 ### Tenant-level keys
 
 - `enquiry.visibility.mode`
-- `enquiry.visibility.allow_cross_branch_transfer`
 - `enquiry.visibility.show_closed_to_all`
 - `enquiry.visibility.show_expired_to_all`
 - `enquiry.duplicate.match_mode`
 - `enquiry.duplicate.scope`
 - `enquiry.duplicate.action`
 - `enquiry.assignment.mode`
-- `enquiry.assignment.reassign_allowed`
 - `enquiry.lifecycle.expiry_days`
 - `enquiry.lifecycle.auto_close_days`
-- `enquiry.lifecycle.reopen_expired_allowed`
-- `enquiry.lifecycle.reopen_closed_allowed`
 
 ### Optional branch override keys for later
 
@@ -364,18 +297,14 @@ Seed these records:
 | key | scope | category | module_code | value_type | default |
 |---|---|---|---|---|---|
 | `enquiry.visibility.mode` | `tenant` | `enquiry_visibility` | `crm_core` | `enum` | `assigned_branches` |
-| `enquiry.visibility.allow_cross_branch_transfer` | `tenant` | `enquiry_visibility` | `crm_core` | `bool` | `true` |
 | `enquiry.visibility.show_closed_to_all` | `tenant` | `enquiry_visibility` | `crm_core` | `bool` | `true` |
 | `enquiry.visibility.show_expired_to_all` | `tenant` | `enquiry_visibility` | `crm_core` | `bool` | `true` |
 | `enquiry.duplicate.match_mode` | `tenant` | `enquiry_duplicate` | `crm_core` | `enum` | `email_or_mobile` |
 | `enquiry.duplicate.scope` | `tenant` | `enquiry_duplicate` | `crm_core` | `enum` | `company` |
 | `enquiry.duplicate.action` | `tenant` | `enquiry_duplicate` | `crm_core` | `enum` | `warn` |
 | `enquiry.assignment.mode` | `tenant` | `enquiry_assignment` | `crm_core` | `enum` | `manual` |
-| `enquiry.assignment.reassign_allowed` | `tenant` | `enquiry_assignment` | `crm_core` | `bool` | `true` |
 | `enquiry.lifecycle.expiry_days` | `tenant` | `enquiry_lifecycle` | `crm_core` | `int` | `30` |
 | `enquiry.lifecycle.auto_close_days` | `tenant` | `enquiry_lifecycle` | `crm_core` | `int` | `60` |
-| `enquiry.lifecycle.reopen_expired_allowed` | `tenant` | `enquiry_lifecycle` | `crm_core` | `bool` | `true` |
-| `enquiry.lifecycle.reopen_closed_allowed` | `tenant` | `enquiry_lifecycle` | `crm_core` | `bool` | `false` |
 
 ---
 
@@ -539,7 +468,7 @@ Reason:
 5. consume enquiry visibility in enquiry list and detail
 6. consume duplicate settings in enquiry create flow
 7. consume assignment mode in enquiry create flow
-8. consume expiry/closure later when lifecycle job is added
+8. consume expiry/closure day rules later when lifecycle job is added
 
 ---
 
@@ -567,10 +496,7 @@ Build only these first:
 3. `enquiry.duplicate.scope`
 4. `enquiry.duplicate.action`
 5. `enquiry.assignment.mode`
-
-Then add:
-
-6. transfer rule
-7. expiry/closure rules
+6. `enquiry.lifecycle.expiry_days`
+7. `enquiry.lifecycle.auto_close_days`
 
 This keeps the first enquiry release stable.
