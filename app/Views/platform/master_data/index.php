@@ -2,6 +2,10 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
+    <?php
+    $hasSelection = $selectedType !== null;
+    $valueCount = count($values ?? []);
+    ?>
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Platform Business Lookup Data</h2>
@@ -39,11 +43,11 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Lookup data menu</h3>
-                    <p class="module-subtitle">Choose a list and manage its values.</p>
+                    <p class="module-subtitle">Choose a list to review available options first, then add or update values.</p>
                 </div>
             </div>
 
-            <div class="choice-list" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); display:grid;">
+            <div class="catalog-menu-grid">
                 <?php foreach ($types as $type): ?>
                     <a class="shell-button <?= $selectedTypeCode === $type->code ? 'shell-button--primary' : 'shell-button--ghost' ?>" href="<?= site_url('platform/master-data?type=' . $type->code) ?>">
                         <?= esc($type->name) ?>
@@ -52,104 +56,29 @@
             </div>
         </section>
 
-        <div class="settings-grid">
-            <section class="form-card">
-                <div class="module-toolbar">
-                    <div>
-                        <h3 class="module-title module-title--small">Selected list</h3>
-                        <p class="module-subtitle">The current business list you are managing.</p>
-                    </div>
+        <?php if ($hasSelection): ?>
+            <div class="catalog-hero">
+                <div class="catalog-hero__copy">
+                    <h3 class="module-title module-title--small"><?= esc($selectedType->name) ?></h3>
+                    <p class="module-subtitle">Review platform values first, then manage list rules and add new values when needed.</p>
                 </div>
-
-                <?php if ($selectedType): ?>
-                    <div class="table-card">
-                        <div class="table-wrap">
-                        <table class="data-table">
-                            <tbody>
-                                <tr><th>Name</th><td><?= esc($selectedType->name) ?></td></tr>
-                                <tr><th>Used in</th><td><?= esc(ucwords(str_replace('_', ' ', $selectedType->module_code))) ?></td></tr>
-                                <tr><th>Company custom entries</th><td><?= (int) $selectedType->allow_tenant_entries === 1 ? 'Allowed' : 'Platform only' ?></td></tr>
-                                <tr><th>Company hide/show</th><td><?= (int) $selectedType->allow_tenant_hide_platform_values === 1 ? 'Allowed' : 'Locked' ?></td></tr>
-                                <tr><th>Status</th><td><?= esc(ucfirst($selectedType->status)) ?></td></tr>
-                            </tbody>
-                        </table>
-                        </div>
+                <div class="catalog-stats">
+                    <div class="catalog-stat">
+                        <span class="catalog-stat__label">Platform values</span>
+                        <strong class="catalog-stat__value"><?= esc((string) $valueCount) ?></strong>
                     </div>
-                <?php endif; ?>
-            </section>
-        </div>
-
-        <div class="settings-grid">
-        <form class="form-card" method="post" action="<?= site_url('platform/master-data/values') ?>">
-            <?= csrf_field() ?>
-            <div class="module-toolbar">
-                <div>
-                    <h3 class="module-title module-title--small">Add value<?= $selectedType ? ' to ' . esc($selectedType->name) : '' ?></h3>
-                    <p class="module-subtitle">Add a plain business option to this list.</p>
+                    <div class="catalog-stat">
+                        <span class="catalog-stat__label">Company additions</span>
+                        <strong class="catalog-stat__value"><?= (int) $selectedType->allow_tenant_entries === 1 ? 'On' : 'Off' ?></strong>
+                    </div>
                 </div>
             </div>
-
-            <?php if ($selectedType): ?>
-                <input type="hidden" name="type_id" value="<?= esc((string) $selectedType->id) ?>">
-                <div class="form-grid">
-                    <label class="field">
-                        <span>Name</span>
-                        <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
-                    </label>
-                    <label class="field">
-                        <span>Sort order</span>
-                        <input type="number" name="sort_order" value="<?= esc(old('sort_order', '0')) ?>">
-                    </label>
-                    <label class="field">
-                        <span>Status</span>
-                        <select name="status">
-                            <option value="active" <?= old('status', 'active') === 'active' ? 'selected' : '' ?>>Active</option>
-                            <option value="inactive" <?= old('status') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
-                        </select>
-                    </label>
-                    <label class="field field--full">
-                        <span>Description</span>
-                        <textarea name="description" rows="2"><?= esc(old('description')) ?></textarea>
-                    </label>
-                    <?php if ((int) $selectedType->supports_hierarchy === 1): ?>
-                        <label class="field">
-                            <span>Parent option</span>
-                            <select name="parent_value_id">
-                                <option value="">No parent</option>
-                                <?php foreach ($values as $value): ?>
-                                    <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
-                                        <?= esc($value->label) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <small>Shown only for lists that use parent and child values.</small>
-                        </label>
-                    <?php endif; ?>
-                    <label class="field field--full">
-                        <span>Extra details (optional)</span>
-                        <textarea name="metadata_json" rows="3" placeholder='{"duration_months": 6}'><?= esc(old('metadata_json')) ?></textarea>
-                    </label>
-                </div>
-
-                <div class="choice-list">
-                    <label class="checkbox-row">
-                        <input type="checkbox" name="is_system" value="1" <?= old('is_system') ? 'checked' : '' ?>>
-                        <span>Mark as shared system option</span>
-                    </label>
-                </div>
-
-                <div class="form-actions">
-                    <button class="shell-button shell-button--primary" type="submit">Create value</button>
-                </div>
-            <?php else: ?>
-                <p class="empty-state">Create or select a type first to add platform values.</p>
-            <?php endif; ?>
-        </form>
+        <?php endif; ?>
 
         <section class="form-card">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small"><?= $selectedType ? esc($selectedType->name) : 'Platform values' ?></h3>
+                    <h3 class="module-title module-title--small"><?= $hasSelection ? 'Available options in ' . esc($selectedType->name) : 'Platform values' ?></h3>
                     <p class="module-subtitle">Shared values available across companies unless hidden locally.</p>
                 </div>
             </div>
@@ -168,10 +97,10 @@
                     <tbody>
                         <?php if ($values === []): ?>
                             <tr>
-                                <td colspan="6" class="empty-state">No values yet for this master-data type.</td>
+                                <td colspan="4" class="empty-state">No values yet for this list.</td>
                             </tr>
                         <?php endif; ?>
-                        <?php $parentLabels = []; foreach ($values as $value) { $parentLabels[(int) $value->id] = $value->label; } ?>
+                        <?php $parentLabels = []; foreach ($values as $value): $parentLabels[(int) $value->id] = $value->label; endforeach; ?>
                         <?php foreach ($values as $value): ?>
                             <tr>
                                 <td>
@@ -202,6 +131,100 @@
                 </div>
             </div>
         </section>
+
+        <div class="catalog-grid">
+            <section class="form-card">
+                <div class="module-toolbar">
+                    <div>
+                        <h3 class="module-title module-title--small">List rules</h3>
+                        <p class="module-subtitle">The current business list you are managing.</p>
+                    </div>
+                </div>
+
+                <?php if ($selectedType): ?>
+                    <div class="table-card">
+                        <div class="table-wrap">
+                            <table class="data-table">
+                                <tbody>
+                                    <tr><th>Name</th><td><?= esc($selectedType->name) ?></td></tr>
+                                    <tr><th>Used in</th><td><?= esc(ucwords(str_replace('_', ' ', $selectedType->module_code))) ?></td></tr>
+                                    <tr><th>Company custom entries</th><td><?= (int) $selectedType->allow_tenant_entries === 1 ? 'Allowed' : 'Platform only' ?></td></tr>
+                                    <tr><th>Company hide/show</th><td><?= (int) $selectedType->allow_tenant_hide_platform_values === 1 ? 'Allowed' : 'Locked' ?></td></tr>
+                                    <tr><th>Status</th><td><?= esc(ucfirst($selectedType->status)) ?></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <p class="empty-state">Choose a lookup list first to view list rules.</p>
+                <?php endif; ?>
+            </section>
+
+            <form class="form-card" method="post" action="<?= site_url('platform/master-data/values') ?>">
+                <?= csrf_field() ?>
+                <div class="module-toolbar">
+                    <div>
+                        <h3 class="module-title module-title--small">Add a new platform value</h3>
+                        <p class="module-subtitle">Use this only when the required option does not already exist in the list above.</p>
+                    </div>
+                </div>
+
+                <?php if ($selectedType): ?>
+                    <input type="hidden" name="type_id" value="<?= esc((string) $selectedType->id) ?>">
+                    <div class="form-grid">
+                        <label class="field">
+                            <span>Name</span>
+                            <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
+                        </label>
+                        <label class="field">
+                            <span>Sort order</span>
+                            <input type="number" name="sort_order" value="<?= esc(old('sort_order', '0')) ?>">
+                        </label>
+                        <label class="field">
+                            <span>Status</span>
+                            <select name="status">
+                                <option value="active" <?= old('status', 'active') === 'active' ? 'selected' : '' ?>>Active</option>
+                                <option value="inactive" <?= old('status') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                            </select>
+                        </label>
+                        <label class="field field--full">
+                            <span>Description</span>
+                            <textarea name="description" rows="2"><?= esc(old('description')) ?></textarea>
+                        </label>
+                        <?php if ((int) $selectedType->supports_hierarchy === 1): ?>
+                            <label class="field field--full">
+                                <span>Parent option</span>
+                                <select name="parent_value_id">
+                                    <option value="">No parent</option>
+                                    <?php foreach ($values as $value): ?>
+                                        <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
+                                            <?= esc($value->label) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small>Use this only for lists that need parent and child values.</small>
+                            </label>
+                        <?php endif; ?>
+                        <label class="field field--full">
+                            <span>Extra details (optional)</span>
+                            <textarea name="metadata_json" rows="3" placeholder='{"duration_months": 6}'><?= esc(old('metadata_json')) ?></textarea>
+                        </label>
+                    </div>
+
+                    <div class="choice-list">
+                        <label class="checkbox-row">
+                            <input type="checkbox" name="is_system" value="1" <?= old('is_system') ? 'checked' : '' ?>>
+                            <span>Mark as shared system option</span>
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="shell-button shell-button--primary" type="submit">Create value</button>
+                    </div>
+                <?php else: ?>
+                    <p class="empty-state">Choose a lookup list first to add platform values.</p>
+                <?php endif; ?>
+            </form>
         </div>
 
         <details class="form-card">
