@@ -1245,6 +1245,8 @@ Access control was later simplified again so normal create flows stay operationa
 
 Visibility is resolved from assigned branches, reporting hierarchy, and privileged role type rather than exposing low-level access modeling fields in every form.
 
+Master data for Enquiry and later operational modules is now planned separately in `docs/MASTER_DATA_IMPLEMENTATION_BLUEPRINT.md`, using a platform-plus-tenant union catalog rather than flat hardcoded dropdown lists.
+
 ### 11.4 Local database reminder
 
 Phase 1B development has already begun and the shared local database recommendation still stands for ongoing work and future Phase 1C development. Billing state changes and payment gateway work must not be tested directly on production:
