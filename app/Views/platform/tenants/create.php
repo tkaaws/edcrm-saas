@@ -12,22 +12,35 @@
     </div>
 
     <?php if (! empty($fieldErrors)): ?>
-    <div class="alert alert--error">Please correct the errors below before submitting.</div>
+    <div class="shell-alert shell-alert--danger">Please correct the errors below before submitting.</div>
     <?php endif; ?>
 
     <?php if (session('error')): ?>
-    <div class="alert alert--error"><?= esc(session('error')) ?></div>
+    <div class="shell-alert shell-alert--danger"><?= esc(session('error')) ?></div>
     <?php endif; ?>
 
-    <form class="form-card" method="post" action="<?= site_url('platform/tenants') ?>">
+    <form class="form-card form-stack" method="post" action="<?= site_url('platform/tenants') ?>">
         <?= csrf_field() ?>
 
+        <div class="form-summary-grid">
+            <div class="form-summary-card">
+                <strong>Company</strong>
+                <span>Set the company identity, defaults, and opening workspace state.</span>
+            </div>
+            <div class="form-summary-card">
+                <strong>First branch</strong>
+                <span>Create the first working location for the new company.</span>
+            </div>
+            <div class="form-summary-card">
+                <strong>Owner login</strong>
+                <span>Create the first company admin who will sign in and manage the workspace.</span>
+            </div>
+        </div>
+
         <section class="form-card form-card--nested">
-            <div class="module-toolbar">
-                <div>
-                    <h3 class="module-title module-title--small">Company profile</h3>
-                    <p class="module-subtitle">Core company identity and workspace defaults.</p>
-                </div>
+            <div class="form-section-header">
+                <h3 class="module-title module-title--small">Company profile</h3>
+                <p class="module-subtitle">Core company identity and workspace defaults.</p>
             </div>
 
             <div class="form-grid">
@@ -100,11 +113,9 @@
         </section>
 
         <section class="form-card form-card--nested">
-            <div class="module-toolbar">
-                <div>
-                    <h3 class="module-title module-title--small">First branch</h3>
-                    <p class="module-subtitle">This branch is the first operational location for the new company.</p>
-                </div>
+            <div class="form-section-header">
+                <h3 class="module-title module-title--small">First branch</h3>
+                <p class="module-subtitle">This branch is the first operational location for the new company.</p>
             </div>
 
             <div class="form-grid">
@@ -154,11 +165,9 @@
         </section>
 
         <section class="form-card form-card--nested">
-            <div class="module-toolbar">
-                <div>
-                    <h3 class="module-title module-title--small">Owner user</h3>
-                    <p class="module-subtitle">This person becomes the first company admin login.</p>
-                </div>
+            <div class="form-section-header">
+                <h3 class="module-title module-title--small">Owner user</h3>
+                <p class="module-subtitle">This person becomes the first company admin login.</p>
             </div>
 
             <div class="form-grid">

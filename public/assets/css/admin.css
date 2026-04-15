@@ -585,9 +585,10 @@ a {
 }
 
 .form-card--nested {
-    margin-top: 20px;
+    margin-top: 16px;
     padding: 18px;
-    background: #fbfcfd;
+    background: #fbfcff;
+    box-shadow: none;
 }
 
 .data-table {
@@ -681,6 +682,37 @@ a {
     gap: 16px;
 }
 
+.form-stack {
+    display: grid;
+    gap: 16px;
+}
+
+.form-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.form-summary-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fbfcff;
+    padding: 14px 16px;
+    display: grid;
+    gap: 6px;
+}
+
+.form-summary-card strong {
+    font-size: 15px;
+    color: var(--text);
+}
+
+.form-summary-card span {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
 .field {
     display: grid;
     gap: 8px;
@@ -711,6 +743,30 @@ a {
     color: var(--text);
 }
 
+.field textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+.field small {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.field-error {
+    color: var(--danger);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.field--error input,
+.field--error select,
+.field--error textarea {
+    border-color: #f0b1aa;
+    box-shadow: 0 0 0 1px rgba(180, 35, 24, 0.08);
+}
+
 .shell-input--sm {
     min-height: 38px;
     padding: 8px 10px;
@@ -733,7 +789,7 @@ a {
     padding: 18px;
     display: grid;
     gap: 14px;
-    background: #fbfcfd;
+    background: #fbfcff;
 }
 
 .choice-card h3 {
@@ -744,6 +800,32 @@ a {
 .choice-list {
     display: grid;
     gap: 12px;
+}
+
+.checkbox-field {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fbfcff;
+}
+
+.checkbox-field__copy {
+    display: grid;
+    gap: 4px;
+}
+
+.checkbox-field__copy strong {
+    color: var(--text);
+    font-size: 14px;
+}
+
+.checkbox-field__copy small {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.45;
 }
 
 .checkbox-row {
@@ -781,6 +863,18 @@ a {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+}
+
+.form-section-header {
+    display: grid;
+    gap: 4px;
+}
+
+.form-note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .detail-grid {
@@ -1077,6 +1171,10 @@ a {
         flex-direction: column;
     }
 
+    .form-summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
     .detail-grid {
         grid-template-columns: 1fr 1fr;
     }
@@ -1156,7 +1254,8 @@ a {
     .stats-grid,
     .detail-grid,
     .billing-overview,
-    .catalog-stats {
+    .catalog-stats,
+    .form-summary-grid {
         grid-template-columns: 1fr;
     }
 
