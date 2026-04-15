@@ -1,11 +1,11 @@
-<?= $this->extend('layouts/admin') ?>
+﻿<?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Edit tenant</h2>
-            <p class="module-subtitle"><?= esc($tenant->name) ?> — update institute profile details.</p>
+            <h2 class="module-title">Edit company</h2>
+            <p class="module-subtitle"><?= esc($tenant->name) ?> — update company profile details.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id) ?>">Cancel</a>
     </div>
@@ -17,11 +17,11 @@
 
         <div class="settings-grid">
             <div class="form-card">
-                <h3 class="module-title module-title--small">Institute details</h3>
+                <h3 class="module-title module-title--small">Company details</h3>
 
                 <div class="form-grid">
                     <label class="field field--full">
-                        <span>Institute name <em>*</em></span>
+                        <span>Company name <em>*</em></span>
                         <input type="text" name="name" value="<?= esc(old('name', $tenant->name)) ?>" required>
                         <?php if (isset($fieldErrors['name'])): ?>
                             <span class="field-error"><?= esc($fieldErrors['name']) ?></span>

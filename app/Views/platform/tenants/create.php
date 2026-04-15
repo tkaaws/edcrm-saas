@@ -1,14 +1,14 @@
-<?= $this->extend('layouts/admin') ?>
+﻿<?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
 <?php $fieldErrors = session('fieldErrors') ?? []; ?>
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Create tenant</h2>
-            <p class="module-subtitle">Provision a new institute with its first branch, owner user, system roles, and default settings.</p>
+            <h2 class="module-title">Create company</h2>
+            <p class="module-subtitle">Create a new company with its first branch, owner login, default modules, and settings.</p>
         </div>
-        <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants') ?>">Back to tenants</a>
+        <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants') ?>">Back to companies</a>
     </div>
 
     <?php if (! empty($fieldErrors)): ?>
@@ -25,19 +25,19 @@
         <section class="form-card form-card--nested">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Institute profile</h3>
-                    <p class="module-subtitle">Core tenant identity and default business context.</p>
+                    <h3 class="module-title module-title--small">Company profile</h3>
+                    <p class="module-subtitle">Core company identity and workspace defaults.</p>
                 </div>
             </div>
 
             <div class="form-grid">
                 <label class="field <?= isset($fieldErrors['name']) ? 'field--error' : '' ?>">
-                    <span>Institute name</span>
+                    <span>Company name</span>
                     <input type="text" name="name" value="<?= esc(old('name')) ?>" required>
                     <?php if (isset($fieldErrors['name'])): ?><span class="field-error"><?= esc($fieldErrors['name']) ?></span><?php endif; ?>
                 </label>
                 <label class="field <?= isset($fieldErrors['slug']) ? 'field--error' : '' ?>">
-                    <span>Slug</span>
+                    <span>Company ID</span>
                     <input type="text" name="slug" value="<?= esc(old('slug')) ?>" placeholder="auto-generated if blank">
                     <?php if (isset($fieldErrors['slug'])): ?><span class="field-error"><?= esc($fieldErrors['slug']) ?></span><?php endif; ?>
                 </label>
@@ -103,7 +103,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">First branch</h3>
-                    <p class="module-subtitle">This branch becomes the initial operational branch for the institute.</p>
+                    <p class="module-subtitle">This branch is the first operational location for the new company.</p>
                 </div>
             </div>
 
@@ -132,11 +132,11 @@
                 </label>
                 <label class="field">
                     <span>Branch timezone</span>
-                    <input type="text" name="branch_timezone" value="<?= esc(old('branch_timezone')) ?>" placeholder="leave blank to inherit tenant default">
+                    <input type="text" name="branch_timezone" value="<?= esc(old('branch_timezone')) ?>" placeholder="leave blank to inherit company default">
                 </label>
                 <label class="field">
                     <span>Branch currency code</span>
-                    <input type="text" name="branch_currency_code" value="<?= esc(old('branch_currency_code')) ?>" placeholder="leave blank to inherit tenant default">
+                    <input type="text" name="branch_currency_code" value="<?= esc(old('branch_currency_code')) ?>" placeholder="leave blank to inherit company default">
                 </label>
                 <label class="field">
                     <span>Postal code</span>
@@ -157,7 +157,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Owner user</h3>
-                    <p class="module-subtitle">This user becomes the first tenant owner and primary admin login.</p>
+                    <p class="module-subtitle">This person becomes the first company admin login.</p>
                 </div>
             </div>
 
@@ -170,7 +170,7 @@
                 <label class="field <?= isset($fieldErrors['owner_email']) ? 'field--error' : '' ?>">
                     <span>Owner email</span>
                     <input type="email" name="owner_email" value="<?= esc(old('owner_email')) ?>" required>
-                    <small>This email will be used as the owner login ID.</small>
+                    <small>This email is used for the owner login.</small>
                     <?php if (isset($fieldErrors['owner_email'])): ?><span class="field-error"><?= esc($fieldErrors['owner_email']) ?></span><?php endif; ?>
                 </label>
                 <label class="field">
@@ -196,7 +196,7 @@
 
         <div class="form-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants') ?>">Cancel</a>
-            <button class="shell-button shell-button--primary" type="submit">Create tenant</button>
+            <button class="shell-button shell-button--primary" type="submit">Create company</button>
         </div>
     </form>
 </section>

@@ -4,10 +4,10 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Platform tenants</h2>
-            <p class="module-subtitle">Provision institutes, assign plans, and manage tenant lifecycle.</p>
+            <h2 class="module-title">Workspace companies</h2>
+            <p class="module-subtitle">Create companies, assign plans, and manage lifecycle status.</p>
         </div>
-        <a class="shell-button shell-button--primary" href="<?= site_url('platform/tenants/create') ?>">Add tenant</a>
+        <a class="shell-button shell-button--primary" href="<?= site_url('platform/tenants/create') ?>">Add company</a>
     </div>
 
     <div class="table-card">
@@ -15,8 +15,8 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Institute</th>
-                        <th>Slug</th>
+                        <th>Company</th>
+                        <th>Company ID</th>
                         <th>Current plan</th>
                         <th>Owner email</th>
                         <th>Timezone</th>
@@ -27,7 +27,7 @@
                 <tbody>
                     <?php if ($tenants === []): ?>
                         <tr>
-                            <td colspan="7" class="empty-state">No tenants yet.</td>
+                            <td colspan="7" class="empty-state">No companies yet.</td>
                         </tr>
                     <?php endif; ?>
 
@@ -63,7 +63,14 @@
                                 </span>
                             </td>
                             <td class="table-actions">
-                                <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View</a>
+                                <?php if (! empty($tenant->tenant_owner_user_id) && (int) ($tenant->tenant_owner_allow_impersonation ?? 1) === 1): ?>
+                                    <form method="post" action="<?= site_url('impersonation/start/' . $tenant->tenant_owner_user_id) ?>">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="reason" value="Platform support access from company list">
+                                        <button type="submit" class="shell-button shell-button--soft shell-button--sm">Login as owner</button>
+                                    </form>
+                                <?php endif; ?>
+                                <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">Open</a>
                                 <a href="<?= site_url('platform/tenants/' . $tenant->id . '/edit') ?>" class="shell-button shell-button--ghost shell-button--sm">Edit</a>
                                 <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/delete') ?>" onsubmit="return confirm('Delete <?= esc(addslashes($tenant->name)) ?> permanently?\nThis removes all users, branches and data.')">
                                     <?= csrf_field() ?>

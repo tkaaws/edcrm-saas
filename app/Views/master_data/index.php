@@ -5,17 +5,17 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Business Lookup Data</h2>
-            <p class="module-subtitle">Manage simple business lists like Sources, Communication Types, Follow-up Status, and Courses for your company.</p>
+            <p class="module-subtitle">Manage common business lists like enquiry source, communication type, follow-up status, and courses.</p>
         </div>
     </div>
 
     <section class="form-card">
-        <div class="module-toolbar">
-            <div>
-                <h3 class="module-title module-title--small">Lookup data menu</h3>
-                <p class="module-subtitle">Pick the list you want to work on. Example: open Enquiry Source to add sources, or open Mode of Communication to add communication types.</p>
-            </div>
-        </div>
+                <div class="module-toolbar">
+                    <div>
+                        <h3 class="module-title module-title--small">Lookup data menu</h3>
+                        <p class="module-subtitle">Choose a list and add, edit, or hide options.</p>
+                    </div>
+                </div>
 
         <div class="choice-list" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); display:grid;">
             <?php foreach ($types as $type): ?>
@@ -37,11 +37,11 @@
             </div>
 
             <?php if ($selectedType && (int) $selectedType->allow_tenant_entries === 1): ?>
-                <div class="form-grid">
-                    <label class="field">
-                        <span>Name</span>
-                        <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
-                    </label>
+            <div class="form-grid">
+                <label class="field">
+                    <span>Name</span>
+                    <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
+                </label>
                     <label class="field">
                         <span>Sort order</span>
                         <input type="number" name="sort_order" value="<?= esc(old('sort_order', '0')) ?>">
@@ -58,10 +58,10 @@
                         <textarea name="description" rows="2"><?= esc(old('description')) ?></textarea>
                     </label>
                     <?php if ((int) $selectedType->supports_hierarchy === 1): ?>
-                        <label class="field">
-                            <span>Parent value</span>
-                            <select name="parent_value_id">
-                                <option value="">None</option>
+                    <label class="field">
+                        <span>Parent option</span>
+                        <select name="parent_value_id">
+                            <option value="">No parent</option>
                                 <?php foreach (($platformValues ?? []) as $value): ?>
                                     <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
                                         <?= esc($value->label) ?>
@@ -77,8 +77,6 @@
                         </label>
                     <?php endif; ?>
                 </div>
-
-                <p class="module-subtitle">The internal code is generated automatically from the name.</p>
 
                 <div class="form-actions">
                     <button class="shell-button shell-button--primary" type="submit">Create custom value</button>
@@ -100,58 +98,60 @@
                 </div>
             </div>
 
-            <div class="table-card">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Visibility</th>
-                            <th>Status</th>
-                            <th class="data-table__actions">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (($platformValues ?? []) === []): ?>
+            <div class="table-wrap">
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
                             <tr>
-                                <td colspan="4" class="empty-state">No platform values available for this catalog.</td>
+                                <th>Option</th>
+                                <th>Visibility</th>
+                                <th>Status</th>
+                                <th class="data-table__actions">Action</th>
                             </tr>
-                        <?php endif; ?>
-                        <?php foreach (($platformValues ?? []) as $value): ?>
-                            <?php $override = ($overrideMap ?? [])[(int) $value->id] ?? null; ?>
-                            <?php $isVisible = ! $override || (int) $override->is_visible === 1; ?>
-                            <tr>
-                                <td>
-                                    <div class="entity-cell">
-                                        <strong><?= esc($value->label) ?></strong>
-                                        <span><?= esc($value->description ?: 'Shared default value') ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge <?= $isVisible ? 'status-badge--good' : 'status-badge--neutral' ?>">
-                                        <?= $isVisible ? 'Visible' : 'Hidden' ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
-                                        <?= esc(ucfirst($value->status)) ?>
-                                    </span>
-                                </td>
-                                <td class="data-table__actions">
-                                    <?php if ($selectedType && (int) $selectedType->allow_tenant_hide_platform_values === 1): ?>
-                                        <form method="post" action="<?= site_url('settings/master-data/platform-value/' . $value->id . '/toggle') ?>">
-                                            <?= csrf_field() ?>
-                                            <button class="shell-button shell-button--soft" type="submit">
-                                                <?= $isVisible ? 'Hide' : 'Show' ?>
-                                            </button>
-                                        </form>
-                                    <?php else: ?>
-                                        <span class="text-muted">Managed by EDCRM</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php if (($platformValues ?? []) === []): ?>
+                                <tr>
+                                    <td colspan="4" class="empty-state">No platform values available for this catalog.</td>
+                                </tr>
+                            <?php endif; ?>
+                            <?php foreach (($platformValues ?? []) as $value): ?>
+                                <?php $override = ($overrideMap ?? [])[(int) $value->id] ?? null; ?>
+                                <?php $isVisible = ! $override || (int) $override->is_visible === 1; ?>
+                                <tr>
+                                    <td>
+                                        <div class="entity-cell">
+                                            <strong><?= esc($value->label) ?></strong>
+                                            <span><?= esc($value->description ?: 'Shared default value') ?></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge <?= $isVisible ? 'status-badge--good' : 'status-badge--neutral' ?>">
+                                            <?= $isVisible ? 'Visible' : 'Hidden' ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
+                                            <?= esc(ucfirst($value->status)) ?>
+                                        </span>
+                                    </td>
+                                    <td class="data-table__actions">
+                                        <?php if ($selectedType && (int) $selectedType->allow_tenant_hide_platform_values === 1): ?>
+                                            <form method="post" action="<?= site_url('settings/master-data/platform-value/' . $value->id . '/toggle') ?>">
+                                                <?= csrf_field() ?>
+                                                <button class="shell-button shell-button--soft" type="submit">
+                                                    <?= $isVisible ? 'Hide from team' : 'Show for team' ?>
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="text-muted">Managed by EDCRM</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -164,45 +164,47 @@
             </div>
 
             <div class="table-card">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th class="data-table__actions">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (($tenantValues ?? []) === []): ?>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
                             <tr>
-                                <td colspan="3" class="empty-state">No company-specific values yet for this list.</td>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th class="data-table__actions">Action</th>
                             </tr>
-                        <?php endif; ?>
-                        <?php foreach (($tenantValues ?? []) as $value): ?>
-                            <tr>
-                                <td>
-                                    <div class="entity-cell">
-                                        <strong><?= esc($value->label) ?></strong>
-                                        <span><?= esc($value->description ?: 'Company-specific value') ?></span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
-                                        <?= esc(ucfirst($value->status)) ?>
-                                    </span>
-                                </td>
-                                <td class="data-table__actions">
-                                    <form method="post" action="<?= site_url('settings/master-data/tenant-value/' . $value->id . '/status') ?>">
-                                        <?= csrf_field() ?>
-                                        <button class="shell-button shell-button--soft" type="submit">
-                                            <?= $value->status === 'active' ? 'Deactivate' : 'Activate' ?>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php if (($tenantValues ?? []) === []): ?>
+                                <tr>
+                                    <td colspan="3" class="empty-state">No company-specific values yet for this list.</td>
+                                </tr>
+                            <?php endif; ?>
+                            <?php foreach (($tenantValues ?? []) as $value): ?>
+                                <tr>
+                                    <td>
+                                        <div class="entity-cell">
+                                            <strong><?= esc($value->label) ?></strong>
+                                            <span><?= esc($value->description ?: 'Company-specific value') ?></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
+                                            <?= esc(ucfirst($value->status)) ?>
+                                        </span>
+                                    </td>
+                                    <td class="data-table__actions">
+                                        <form method="post" action="<?= site_url('settings/master-data/tenant-value/' . $value->id . '/status') ?>">
+                                            <?= csrf_field() ?>
+                                            <button class="shell-button shell-button--soft" type="submit">
+                                                <?= $value->status === 'active' ? 'Disable' : 'Enable' ?>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </div>

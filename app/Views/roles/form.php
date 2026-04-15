@@ -4,10 +4,10 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title"><?= esc($pageTitle ?? 'Access profile') ?></h2>
-            <p class="module-subtitle">Choose what this kind of team member can see and do.</p>
+            <h2 class="module-title"><?= esc($pageTitle ?? 'Role') ?></h2>
+            <p class="module-subtitle">Choose what this role allows each team member to see and do.</p>
         </div>
-        <a class="shell-button shell-button--ghost" href="<?= site_url('roles') ?>">Back to access profiles</a>
+        <a class="shell-button shell-button--ghost" href="<?= site_url('roles') ?>">Back to roles</a>
     </div>
 
     <form class="form-card" method="post" action="<?= esc($formAction) ?>">
@@ -21,19 +21,14 @@
 
         <div class="form-grid">
             <label class="field">
-                <span>Access profile name</span>
+                <span>Role name</span>
                 <input type="text" name="name" value="<?= esc(old('name', $role->name ?? '')) ?>" required>
             </label>
 
             <?php if (! empty($role)): ?>
                 <label class="field">
-                    <span>Internal code</span>
-                    <input type="text" value="<?= esc($role->code ?? '') ?>" readonly>
-                </label>
-
-                <label class="field">
-                    <span>Profile type</span>
-                    <input type="text" value="<?= (! empty($role) && $role->is_system) ? 'Standard profile' : 'Custom profile' ?>" readonly>
+                    <span>Role type</span>
+                    <input type="text" value="<?= (! empty($role) && $role->is_system) ? 'Core role' : 'Custom role' ?>" readonly>
                 </label>
             <?php endif; ?>
         </div>
@@ -41,8 +36,8 @@
         <section class="form-card form-card--nested">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Privileges</h3>
-                    <p class="module-subtitle">Select what this access profile can do across the workspace.</p>
+                    <h3 class="module-title module-title--small">What this role can do</h3>
+                    <p class="module-subtitle">Pick the actions this team role is allowed to use.</p>
                 </div>
             </div>
 

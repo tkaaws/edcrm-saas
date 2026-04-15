@@ -5,7 +5,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title"><?= esc($tenant->name) ?></h2>
-            <p class="module-subtitle">Tenant profile, status control, and plan assignment.</p>
+            <p class="module-subtitle">Company profile, status control, and assigned subscription.</p>
         </div>
         <div style="display:flex;gap:.5rem;">
             <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id . '/policy') ?>">Policy</a>
@@ -31,11 +31,11 @@
             </div>
 
             <dl class="context-list context-list--wide">
-                <div><dt>Slug</dt><dd><code><?= esc($tenant->slug) ?></code></dd></div>
+                <div><dt>Company ID</dt><dd><code><?= esc($tenant->slug) ?></code></dd></div>
                 <div><dt>Legal name</dt><dd><?= esc($tenant->legal_name ?: '-') ?></dd></div>
-                <div><dt>Owner</dt><dd><?= esc($tenant->owner_name ?: '-') ?></dd></div>
-                <div><dt>Owner email</dt><dd><?= esc($tenant->owner_email ?: '-') ?></dd></div>
-                <div><dt>Owner phone</dt><dd><?= esc($tenant->owner_phone ?: '-') ?></dd></div>
+                <div><dt>Primary contact</dt><dd><?= esc($tenant->owner_name ?: '-') ?></dd></div>
+                <div><dt>Contact email</dt><dd><?= esc($tenant->owner_email ?: '-') ?></dd></div>
+                <div><dt>Contact phone</dt><dd><?= esc($tenant->owner_phone ?: '-') ?></dd></div>
                 <div><dt>Timezone</dt><dd><?= esc($tenant->default_timezone ?: '-') ?></dd></div>
                 <div><dt>Currency</dt><dd><?= esc($tenant->default_currency_code ?: '-') ?></dd></div>
                 <div><dt>Country</dt><dd><?= esc($tenant->country_code ?: '-') ?></dd></div>
@@ -85,7 +85,7 @@
                         <a href="<?= site_url('platform/subscriptions/' . $subscription->id) ?>" class="shell-button shell-button--ghost">Open subscription workspace</a>
                     </div>
                 <?php else: ?>
-                    <p class="module-subtitle" style="margin-bottom:1rem;">No active subscription yet. Assign a plan to unlock tenant modules.</p>
+                    <p class="module-subtitle" style="margin-bottom:1rem;">No active subscription yet. Assign a plan to unlock modules.</p>
                 <?php endif; ?>
 
                 <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/plan') ?>" class="stack-form" style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--line);">
@@ -125,7 +125,7 @@
                         <input type="number" name="trial_days" class="shell-input" value="14" min="1" max="90">
                     </div>
                     <div class="form-actions">
-                        <button class="shell-button shell-button--primary" type="submit">Save tenant plan</button>
+                        <button class="shell-button shell-button--primary" type="submit">Save company plan</button>
                     </div>
                 </form>
             </div>
@@ -133,11 +133,11 @@
             <div class="form-card form-card--danger">
                 <h3 class="module-title module-title--small" style="margin-bottom:.5rem;color:#c0392b;">Danger zone</h3>
                 <p style="color:var(--muted);margin-bottom:1rem;font-size:.875rem;">
-                    Permanently deletes this tenant and all its data: users, branches, roles, settings. This action cannot be undone.
+                    Permanently deletes this company and all its data: users, branches, roles, settings. This action cannot be undone.
                 </p>
                 <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/delete') ?>" onsubmit="return confirm('Delete <?= esc(addslashes($tenant->name)) ?> permanently?\n\nThis will remove all users, branches and tenant data.')">
                     <?= csrf_field() ?>
-                    <button type="submit" class="shell-button shell-button--danger">Delete tenant</button>
+                    <button type="submit" class="shell-button shell-button--danger">Delete company</button>
                 </form>
             </div>
         </div>

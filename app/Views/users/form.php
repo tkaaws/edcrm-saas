@@ -5,7 +5,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title"><?= esc($pageTitle ?? 'Team member') ?></h2>
-            <p class="module-subtitle">Set up a person, choose their access, and decide which branch they work with.</p>
+            <p class="module-subtitle">Set up a person, assign their role, and choose where they work.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('users') ?>">Back to team</a>
     </div>
@@ -13,11 +13,11 @@
     <form class="form-card" method="post" action="<?= esc($formAction) ?>">
         <?= csrf_field() ?>
 
-        <?php if (($canSubmit ?? true) === false): ?>
-            <div class="alert alert--warning">
-                No access profiles are available for you to assign right now.
-            </div>
-        <?php endif; ?>
+            <?php if (($canSubmit ?? true) === false): ?>
+                <div class="alert alert--warning">
+                No team roles are available to assign right now.
+                </div>
+            <?php endif; ?>
 
         <div class="form-grid">
             <label class="field">
@@ -39,7 +39,7 @@
             <label class="field">
                 <span>Role</span>
                 <select name="role_id" required>
-                    <option value="">Select access profile</option>
+                    <option value="">Select role</option>
                     <?php foreach ($roles as $role): ?>
                         <option value="<?= esc((string) $role->id) ?>" <?= (string) old('role_id', $user->role_id ?? '') === (string) $role->id ? 'selected' : '' ?>>
                             <?= esc($role->name) ?>
@@ -49,7 +49,7 @@
             </label>
 
             <label class="field">
-                <span>Reports to</span>
+                <span>Reporting head</span>
                 <select name="manager_user_id">
                     <option value="">No reporting manager</option>
                     <?php foreach ($managerUsers as $manager): ?>
@@ -63,7 +63,7 @@
             </label>
 
             <label class="field field--full">
-                <span>Password <?= $user ? '(leave blank to keep existing)' : '' ?></span>
+                <span>Password <?= $user ? '(leave blank to keep current)' : '' ?></span>
                 <input type="password" name="password" minlength="8" <?= $user ? '' : 'required' ?>>
             </label>
         </div>
@@ -77,11 +77,11 @@
                     </div>
                 </div>
 
-                <div class="form-grid">
-                    <label class="field">
-                        <span>Employee code</span>
-                        <input type="text" name="employee_code" value="<?= esc(old('employee_code', $user->employee_code ?? '')) ?>">
-                    </label>
+            <div class="form-grid">
+                <label class="field">
+                    <span>Staff ID</span>
+                    <input type="text" name="employee_code" value="<?= esc(old('employee_code', $user->employee_code ?? '')) ?>">
+                </label>
 
                     <label class="field">
                         <span>Department</span>
@@ -108,7 +108,7 @@
 
         <div class="choice-grid">
             <section class="choice-card">
-                <h3>Branch access</h3>
+                <h3>Assigned branches</h3>
                 <div class="choice-list">
                     <?php foreach ($branches as $branch): ?>
                         <?php $checked = in_array((int) $branch->id, old('branch_ids', $userBranchIds ?? []), true); ?>
@@ -121,11 +121,11 @@
             </section>
 
             <section class="choice-card">
-                <h3>Main branch</h3>
+                <h3>Primary branch</h3>
                 <label class="field">
-                    <span>Main branch</span>
+                    <span>Primary branch</span>
                     <select name="primary_branch_id" required>
-                        <option value="">Select main branch</option>
+                        <option value="">Select primary branch</option>
                         <?php foreach ($branches as $branch): ?>
                             <option value="<?= esc((string) $branch->id) ?>" <?= (string) old('primary_branch_id', $primaryBranchId ?? '') === (string) $branch->id ? 'selected' : '' ?>>
                                 <?= esc($branch->name) ?>

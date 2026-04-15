@@ -39,7 +39,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Master data menu</h3>
-                    <p class="module-subtitle">Just pick the list you want to manage. Example: open Enquiry Source to add sources, or open Mode of Communication to add communication types.</p>
+                    <p class="module-subtitle">Choose a list and manage its values.</p>
                 </div>
             </div>
 
@@ -63,6 +63,7 @@
 
                 <?php if ($selectedType): ?>
                     <div class="table-card">
+                        <div class="table-wrap">
                         <table class="data-table">
                             <tbody>
                                 <tr><th>Name</th><td><?= esc($selectedType->name) ?></td></tr>
@@ -72,6 +73,7 @@
                                 <tr><th>Status</th><td><?= esc(ucfirst($selectedType->status)) ?></td></tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 <?php endif; ?>
             </section>
@@ -111,9 +113,9 @@
                     </label>
                     <?php if ((int) $selectedType->supports_hierarchy === 1): ?>
                         <label class="field">
-                            <span>Parent value</span>
+                            <span>Parent option</span>
                             <select name="parent_value_id">
-                                <option value="">None</option>
+                                <option value="">No parent</option>
                                 <?php foreach ($values as $value): ?>
                                     <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
                                         <?= esc($value->label) ?>
@@ -124,7 +126,7 @@
                         </label>
                     <?php endif; ?>
                     <label class="field field--full">
-                        <span>Metadata JSON</span>
+                        <span>Extra details (optional)</span>
                         <textarea name="metadata_json" rows="3" placeholder='{"duration_months": 6}'><?= esc(old('metadata_json')) ?></textarea>
                     </label>
                 </div>
@@ -132,11 +134,9 @@
                 <div class="choice-list">
                     <label class="checkbox-row">
                         <input type="checkbox" name="is_system" value="1" <?= old('is_system') ? 'checked' : '' ?>>
-                        <span>Mark as system default</span>
+                        <span>Mark as shared system option</span>
                     </label>
                 </div>
-
-                <p class="module-subtitle">Short code is generated automatically from the name.</p>
 
                 <div class="form-actions">
                     <button class="shell-button shell-button--primary" type="submit">Create value</button>
@@ -155,11 +155,11 @@
             </div>
 
             <div class="table-card">
-                <table class="data-table">
+                <div class="table-wrap">
+                    <table class="data-table">
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Short code</th>
                             <th>Parent</th>
                             <th>Status</th>
                             <th class="data-table__actions">Actions</th>
@@ -180,8 +180,7 @@
                                         <span><?= esc($value->description ?: 'Standard platform value') ?></span>
                                     </div>
                                 </td>
-                                <td><?= esc($value->code) ?></td>
-                                <td><?= esc($parentLabels[(int) ($value->parent_value_id ?? 0)] ?? '—') ?></td>
+                                <td><?= esc($parentLabels[(int) ($value->parent_value_id ?? 0)] ?: '-') ?></td>
                                 <td>
                                     <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                         <?= esc(ucfirst($value->status)) ?>
@@ -191,7 +190,7 @@
                                     <form method="post" action="<?= site_url('platform/master-data/values/' . $value->id . '/status') ?>">
                                         <?= csrf_field() ?>
                                         <button class="shell-button shell-button--soft" type="submit">
-                                            <?= $value->status === 'active' ? 'Deactivate' : 'Activate' ?>
+                                            <?= $value->status === 'active' ? 'Hide' : 'Show' ?>
                                         </button>
                                     </form>
                                 </td>
@@ -199,6 +198,7 @@
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                </div>
             </div>
         </section>
         </div>

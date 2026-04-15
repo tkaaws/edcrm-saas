@@ -1,11 +1,11 @@
-<?= $this->extend('layouts/admin') ?>
+﻿<?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Create plan</h2>
-            <p class="module-subtitle">Add a new billing plan to the catalog.</p>
+            <h2 class="module-title">Add subscription plan</h2>
+            <p class="module-subtitle">Create a plan for new companies and assign included modules.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('platform/plans') ?>">Cancel</a>
     </div>
@@ -21,7 +21,7 @@
                     <label class="field">
                         <span>Plan code <em>*</em></span>
                         <input type="text" name="code" value="<?= esc(old('code')) ?>" placeholder="e.g. professional" required>
-                        <small>Lowercase letters, numbers, underscores only. Cannot be changed later.</small>
+                        <small>Lowercase letters, numbers, underscores only. This value becomes internal reference.</small>
                     </label>
 
                     <label class="field">
@@ -31,7 +31,7 @@
 
                     <label class="field field--full">
                         <span>Description</span>
-                        <input type="text" name="description" value="<?= esc(old('description')) ?>" placeholder="Short plan description shown to customers">
+                        <input type="text" name="description" value="<?= esc(old('description')) ?>" placeholder="What customers see in the plan summary">
                     </label>
 
                     <label class="field">
@@ -47,25 +47,25 @@
                     <label class="field">
                         <span>Max users</span>
                         <input type="number" name="max_users" min="0" value="<?= esc(old('max_users', '0')) ?>">
-                        <small>0 = unlimited</small>
+                        <small>0 = unlimited team members</small>
                     </label>
 
                     <label class="field">
                         <span>Max branches</span>
                         <input type="number" name="max_branches" min="0" value="<?= esc(old('max_branches', '0')) ?>">
-                        <small>0 = unlimited</small>
+                        <small>0 = unlimited work locations</small>
                     </label>
 
                     <label class="field field--full" style="flex-direction:row;align-items:center;gap:.75rem;">
                         <input type="checkbox" name="is_public" value="1" <?= old('is_public') ? 'checked' : '' ?>>
-                        <span>Show on public pricing page</span>
+                        <span>Show in public pricing list</span>
                     </label>
                 </div>
             </div>
 
             <div class="form-card">
                 <h3 class="module-title module-title--small">Included modules</h3>
-                <p class="module-subtitle" style="margin-bottom:1rem;">Select which feature modules this plan unlocks.</p>
+                <p class="module-subtitle" style="margin-bottom:1rem;">Select which feature groups this plan unlocks.</p>
 
                 <div class="form-grid">
                     <?php foreach ($allFeatures as $feature): ?>

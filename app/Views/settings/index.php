@@ -5,7 +5,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Company Settings</h2>
-            <p class="module-subtitle">Manage company profile details, workspace rules, and communication integrations.</p>
+            <p class="module-subtitle">Manage workspace details, company information, and communication settings.</p>
         </div>
     </div>
 
@@ -14,10 +14,10 @@
             <?= csrf_field() ?>
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Company Profile</h3>
-                    <p class="module-subtitle">Core company details and default regional preferences for your workspace.</p>
+                        <h3 class="module-title module-title--small">Company profile</h3>
+                        <p class="module-subtitle">Core workspace details and daily operating defaults.</p>
+                    </div>
                 </div>
-            </div>
 
             <div class="form-grid">
                 <label class="field">
@@ -72,7 +72,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Branding</h3>
-                    <p class="module-subtitle">Control how your company name and branding appear across the workspace.</p>
+                    <p class="module-subtitle">Name and branding text shown inside the app.</p>
                 </div>
             </div>
 
@@ -159,8 +159,8 @@
             <?= csrf_field() ?>
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">SMTP configuration</h3>
-                    <p class="module-subtitle">Email delivery details used for notifications and system mail.</p>
+                    <h3 class="module-title module-title--small">Email setup</h3>
+                    <p class="module-subtitle">How this account sends notifications and other emails.</p>
                 </div>
             </div>
 
@@ -177,8 +177,8 @@
                     <span>From email</span>
                     <input type="email" name="from_email" value="<?= esc(old('from_email', $emailConfig->from_email ?? '')) ?>">
                 </label>
-                <label class="field">
-                    <span>SMTP host</span>
+                    <label class="field">
+                    <span>Email server</span>
                     <input type="text" name="host" value="<?= esc(old('host', $emailConfig->host ?? '')) ?>">
                 </label>
                 <label class="field">
@@ -207,16 +207,16 @@
             </div>
 
             <div class="form-actions">
-                <button class="shell-button shell-button--primary" type="submit">Save SMTP</button>
-            </div>
-        </form>
+                        <button class="shell-button shell-button--primary" type="submit">Save email setup</button>
+                    </div>
+                </form>
 
         <form class="form-card" method="post" action="<?= site_url('settings/whatsapp') ?>">
             <?= csrf_field() ?>
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">WhatsApp configuration</h3>
-                    <p class="module-subtitle">WhatsApp sender details for campaign and transactional communication.</p>
+                    <h3 class="module-title module-title--small">WhatsApp setup</h3>
+                    <p class="module-subtitle">How WhatsApp notifications are sent from this workspace.</p>
                 </div>
             </div>
 
@@ -226,15 +226,15 @@
                     <input type="text" name="provider_name" value="<?= esc(old('provider_name', $whatsappConfig->provider_name ?? '')) ?>">
                 </label>
                 <label class="field">
-                    <span>API base URL</span>
+                    <span>API endpoint</span>
                     <input type="text" name="api_base_url" value="<?= esc(old('api_base_url', $whatsappConfig->api_base_url ?? '')) ?>">
                 </label>
                 <label class="field">
-                    <span>API key</span>
+                    <span>API token</span>
                     <input type="password" name="api_key" value="<?= esc(old('api_key')) ?>" placeholder="<?= ! empty($whatsappConfig?->has_api_key) ? 'Stored - leave blank to keep existing API key' : '' ?>">
                 </label>
                 <label class="field">
-                    <span>Sender ID</span>
+                    <span>Sender number</span>
                     <input type="text" name="sender_id" value="<?= esc(old('sender_id', $whatsappConfig->sender_id ?? '')) ?>">
                 </label>
                 <label class="field">
@@ -247,10 +247,10 @@
             </div>
 
             <div class="form-actions">
-                <button class="shell-button shell-button--primary" type="submit">Save WhatsApp</button>
-            </div>
-        </form>
-    </div>
+                    <button class="shell-button shell-button--primary" type="submit">Save WhatsApp setup</button>
+                </div>
+            </form>
+        </div>
 </section>
 <?= $this->endSection() ?>
 

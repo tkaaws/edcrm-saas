@@ -22,16 +22,21 @@ class PlatformTenants extends BaseController
     public function index(): string
     {
         $tenants = $this->tenantModel->orderBy('created_at', 'DESC')->findAll();
-        $subscriptionMap = $this->getCurrentSubscriptionMap(array_map(static fn($tenant) => (int) $tenant->id, $tenants));
+        $tenantIds = array_map(static fn($tenant) => (int) $tenant->id, $tenants);
+        $subscriptionMap = $this->getCurrentSubscriptionMap($tenantIds);
+        $tenantOwnerMap  = $this->getTenantOwnerUserMap($tenantIds);
 
         foreach ($tenants as $tenant) {
             $current = $subscriptionMap[(int) $tenant->id] ?? null;
+            $tenantOwner = $tenantOwnerMap[(int) $tenant->id] ?? null;
             $tenant->current_plan_id           = $current->plan_id ?? null;
             $tenant->current_plan_name          = $current->plan_name ?? null;
             $tenant->current_plan_code          = $current->plan_code ?? null;
             $tenant->current_subscription_id    = $current->id ?? null;
             $tenant->current_subscription_status = $current->status ?? null;
             $tenant->current_billing_cycle      = $current->billing_cycle ?? null;
+            $tenant->tenant_owner_user_id       = $tenantOwner->id ?? null;
+            $tenant->tenant_owner_allow_impersonation = $tenantOwner->allow_impersonation ?? 1;
         }
 
         return view('platform/tenants/index', $this->buildShellViewData([
@@ -298,6 +303,37 @@ class PlatformTenants extends BaseController
         foreach ($rows as $row) {
             if (in_array((int) $row->tenant_id, $tenantIds, true)) {
                 $map[(int) $row->tenant_id] = $row;
+            }
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param list<int> $tenantIds
+     * @return array<int, object>
+     */
+    protected function getTenantOwnerUserMap(array $tenantIds): array
+    {
+        if ($tenantIds === []) {
+            return [];
+        }
+
+        $rows = db_connect()->table('users')
+            ->select('users.id, users.tenant_id, users.allow_impersonation')
+            ->join('user_roles', 'user_roles.id = users.role_id', 'inner')
+            ->whereIn('users.tenant_id', $tenantIds)
+            ->where('users.is_active', 1)
+            ->where('user_roles.code', 'tenant_owner')
+            ->orderBy('users.id', 'ASC')
+            ->get()
+            ->getResult();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $tenantId = (int) $row->tenant_id;
+            if (! isset($map[$tenantId])) {
+                $map[$tenantId] = $row;
             }
         }
 

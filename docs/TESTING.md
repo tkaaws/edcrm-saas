@@ -33,7 +33,21 @@ They are used for:
 
 These are fast and do not depend on the live droplet database.
 
-### 2. Database PHPUnit suite
+### 2. Browser smoke (Playwright) [planned]
+
+Current target smoke set:
+
+- platform admin login
+- tenant login
+- branch create
+- user create
+- role create
+- master-data add and hide actions
+- settings save flows
+
+This layer will start with 6-10 critical journeys to validate end-to-end usability.
+
+### 3. Database PHPUnit suite
 
 This runs after the fast suites:
 
@@ -118,7 +132,7 @@ vendor/bin/phpunit --testsuite database --no-coverage --do-not-cache-result
 
 ## What is coming later
 
-Later we will add Playwright for browser and end-to-end testing.
+Playwright for browser and end-to-end testing is in progress and is part of the next implementation cycle.
 
 That layer will cover real user journeys like:
 

@@ -4,12 +4,12 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title"><?= esc($tenant->name) ?> Policy Workspace</h2>
-            <p class="module-subtitle">Lock or override tenant settings before operational modules consume them at runtime.</p>
+            <h2 class="module-title"><?= esc($tenant->name) ?> Access Controls</h2>
+            <p class="module-subtitle">Set which workspace-level defaults can be changed by this company.</p>
         </div>
         <div style="display:flex;gap:.5rem;">
-            <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id) ?>">Back to tenant</a>
-            <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants') ?>">All tenants</a>
+            <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id) ?>">Back to company</a>
+            <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants') ?>">All companies</a>
         </div>
     </div>
 
@@ -18,15 +18,15 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Policy summary</h3>
-                    <p class="module-subtitle">Tenant-wide overrides applied by the platform team.</p>
+                    <p class="module-subtitle">Workspace-level policy rules set by platform support.</p>
                 </div>
             </div>
 
             <dl class="context-list context-list--wide">
-                <div><dt>Tenant</dt><dd><?= esc($tenant->name) ?></dd></div>
-                <div><dt>Slug</dt><dd><code><?= esc($tenant->slug) ?></code></dd></div>
+                <div><dt>Company</dt><dd><?= esc($tenant->name) ?></dd></div>
+                <div><dt>Company ID</dt><dd><code><?= esc($tenant->slug) ?></code></dd></div>
                 <div><dt>Status</dt><dd><?= esc(ucfirst($tenant->status)) ?></dd></div>
-                <div><dt>Owner email</dt><dd><?= esc($tenant->owner_email ?: '-') ?></dd></div>
+                <div><dt>Contact email</dt><dd><?= esc($tenant->owner_email ?: '-') ?></dd></div>
             </dl>
         </div>
     </div>
@@ -85,9 +85,10 @@
                                     <label class="field">
                                         <span>Lock mode</span>
                                         <select name="<?= esc($formKey) ?>__lock_mode">
-                                            <?php foreach (['editable', 'tenant_locked', 'branch_locked', 'platform_enforced'] as $mode): ?>
+                                            <?php $lockLabels = ['editable' => 'Editable by company', 'tenant_locked' => 'No company override', 'branch_locked' => 'Branch-only control', 'platform_enforced' => 'Platform enforced']; ?>
+                                            <?php foreach ($lockLabels as $mode => $modeLabel): ?>
                                                 <option value="<?= esc($mode) ?>" <?= $lockMode === $mode ? 'selected' : '' ?>>
-                                                    <?= esc(ucwords(str_replace('_', ' ', $mode))) ?>
+                                                    <?= esc($modeLabel) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>

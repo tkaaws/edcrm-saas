@@ -20,7 +20,7 @@
             </label>
 
             <label class="field">
-                <span>Branch code</span>
+                <span>Branch short code</span>
                 <input type="text" name="code" value="<?= esc(old('code', $branch->code ?? '')) ?>" required>
             </label>
 
@@ -46,17 +46,17 @@
 
                 <div class="form-grid">
                     <label class="field">
-                        <span>Branch type</span>
+                    <span>Branch type</span>
                         <input type="text" name="type" value="<?= esc(old('type', $branch->type ?? '')) ?>" placeholder="Main, satellite, online">
                     </label>
 
                     <label class="field">
-                        <span>Country code</span>
+                        <span>Country</span>
                         <input type="text" name="country_code" value="<?= esc(old('country_code', $branch->country_code ?? '')) ?>" placeholder="IN">
                     </label>
 
                     <label class="field">
-                        <span>State code</span>
+                        <span>State</span>
                         <input type="text" name="state_code" value="<?= esc(old('state_code', $branch->state_code ?? '')) ?>">
                     </label>
 
@@ -66,7 +66,7 @@
                     </label>
 
                     <label class="field">
-                        <span>Currency code</span>
+                        <span>Currency</span>
                         <input type="text" name="currency_code" value="<?= esc(old('currency_code', $branch->currency_code ?? '')) ?>" placeholder="INR">
                     </label>
 
