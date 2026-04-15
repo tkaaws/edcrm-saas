@@ -207,24 +207,5 @@
         </section>
     </div>
 
-    <section class="form-card">
-        <div class="module-toolbar">
-            <div>
-                <h3 class="module-title module-title--small">Effective runtime list</h3>
-                <p class="module-subtitle">This is the exact union the application will use in forms and workflows.</p>
-            </div>
-        </div>
-
-        <div class="choice-list">
-            <?php if (($effectiveValues ?? []) === []): ?>
-                <span class="empty-state">No effective values available for this catalog yet.</span>
-            <?php endif; ?>
-            <?php foreach (($effectiveValues ?? []) as $value): ?>
-                <span class="status-badge <?= $value->scope_type === 'tenant' ? 'status-badge--good' : 'status-badge--neutral' ?>">
-                    <?= esc($value->label) ?> · <?= esc($value->scope_type) ?>
-                </span>
-            <?php endforeach; ?>
-        </div>
-    </section>
 </section>
 <?= $this->endSection() ?>
