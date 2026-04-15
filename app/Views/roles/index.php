@@ -17,7 +17,7 @@
 
     <div class="table-card">
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table data-table--cards">
                 <thead>
                     <tr>
                         <th>Role name</th>
@@ -35,19 +35,19 @@
 
                     <?php foreach ($roles as $role): ?>
                         <tr>
-                            <td>
+                            <td data-label="Role">
                                 <div class="entity-cell">
                                     <strong><?= esc($role->name) ?></strong>
                                     <span><?= $role->is_system ? 'Core role' : 'Custom role' ?></span>
                                 </div>
                             </td>
-                            <td><?= $role->is_system ? 'System' : 'Custom' ?></td>
-                            <td>
+                            <td data-label="Type"><?= $role->is_system ? 'System' : 'Custom' ?></td>
+                            <td data-label="Status">
                                 <span class="status-badge <?= $role->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                     <?= esc(ucfirst($role->status)) ?>
                                 </span>
                             </td>
-                            <td class="data-table__actions">
+                            <td class="data-table__actions" data-label="Actions">
                                 <div class="table-actions">
                                     <?php if ($canEditRoles): ?>
                                         <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('roles/' . $role->id . '/edit') ?>">Edit</a>

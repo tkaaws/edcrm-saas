@@ -69,7 +69,7 @@
 
             <div class="table-wrap">
                 <div class="table-card">
-                    <table class="data-table">
+                    <table class="data-table data-table--cards">
                         <thead>
                             <tr>
                                 <th>Option</th>
@@ -88,23 +88,23 @@
                                 <?php $override = ($overrideMap ?? [])[(int) $value->id] ?? null; ?>
                                 <?php $isVisible = ! $override || (int) $override->is_visible === 1; ?>
                                 <tr>
-                                    <td>
+                                    <td data-label="Option">
                                         <div class="entity-cell">
                                             <strong><?= esc($value->label) ?></strong>
                                             <span><?= esc($value->description ?: 'Shared default value') ?></span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Visibility">
                                         <span class="status-badge <?= $isVisible ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                             <?= $isVisible ? 'Visible' : 'Hidden' ?>
                                         </span>
                                     </td>
-                                    <td>
+                                    <td data-label="Status">
                                         <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                             <?= esc(ucfirst($value->status)) ?>
                                         </span>
                                     </td>
-                                    <td class="data-table__actions">
+                                    <td class="data-table__actions" data-label="Action">
                                         <?php if ((int) $selectedType->allow_tenant_hide_platform_values === 1): ?>
                                             <form method="post" action="<?= site_url('settings/master-data/platform-value/' . $value->id . '/toggle') ?>">
                                                 <?= csrf_field() ?>
@@ -135,7 +135,7 @@
 
                 <div class="table-card">
                     <div class="table-wrap">
-                        <table class="data-table">
+                        <table class="data-table data-table--cards">
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -151,18 +151,18 @@
                                 <?php endif; ?>
                                 <?php foreach (($tenantValues ?? []) as $value): ?>
                                     <tr>
-                                        <td>
+                                        <td data-label="Name">
                                             <div class="entity-cell">
                                                 <strong><?= esc($value->label) ?></strong>
                                                 <span><?= esc($value->description ?: 'Company-specific value') ?></span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="Status">
                                             <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                                 <?= esc(ucfirst($value->status)) ?>
                                             </span>
                                         </td>
-                                        <td class="data-table__actions">
+                                        <td class="data-table__actions" data-label="Action">
                                             <form method="post" action="<?= site_url('settings/master-data/tenant-value/' . $value->id . '/status') ?>">
                                                 <?= csrf_field() ?>
                                                 <button class="shell-button shell-button--soft shell-button--sm" type="submit">

@@ -17,7 +17,7 @@
 
     <div class="table-card">
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table data-table--cards">
                 <thead>
                     <tr>
                         <th>Branch</th>
@@ -38,22 +38,22 @@
 
                     <?php foreach ($branches as $branch): ?>
                         <tr>
-                            <td>
+                            <td data-label="Branch">
                                 <div class="entity-cell">
                                     <strong><?= esc($branch->name) ?></strong>
                                     <span><?= esc($branch->type ?: 'General branch') ?></span>
                                 </div>
                             </td>
-                            <td><?= esc($branch->code) ?></td>
-                            <td><?= esc($branch->city ?: 'Not set') ?></td>
-                            <td><?= esc($branch->timezone ?: 'Company default') ?></td>
-                            <td><?= esc($branch->currency_code ?: 'Company default') ?></td>
-                            <td>
+                            <td data-label="Branch code"><?= esc($branch->code) ?></td>
+                            <td data-label="City"><?= esc($branch->city ?: 'Not set') ?></td>
+                            <td data-label="Timezone"><?= esc($branch->timezone ?: 'Company default') ?></td>
+                            <td data-label="Currency"><?= esc($branch->currency_code ?: 'Company default') ?></td>
+                            <td data-label="Status">
                                 <span class="status-badge <?= $branch->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                     <?= esc(ucfirst($branch->status)) ?>
                                 </span>
                             </td>
-                            <td class="data-table__actions">
+                            <td class="data-table__actions" data-label="Actions">
                                 <div class="table-actions">
                                     <?php if ($canEditBranches): ?>
                                         <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('branches/' . $branch->id . '/settings') ?>">Settings</a>

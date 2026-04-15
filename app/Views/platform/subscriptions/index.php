@@ -40,7 +40,7 @@
 
     <div class="table-card">
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table data-table--cards">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -71,18 +71,18 @@
                             };
                         ?>
                         <tr>
-                            <td><?= esc((string) $subscription->id) ?></td>
-                            <td>
+                            <td data-label="Subscription #"><?= esc((string) $subscription->id) ?></td>
+                            <td data-label="Company">
                                 <div class="entity-cell">
                                     <strong><?= esc($subscription->tenant_name) ?></strong>
                                     <span><?= esc($subscription->tenant_slug) ?></span>
                                 </div>
                             </td>
-                            <td><?= esc($subscription->plan_name) ?> <small class="text-muted">(<?= esc($subscription->plan_code) ?>)</small></td>
-                            <td><?= esc(ucfirst($subscription->billing_cycle)) ?></td>
-                            <td><span class="status-badge <?= $statusClass ?>"><?= esc(ucfirst($subscription->status)) ?></span></td>
-                            <td><?= $subscription->starts_at ? esc(date('d M Y', strtotime($subscription->starts_at))) : '-' ?></td>
-                            <td>
+                            <td data-label="Plan"><?= esc($subscription->plan_name) ?> <small class="text-muted">(<?= esc($subscription->plan_code) ?>)</small></td>
+                            <td data-label="Cycle"><?= esc(ucfirst($subscription->billing_cycle)) ?></td>
+                            <td data-label="Status"><span class="status-badge <?= $statusClass ?>"><?= esc(ucfirst($subscription->status)) ?></span></td>
+                            <td data-label="Starts"><?= $subscription->starts_at ? esc(date('d M Y', strtotime($subscription->starts_at))) : '-' ?></td>
+                            <td data-label="Renews / Expires">
                                 <?php if ($subscription->status === 'trial' && $subscription->trial_ends_at): ?>
                                     Trial ends <?= esc(date('d M Y', strtotime($subscription->trial_ends_at))) ?>
                                 <?php elseif ($subscription->renews_at): ?>
@@ -93,7 +93,7 @@
                                     -
                                 <?php endif; ?>
                             </td>
-                            <td class="data-table__actions">
+                            <td class="data-table__actions" data-label="Actions">
                                 <div class="table-actions">
                                     <a href="<?= site_url('platform/subscriptions/' . $subscription->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View</a>
                                     <?php if (in_array($subscription->status, ['trial', 'active', 'grace', 'suspended'], true)): ?>

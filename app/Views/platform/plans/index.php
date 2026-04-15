@@ -12,7 +12,7 @@
 
     <div class="table-card">
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table data-table--cards">
                 <thead>
                     <tr>
                         <th>Plan</th>
@@ -39,22 +39,22 @@
                         $maxBranches = $db->table('plan_limits')->where('plan_id', $plan->id)->where('limit_code', 'max_branches')->get()->getRow();
                     ?>
                         <tr>
-                            <td>
+                            <td data-label="Plan">
                                 <div class="entity-cell">
                                     <strong><?= esc($plan->name) ?></strong>
                                     <span><?= esc($plan->description ?: '—') ?></span>
                                 </div>
                             </td>
-                            <td><code><?= esc($plan->code) ?></code></td>
-                            <td>
+                            <td data-label="Plan ID"><code><?= esc($plan->code) ?></code></td>
+                            <td data-label="Monthly">
                                 <?= $monthly ? '&#8377;' . number_format($monthly->price_amount / 100, 0) : '<span class="text-muted">—</span>' ?>
                             </td>
-                            <td>
+                            <td data-label="Yearly">
                                 <?= $yearly ? '&#8377;' . number_format($yearly->price_amount / 100, 0) : '<span class="text-muted">—</span>' ?>
                             </td>
-                            <td><?= $maxUsers ? ($maxUsers->limit_value == -1 ? '∞' : $maxUsers->limit_value) : '—' ?></td>
-                            <td><?= $maxBranches ? ($maxBranches->limit_value == -1 ? '∞' : $maxBranches->limit_value) : '—' ?></td>
-                            <td>
+                            <td data-label="Users"><?= $maxUsers ? ($maxUsers->limit_value == -1 ? '∞' : $maxUsers->limit_value) : '—' ?></td>
+                            <td data-label="Branches"><?= $maxBranches ? ($maxBranches->limit_value == -1 ? '∞' : $maxBranches->limit_value) : '—' ?></td>
+                            <td data-label="Status">
                                 <span class="status-badge <?= $plan->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                     <?= esc(ucfirst($plan->status)) ?>
                                 </span>
@@ -62,7 +62,7 @@
                                     <span class="status-badge status-badge--neutral">Private</span>
                                 <?php endif; ?>
                             </td>
-                            <td class="data-table__actions">
+                            <td class="data-table__actions" data-label="Actions">
                                 <div class="table-actions">
                                     <a href="<?= site_url("platform/plans/{$plan->id}") ?>" class="shell-button shell-button--ghost shell-button--sm">Open</a>
                                     <form method="post" action="<?= site_url("platform/plans/{$plan->id}/delete") ?>" onsubmit="return confirm('Delete plan <?= esc(addslashes($plan->name)) ?>? This cannot be undone.')">

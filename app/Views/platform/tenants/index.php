@@ -12,7 +12,7 @@
 
     <div class="table-card">
         <div class="table-wrap">
-            <table class="data-table">
+            <table class="data-table data-table--cards">
                 <thead>
                     <tr>
                         <th>Company</th>
@@ -33,14 +33,14 @@
 
                     <?php foreach ($tenants as $tenant): ?>
                         <tr>
-                            <td>
+                            <td data-label="Company">
                                 <div class="entity-cell">
                                     <strong><?= esc($tenant->name) ?></strong>
                                     <span><?= esc($tenant->legal_name ?: '-') ?></span>
                                 </div>
                             </td>
-                            <td><code><?= esc($tenant->slug) ?></code></td>
-                            <td>
+                            <td data-label="Company ID"><code><?= esc($tenant->slug) ?></code></td>
+                            <td data-label="Current plan">
                                 <div class="entity-cell">
                                     <strong><?= esc($tenant->current_plan_name ?: 'Unassigned') ?></strong>
                                     <span>
@@ -55,14 +55,14 @@
                                     </span>
                                 </div>
                             </td>
-                            <td><?= esc($tenant->owner_email ?: '-') ?></td>
-                            <td><?= esc($tenant->default_timezone ?: 'UTC') ?></td>
-                            <td>
+                            <td data-label="Owner email"><?= esc($tenant->owner_email ?: '-') ?></td>
+                            <td data-label="Timezone"><?= esc($tenant->default_timezone ?: 'UTC') ?></td>
+                            <td data-label="Status">
                                 <span class="status-badge <?= $tenant->status === 'active' ? 'status-badge--good' : ($tenant->status === 'suspended' ? 'status-badge--warm' : 'status-badge--neutral') ?>">
                                     <?= esc(ucfirst($tenant->status)) ?>
                                 </span>
                             </td>
-                            <td class="data-table__actions">
+                            <td class="data-table__actions" data-label="Actions">
                                 <div class="table-actions">
                                     <?php if (! empty($tenant->tenant_owner_user_id) && (int) ($tenant->tenant_owner_allow_impersonation ?? 1) === 1): ?>
                                         <form method="post" action="<?= site_url('impersonation/start/' . $tenant->tenant_owner_user_id) ?>">
@@ -81,7 +81,7 @@
                             </td>
                         </tr>
                         <tr class="data-table__subrow">
-                            <td colspan="7">
+                            <td colspan="7" data-label="Plan setup">
                                 <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/plan') ?>" class="inline-form inline-form--compact">
                                     <?= csrf_field() ?>
                                     <div class="field">

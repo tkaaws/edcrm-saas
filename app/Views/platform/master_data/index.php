@@ -85,7 +85,7 @@
 
             <div class="table-card">
                 <div class="table-wrap">
-                    <table class="data-table">
+                    <table class="data-table data-table--cards">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -103,20 +103,20 @@
                         <?php $parentLabels = []; foreach ($values as $value): $parentLabels[(int) $value->id] = $value->label; endforeach; ?>
                         <?php foreach ($values as $value): ?>
                             <tr>
-                                <td>
+                                <td data-label="Name">
                                     <div class="entity-cell">
                                         <strong><?= esc($value->label) ?></strong>
                                         <span><?= esc($value->description ?: 'Standard platform value') ?></span>
                                     </div>
                                 </td>
                                 <?php $parentId = (int) ($value->parent_value_id ?? 0); ?>
-                                <td><?= esc($parentLabels[$parentId] ?? '-') ?></td>
-                                <td>
+                                <td data-label="Parent"><?= esc($parentLabels[$parentId] ?? '-') ?></td>
+                                <td data-label="Status">
                                     <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                         <?= esc(ucfirst($value->status)) ?>
                                     </span>
                                 </td>
-                                <td class="data-table__actions">
+                                <td class="data-table__actions" data-label="Actions">
                                     <form method="post" action="<?= site_url('platform/master-data/values/' . $value->id . '/status') ?>">
                                         <?= csrf_field() ?>
                                         <button class="shell-button shell-button--soft shell-button--sm" type="submit">
