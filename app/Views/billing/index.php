@@ -11,7 +11,7 @@
 
     <?php if (! $subscription): ?>
         <div class="shell-alert shell-alert--warning">
-            No active plan was found. Contact the EDCRM team to activate this institute.
+            No active plan was found. Contact the EDCRM team to activate this company.
         </div>
     <?php else: ?>
         <?php
@@ -101,7 +101,7 @@
 
                 <?php if ($usersSummary['over_limit'] || $branchesSummary['over_limit']): ?>
                     <div class="shell-alert shell-alert--warning" style="margin-top:.75rem;">
-                        One or more plan limits have been exceeded. Ask the platform team to upgrade the tenant plan or reduce records.
+                        One or more plan limits have been exceeded. Ask the EDCRM team to upgrade the company plan or reduce records.
                         
                     </div>
                 <?php endif; ?>

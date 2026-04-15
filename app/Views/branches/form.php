@@ -5,7 +5,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title"><?= esc($pageTitle ?? 'Branch') ?></h2>
-            <p class="module-subtitle">Add or update a branch for your institute.</p>
+            <p class="module-subtitle">Add or update a branch for your company.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('branches') ?>">Back to branches</a>
     </div>
@@ -91,7 +91,7 @@
             </section>
         <?php else: ?>
             <p class="module-subtitle" style="margin-top:1rem;">
-                Country, currency, timezone, and status will use your institute defaults for now. You can refine them later from branch settings.
+                Country, currency, timezone, and status will use your company defaults for now. You can refine them later from branch settings.
             </p>
         <?php endif; ?>
 

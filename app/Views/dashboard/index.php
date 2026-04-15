@@ -4,7 +4,7 @@
 <section class="dashboard-grid">
     <div class="metrics-grid">
         <article class="metric-card">
-            <p class="metric-card__eyebrow">Institute</p>
+            <p class="metric-card__eyebrow">Company</p>
             <p class="metric-card__value"><?= esc($tenantLabel ?? 'Not resolved') ?></p>
             <p class="metric-card__caption">Your current workspace.</p>
         </article>
@@ -41,8 +41,8 @@
                 </li>
                 <li>
                     <div>
-                        <strong>Institute and branch setup</strong>
-                        <div class="module-list__meta">Institute context, branch routing, and access boundaries are in place.</div>
+                        <strong>Company and branch setup</strong>
+                        <div class="module-list__meta">Company context, branch routing, and access boundaries are in place.</div>
                     </div>
                     <span class="status-badge status-badge--good">Ready</span>
                 </li>
@@ -62,7 +62,7 @@
                 </li>
                 <li>
                     <div>
-                        <strong>Institute onboarding</strong>
+                        <strong>Company onboarding</strong>
                         <div class="module-list__meta">New institutes can be created and activated by the EDCRM team.</div>
                     </div>
                     <span class="status-badge status-badge--good">Ready</span>
@@ -89,7 +89,7 @@
                     <span><?= esc($userEmail ?? '') ?></span>
                 </li>
                 <li>
-                    <span>Institute</span>
+                    <span>Company</span>
                     <span><?= esc($tenantLabel ?? '') ?></span>
                 </li>
                 <li>

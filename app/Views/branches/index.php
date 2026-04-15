@@ -8,7 +8,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Branches</h2>
-            <p class="module-subtitle">Manage your institute locations and decide which branches are active.</p>
+            <p class="module-subtitle">Manage your company locations and decide which branches are active.</p>
         </div>
         <?php if ($canCreateBranches): ?>
             <a class="shell-button shell-button--primary" href="<?= site_url('branches/create') ?>">Add branch</a>
@@ -31,7 +31,7 @@
             <tbody>
                 <?php if ($branches === []): ?>
                     <tr>
-                        <td colspan="7" class="empty-state">No branches yet. Add the first branch for this institute.</td>
+                        <td colspan="7" class="empty-state">No branches yet. Add the first branch for this company.</td>
                     </tr>
                 <?php endif; ?>
 
@@ -45,8 +45,8 @@
                         </td>
                         <td><?= esc($branch->code) ?></td>
                         <td><?= esc($branch->city ?: 'Not set') ?></td>
-                        <td><?= esc($branch->timezone ?: 'Tenant default') ?></td>
-                        <td><?= esc($branch->currency_code ?: 'Tenant default') ?></td>
+                        <td><?= esc($branch->timezone ?: 'Company default') ?></td>
+                        <td><?= esc($branch->currency_code ?: 'Company default') ?></td>
                         <td>
                             <span class="status-badge <?= $branch->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                 <?= esc(ucfirst($branch->status)) ?>

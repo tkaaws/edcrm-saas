@@ -31,7 +31,7 @@
             <tbody>
                 <?php if ($users === []): ?>
                     <tr>
-                        <td colspan="6" class="empty-state">No team members yet. Add the first person for this institute.</td>
+                        <td colspan="6" class="empty-state">No team members yet. Add the first person for this company.</td>
                     </tr>
                 <?php endif; ?>
 
@@ -65,7 +65,7 @@
                                 <?php if ($canImpersonateUsers && ! empty($user->can_manage_target) && $user->is_active && (int) $user->id !== (int) session()->get('user_id') && (int) ($user->allow_impersonation ?? 1) === 1): ?>
                                     <form method="post" action="<?= site_url('impersonation/start/' . $user->id) ?>">
                                         <?= csrf_field() ?>
-                                        <input type="hidden" name="reason" value="Tenant support access">
+                                        <input type="hidden" name="reason" value="Company support access">
                                         <button class="shell-button shell-button--soft" type="submit">Open as this user</button>
                                     </form>
                                 <?php endif; ?>

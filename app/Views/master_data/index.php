@@ -4,15 +4,15 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Tenant master data</h2>
-            <p class="module-subtitle">Manage easy business lists like Sources, Communication Types, Follow-up Status, and Courses for this tenant.</p>
+            <h2 class="module-title">Business Lookup Data</h2>
+            <p class="module-subtitle">Manage simple business lists like Sources, Communication Types, Follow-up Status, and Courses for your company.</p>
         </div>
     </div>
 
     <section class="form-card">
         <div class="module-toolbar">
             <div>
-                <h3 class="module-title module-title--small">Master data menu</h3>
+                <h3 class="module-title module-title--small">Lookup data menu</h3>
                 <p class="module-subtitle">Pick the list you want to work on. Example: open Enquiry Source to add sources, or open Mode of Communication to add communication types.</p>
             </div>
         </div>
@@ -32,7 +32,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Add value<?= $selectedType ? ' to ' . esc($selectedType->name) : '' ?></h3>
-                    <p class="module-subtitle">Create a custom option for the selected catalog when local additions are allowed.</p>
+                    <p class="module-subtitle">Create a company-specific option for the selected list when custom additions are allowed.</p>
                 </div>
             </div>
 
@@ -78,15 +78,15 @@
                     <?php endif; ?>
                 </div>
 
-                <p class="module-subtitle">Code is generated automatically from the name.</p>
+                <p class="module-subtitle">The internal code is generated automatically from the name.</p>
 
                 <div class="form-actions">
                     <button class="shell-button shell-button--primary" type="submit">Create custom value</button>
                 </div>
             <?php elseif ($selectedType): ?>
-                <p class="empty-state">This catalog is platform-managed only. Tenant-specific values are disabled.</p>
+                <p class="empty-state">This list is managed by the EDCRM team only. Company-specific additions are turned off.</p>
             <?php else: ?>
-                <p class="empty-state">Select a catalog to add tenant-specific values.</p>
+                <p class="empty-state">Select a list to add company-specific values.</p>
             <?php endif; ?>
         </form>
     </div>
@@ -96,7 +96,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small"><?= $selectedType ? esc($selectedType->name) : 'Platform values' ?></h3>
-                    <p class="module-subtitle">Shared values seeded by the platform. You can hide them locally when the catalog allows it.</p>
+                    <p class="module-subtitle">Shared values provided by the EDCRM team. You can hide them for your company when this list allows it.</p>
                 </div>
             </div>
 
@@ -123,7 +123,7 @@
                                 <td>
                                     <div class="entity-cell">
                                         <strong><?= esc($value->label) ?></strong>
-                                        <span><?= esc($value->description ?: 'Shared platform default') ?></span>
+                                        <span><?= esc($value->description ?: 'Shared default value') ?></span>
                                     </div>
                                 </td>
                                 <td>
@@ -145,7 +145,7 @@
                                             </button>
                                         </form>
                                     <?php else: ?>
-                                        <span class="text-muted">Locked by platform</span>
+                                        <span class="text-muted">Managed by EDCRM</span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
@@ -158,8 +158,8 @@
         <section class="form-card">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Custom values<?= $selectedType ? ' for ' . esc($selectedType->name) : '' ?></h3>
-                    <p class="module-subtitle">Tenant-specific entries added on top of the platform catalog.</p>
+                    <h3 class="module-title module-title--small">Company values<?= $selectedType ? ' for ' . esc($selectedType->name) : '' ?></h3>
+                    <p class="module-subtitle">Company-specific entries added on top of the shared list.</p>
                 </div>
             </div>
 
@@ -175,7 +175,7 @@
                     <tbody>
                         <?php if (($tenantValues ?? []) === []): ?>
                             <tr>
-                                <td colspan="3" class="empty-state">No tenant-specific values yet for this catalog.</td>
+                                <td colspan="3" class="empty-state">No company-specific values yet for this list.</td>
                             </tr>
                         <?php endif; ?>
                         <?php foreach (($tenantValues ?? []) as $value): ?>
@@ -183,7 +183,7 @@
                                 <td>
                                     <div class="entity-cell">
                                         <strong><?= esc($value->label) ?></strong>
-                                        <span><?= esc($value->description ?: 'Tenant custom value') ?></span>
+                                        <span><?= esc($value->description ?: 'Company-specific value') ?></span>
                                     </div>
                                 </td>
                                 <td>

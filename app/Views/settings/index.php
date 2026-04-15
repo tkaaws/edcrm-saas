@@ -4,8 +4,8 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Tenant settings</h2>
-            <p class="module-subtitle">Manage institute profile defaults, operational visibility, and communication integrations.</p>
+            <h2 class="module-title">Company Settings</h2>
+            <p class="module-subtitle">Manage company profile details, workspace rules, and communication integrations.</p>
         </div>
     </div>
 
@@ -14,18 +14,18 @@
             <?= csrf_field() ?>
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Institute profile</h3>
-                    <p class="module-subtitle">Core tenant identity and global defaults for the institute.</p>
+                    <h3 class="module-title module-title--small">Company Profile</h3>
+                    <p class="module-subtitle">Core company details and default regional preferences for your workspace.</p>
                 </div>
             </div>
 
             <div class="form-grid">
                 <label class="field">
-                    <span>Institute name</span>
+                    <span>Company name</span>
                     <input type="text" name="name" value="<?= esc(old('name', $tenant->name ?? '')) ?>" required>
                 </label>
                 <label class="field">
-                    <span>Slug</span>
+                    <span>Company code</span>
                     <input type="text" value="<?= esc($tenant->slug ?? '') ?>" readonly>
                 </label>
                 <label class="field">
@@ -33,31 +33,31 @@
                     <input type="text" name="legal_name" value="<?= esc(old('legal_name', $tenant->legal_name ?? '')) ?>">
                 </label>
                 <label class="field">
-                    <span>Owner name</span>
+                    <span>Primary contact name</span>
                     <input type="text" name="owner_name" value="<?= esc(old('owner_name', $tenant->owner_name ?? '')) ?>">
                 </label>
                 <label class="field">
-                    <span>Owner email</span>
+                    <span>Primary contact email</span>
                     <input type="email" name="owner_email" value="<?= esc(old('owner_email', $tenant->owner_email ?? '')) ?>">
                 </label>
                 <label class="field">
-                    <span>Owner phone</span>
+                    <span>Primary contact phone</span>
                     <input type="text" name="owner_phone" value="<?= esc(old('owner_phone', $tenant->owner_phone ?? '')) ?>">
                 </label>
                 <label class="field">
-                    <span>Default timezone</span>
+                    <span>Timezone</span>
                     <input type="text" name="default_timezone" value="<?= esc(old('default_timezone', $tenant->default_timezone ?? 'UTC')) ?>">
                 </label>
                 <label class="field">
-                    <span>Default currency code</span>
+                    <span>Currency</span>
                     <input type="text" name="default_currency_code" value="<?= esc(old('default_currency_code', $tenant->default_currency_code ?? 'USD')) ?>">
                 </label>
                 <label class="field">
-                    <span>Country code</span>
+                    <span>Country</span>
                     <input type="text" name="country_code" value="<?= esc(old('country_code', $tenant->country_code ?? '')) ?>">
                 </label>
                 <label class="field">
-                    <span>Locale code</span>
+                    <span>Language locale</span>
                     <input type="text" name="locale_code" value="<?= esc(old('locale_code', $tenant->locale_code ?? 'en')) ?>">
                 </label>
             </div>
@@ -72,13 +72,13 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Branding</h3>
-                    <p class="module-subtitle">Control tenant-facing brand identity for the institute workspace.</p>
+                    <p class="module-subtitle">Control how your company name and branding appear across the workspace.</p>
                 </div>
             </div>
 
             <div class="form-grid">
                 <label class="field">
-                    <span>Branding name</span>
+                    <span>Brand name</span>
                     <input type="text" name="branding_name" value="<?= esc(old('branding_name', $settings->branding_name ?? '')) ?>">
                 </label>
             </div>
@@ -160,7 +160,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">SMTP configuration</h3>
-                    <p class="module-subtitle">Tenant-level email delivery defaults for notifications and system mail.</p>
+                    <p class="module-subtitle">Email delivery details used for notifications and system mail.</p>
                 </div>
             </div>
 
@@ -216,7 +216,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">WhatsApp configuration</h3>
-                    <p class="module-subtitle">Tenant-level WhatsApp sender defaults for campaign and transactional communication.</p>
+                    <p class="module-subtitle">WhatsApp sender details for campaign and transactional communication.</p>
                 </div>
             </div>
 
