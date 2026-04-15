@@ -42,13 +42,26 @@ class Settings extends BaseController
 
         return view('settings/index', $this->buildShellViewData([
             'title'          => 'Settings',
-            'pageTitle'      => 'Tenant Settings',
+            'pageTitle'      => 'Company Settings',
             'activeNav'      => 'settings',
             'tenant'         => $tenant,
             'settings'       => $settings,
             'emailConfig'    => $this->decorateEmailConfig($emailConfig),
             'whatsappConfig' => $this->decorateWhatsappConfig($whatsappConfig),
             'catalogSections' => $this->buildCatalogSections($tenantId),
+            'enquirySettingsUrl' => site_url('settings/enquiry'),
+        ]));
+    }
+
+    public function enquiry(): string
+    {
+        $tenantId = (int) session()->get('tenant_id');
+
+        return view('settings/enquiry', $this->buildShellViewData([
+            'title'          => 'Enquiry Settings',
+            'pageTitle'      => 'Enquiry Settings',
+            'activeNav'      => 'settings',
+            'catalogSections' => $this->buildEnquirySections($tenantId),
         ]));
     }
 
@@ -168,7 +181,9 @@ class Settings extends BaseController
 
         $this->syncLegacySettings($tenantId, $category, $resolvedValues);
 
-        return redirect()->to('/settings')->with('message', ucfirst($category) . ' settings updated successfully.');
+        $redirect = $this->isEnquiryCategory($category) ? '/settings/enquiry' : '/settings';
+
+        return redirect()->to($redirect)->with('message', $this->categorySuccessLabel($category) . ' updated successfully.');
     }
 
     public function updateEmailConfig()
@@ -369,10 +384,10 @@ class Settings extends BaseController
      */
     protected function buildCatalogSections(int $tenantId): array
     {
-        $sectionMeta = [
+        return $this->buildCatalogSectionsByMeta($tenantId, [
             'regional' => [
                 'title' => 'Regional defaults',
-                'subtitle' => 'Timezone, currency, locale, and calendar defaults for the institute.',
+                'subtitle' => 'Timezone, currency, locale, and calendar defaults for the company.',
             ],
             'visibility' => [
                 'title' => 'Visibility policy',
@@ -382,12 +397,37 @@ class Settings extends BaseController
                 'title' => 'Security policy',
                 'subtitle' => 'Password, session, and impersonation rules for tenant users.',
             ],
-            'enquiry' => [
-                'title' => 'Enquiry policy',
-                'subtitle' => 'Expiry, duplicate handling, assignment, and lifecycle defaults for Enquiry.',
-            ],
-        ];
+        ]);
+    }
 
+    protected function buildEnquirySections(int $tenantId): array
+    {
+        return $this->buildCatalogSectionsByMeta($tenantId, [
+            'enquiry_visibility' => [
+                'title' => 'Who can see enquiries',
+                'subtitle' => 'Choose whether enquiries stay with the owner, assigned branches, or the full company.',
+            ],
+            'enquiry_duplicate' => [
+                'title' => 'Duplicate checking',
+                'subtitle' => 'Control how duplicate enquiries are detected and what happens when a match is found.',
+            ],
+            'enquiry_assignment' => [
+                'title' => 'How enquiries are assigned',
+                'subtitle' => 'Decide whether the owner is chosen manually or assigned automatically.',
+            ],
+            'enquiry_lifecycle' => [
+                'title' => 'Expiry and closure',
+                'subtitle' => 'Define when enquiries expire or close after inactivity.',
+            ],
+        ]);
+    }
+
+    /**
+     * @param array<string, array<string, string>> $sectionMeta
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildCatalogSectionsByMeta(int $tenantId, array $sectionMeta): array
+    {
         $sections = [];
 
         foreach ($sectionMeta as $category => $meta) {
@@ -411,6 +451,7 @@ class Settings extends BaseController
                     'lockMode'   => $this->settingsResolver->getLockModeForTenant($tenantId, $definition->key),
                     'isLocked'   => $this->settingsResolver->isLockedForTenant($tenantId, $definition->key),
                     'options'    => $this->decodeOptions($definition->allowed_options_json),
+                    'optionLabels' => $this->resolveOptionLabels($definition),
                 ];
             }
 
@@ -520,6 +561,19 @@ class Settings extends BaseController
                 $this->upsertStructuredTenantSettings($tenantId, $settingsUpdate);
             }
         }
+
+        if ($category === 'enquiry_visibility' && isset($values['enquiry.visibility.mode'])) {
+            $legacyMode = match ((string) $values['enquiry.visibility.mode']) {
+                'self' => 'own',
+                'company' => 'all',
+                default => 'restricted',
+            };
+
+            $this->upsertStructuredTenantSettings($tenantId, [
+                'tenant_id' => $tenantId,
+                'enquiry_visibility_mode' => $legacyMode,
+            ]);
+        }
     }
 
     protected function upsertStructuredTenantSettings(int $tenantId, array $data): void
@@ -569,5 +623,63 @@ class Settings extends BaseController
         return $moduleCode === '' || $moduleCode === 'crm_core'
             ? true
             : service('featureGate')->isEnabled($tenantId, $moduleCode);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function resolveOptionLabels(object $definition): array
+    {
+        return match ((string) $definition->key) {
+            'enquiry.visibility.mode' => [
+                'self' => 'Only the enquiry owner',
+                'assigned_branches' => 'People in assigned branches',
+                'company' => 'Everyone in this company',
+            ],
+            'enquiry.duplicate.match_mode' => [
+                'email_and_mobile' => 'Email and mobile both match',
+                'email_only' => 'Email only',
+                'mobile_only' => 'Mobile only',
+                'email_or_mobile' => 'Email or mobile',
+            ],
+            'enquiry.duplicate.scope' => [
+                'same_branch' => 'Within the same branch',
+                'company' => 'Across the whole company',
+            ],
+            'enquiry.duplicate.action' => [
+                'warn' => 'Show warning and continue',
+                'block' => 'Stop creation',
+            ],
+            'enquiry.assignment.mode' => [
+                'manual' => 'Assign manually',
+                'branch_round_robin' => 'Round robin inside branch',
+                'branch_default_owner' => 'Use branch default owner',
+            ],
+            default => [],
+        };
+    }
+
+    protected function isEnquiryCategory(string $category): bool
+    {
+        return in_array($category, [
+            'enquiry_visibility',
+            'enquiry_duplicate',
+            'enquiry_assignment',
+            'enquiry_lifecycle',
+        ], true);
+    }
+
+    protected function categorySuccessLabel(string $category): string
+    {
+        return match ($category) {
+            'regional' => 'Regional settings',
+            'visibility' => 'Visibility policy',
+            'security' => 'Security policy',
+            'enquiry_visibility' => 'Enquiry visibility settings',
+            'enquiry_duplicate' => 'Duplicate checking settings',
+            'enquiry_assignment' => 'Enquiry assignment settings',
+            'enquiry_lifecycle' => 'Enquiry lifecycle settings',
+            default => ucfirst(str_replace('_', ' ', $category)) . ' settings',
+        };
     }
 }

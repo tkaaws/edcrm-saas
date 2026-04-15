@@ -271,5 +271,14 @@ class DemoDataSeeder extends Seeder
             'created_at'                => $now,
             'updated_at'                => $now,
         ]);
+
+        $this->db->table('tenant_setting_values')->insert([
+            'tenant_id'   => $tenantId,
+            'key'         => 'enquiry.visibility.mode',
+            'value'       => 'self',
+            'value_type'  => 'string',
+            'created_at'  => $now,
+            'updated_at'  => $now,
+        ]);
     }
 }

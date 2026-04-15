@@ -288,6 +288,15 @@ class TenantProvisioningService
             'created_at'                => $now,
             'updated_at'                => $now,
         ]);
+
+        $this->db->table('tenant_setting_values')->insert([
+            'tenant_id'   => $tenantId,
+            'key'         => 'enquiry.visibility.mode',
+            'value'       => $this->mapLegacyEnquiryVisibilityMode($data['enquiry_visibility_mode']),
+            'value_type'  => 'string',
+            'created_at'  => $now,
+            'updated_at'  => $now,
+        ]);
     }
 
     /**
@@ -310,5 +319,14 @@ class TenantProvisioningService
         } catch (\Throwable $e) {
             log_message('error', "TenantProvisioningService: failed to create trial subscription for tenant {$tenantId}: " . $e->getMessage());
         }
+    }
+
+    protected function mapLegacyEnquiryVisibilityMode(string $legacyMode): string
+    {
+        return match ($legacyMode) {
+            'own' => 'self',
+            'all' => 'company',
+            default => 'assigned_branches',
+        };
     }
 }

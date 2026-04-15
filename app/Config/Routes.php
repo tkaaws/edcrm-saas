@@ -52,6 +52,7 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->post('roles/(:num)/status', 'Roles::updateStatus/$1', ['filter' => ['feature:crm_core', 'privilege:roles.edit']]);
 
     $routes->get('settings', 'Settings::index', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
+    $routes->get('settings/enquiry', 'Settings::enquiry', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
     $routes->get('settings/master-data', 'MasterData::index', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
     $routes->post('settings/master-data/(:segment)', 'MasterData::storeValue/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);
     $routes->post('settings/master-data/platform-value/(:num)/toggle', 'MasterData::togglePlatformValue/$1', ['filter' => ['feature:crm_core', 'privilege:settings.edit']]);

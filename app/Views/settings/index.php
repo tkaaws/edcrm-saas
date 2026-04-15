@@ -87,6 +87,19 @@
                 <button class="shell-button shell-button--primary" type="submit">Save preferences</button>
             </div>
         </form>
+
+        <section class="form-card">
+            <div class="module-toolbar">
+                <div>
+                    <h3 class="module-title module-title--small">Enquiry settings</h3>
+                    <p class="module-subtitle">Control who can see enquiries, how duplicates are checked, how owners are assigned, and when inactive enquiries close.</p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a class="shell-button shell-button--primary" href="<?= esc($enquirySettingsUrl ?? site_url('settings/enquiry')) ?>">Open enquiry settings</a>
+            </div>
+        </section>
     </div>
 
     <div class="settings-grid">
@@ -107,6 +120,7 @@
                         $formKey = $field['formKey'];
                         $value = old($formKey, $field['value']);
                         $options = $field['options'];
+                        $optionLabels = $field['optionLabels'] ?? [];
                         $isLocked = $field['isLocked'];
                         $lockMode = $field['lockMode'];
                         $valueType = $definition->value_type;
@@ -124,7 +138,7 @@
                                 <select name="<?= esc($formKey) ?>" <?= $isLocked ? 'disabled' : '' ?>>
                                     <?php foreach ($options as $option): ?>
                                         <option value="<?= esc($option) ?>" <?= (string) $value === $option ? 'selected' : '' ?>>
-                                            <?= esc(ucwords(str_replace(['_', '-'], ' ', $option))) ?>
+                                            <?= esc($optionLabels[$option] ?? ucwords(str_replace(['_', '-'], ' ', $option))) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>

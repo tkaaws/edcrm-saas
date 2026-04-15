@@ -159,6 +159,13 @@ Tabs:
 - fallback assignee
 - round robin users
 
+Note:
+- The enquiry-policy slice is now being narrowed into a dedicated first-release contract in `docs/ENQUIRY_SETTINGS_BLUEPRINT.md`
+- For release 1, enquiry visibility should stay simple:
+  - self
+  - assigned branches
+  - company
+
 ### 2.3 Branch Settings
 Managed by: tenant owner / tenant admin / branch manager if allowed
 
@@ -526,13 +533,16 @@ This foundation is ready when:
 
 ## 11. Current Delivery Status
 
-Last updated: 2026-04-14
+Last updated: 2026-04-15
 
 Delivered:
 
 - settings schema foundation
 - `SettingsResolverService`
 - Tenant Settings v2 screen
+- dedicated Enquiry Settings blueprint
+- dedicated Enquiry Settings screen with catalog-driven sections
+- legacy-to-new enquiry visibility bridge for existing and newly provisioned tenants
 - Branch Settings module
 - Platform Tenant Policy workspace
 - user reporting head and scope fields
@@ -550,4 +560,5 @@ Next hardening before Enquiry:
 - add deeper billing override tests
 - add settings resolver tests for lock precedence
 - add branch/tenant policy save feature tests
+- consume enquiry settings inside enquiry list/detail/create flows
 - add impersonation notification behavior if/when implemented
