@@ -9,7 +9,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Team members</h2>
-            <p class="module-subtitle">Add people, set their access, and decide which branch they support.</p>
+            <p class="module-subtitle">Manage people, access, and branch ownership.</p>
         </div>
         <?php if ($canCreateUsers): ?>
             <a class="shell-button shell-button--primary" href="<?= site_url('users/create') ?>">Add team member</a>

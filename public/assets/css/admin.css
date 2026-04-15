@@ -17,8 +17,8 @@
     --warning: #b88900;
     --danger: #fb275d;
     --sidebar-text: #181b34;
-    --shadow-sm: 0 1px 2px rgba(24, 27, 52, 0.04);
-    --shadow-md: 0 8px 24px rgba(97, 97, 255, 0.08);
+    --shadow-sm: 0 1px 2px rgba(24, 27, 52, 0.03);
+    --shadow-md: 0 6px 18px rgba(97, 97, 255, 0.06);
 }
 
 * {
@@ -141,12 +141,12 @@ a {
 }
 
 .context-list--wide {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 14px;
 }
 
 .context-list--wide div {
-    padding: 14px 16px;
+    padding: 12px 14px;
     border: 1px solid var(--line);
     border-radius: 12px;
     background: var(--surface-soft);
@@ -169,46 +169,47 @@ a {
 }
 
 .shell-main {
-    padding: 24px;
+    padding: 18px;
     display: grid;
-    gap: 18px;
+    gap: 14px;
 }
 
 .shell-header {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 18px 20px;
+    border-radius: 12px;
+    padding: 14px 18px;
+    min-height: 84px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    gap: 16px;
+    gap: 14px;
     box-shadow: var(--shadow-md);
 }
 
 .shell-header__main {
     display: flex;
-    align-items: flex-start;
-    gap: 14px;
+    align-items: center;
+    gap: 12px;
     min-width: 0;
 }
 
 .shell-header__eyebrow {
-    margin: 0 0 4px;
+    margin: 0 0 2px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .shell-header__title {
     margin: 0;
-    font-size: 30px;
-    line-height: 1.2;
+    font-size: 24px;
+    line-height: 1.15;
 }
 
 .shell-header__actions {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
 .shell-user {
@@ -223,15 +224,15 @@ a {
 
 .shell-user__meta {
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .shell-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 38px;
-    padding: 8px 14px;
+    min-height: 34px;
+    padding: 7px 12px;
     border-radius: 8px;
     border: 1px solid var(--line);
     font-weight: 600;
@@ -323,7 +324,7 @@ a {
 
 .toolbar-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
     align-items: center;
 }
@@ -374,7 +375,7 @@ a {
 
 .dashboard-grid {
     display: grid;
-    gap: 18px;
+    gap: 14px;
 }
 
 .metrics-grid,
@@ -390,12 +391,12 @@ a {
 .detail-card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: var(--shadow-md);
 }
 
 .metric-card {
-    padding: 18px;
+    padding: 16px;
     display: grid;
     gap: 8px;
 }
@@ -426,7 +427,7 @@ a {
 
 .panel-card,
 .list-card {
-    padding: 20px;
+    padding: 16px;
 }
 
 .panel-card h2,
@@ -459,7 +460,7 @@ a {
 .list-card li {
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 14px;
+    padding: 12px;
     background: var(--surface-soft);
 }
 
@@ -478,9 +479,9 @@ a {
 .status-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    padding: 3px 9px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.01em;
 }
@@ -512,7 +513,7 @@ a {
 
 .module-page {
     display: grid;
-    gap: 18px;
+    gap: 14px;
 }
 
 .settings-tabs {
@@ -634,21 +635,22 @@ a {
 
 .module-toolbar {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
 }
 
 .module-title {
     margin: 0 0 4px;
-    font-size: 24px;
-    line-height: 1.2;
+    font-size: 21px;
+    line-height: 1.15;
 }
 
 .module-subtitle {
     margin: 0;
     color: var(--muted);
-    line-height: 1.5;
+    line-height: 1.4;
+    font-size: 14px;
 }
 
 .text-muted {
@@ -660,14 +662,14 @@ a {
 .detail-card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 18px;
+    border-radius: 12px;
+    padding: 16px;
     box-shadow: var(--shadow-md);
 }
 
 .form-card--nested {
     margin-top: 16px;
-    padding: 18px;
+    padding: 16px;
     background: var(--surface-soft);
     box-shadow: none;
 }
@@ -679,7 +681,7 @@ a {
 
 .data-table th,
 .data-table td {
-    padding: 10px 12px;
+    padding: 8px 10px;
     border-bottom: 1px solid var(--line);
     text-align: left;
     vertical-align: middle;
@@ -713,14 +715,14 @@ a {
 }
 
 .entity-cell strong {
-    font-size: 15px;
-    line-height: 1.25;
+    font-size: 14px;
+    line-height: 1.2;
 }
 
 .entity-cell span,
 .empty-state {
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.4;
 }
 
@@ -731,7 +733,7 @@ a {
 
 .table-actions {
     display: inline-flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-end;
@@ -744,9 +746,9 @@ a {
 }
 
 .table-actions .shell-button {
-    min-height: 32px;
-    padding: 6px 10px;
-    font-size: .8125rem;
+    min-height: 30px;
+    padding: 5px 9px;
+    font-size: .79rem;
 }
 
 .table-actions .shell-button--danger {
@@ -760,12 +762,12 @@ a {
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 14px;
 }
 
 .form-stack {
     display: grid;
-    gap: 16px;
+    gap: 14px;
 }
 
 .form-summary-grid {
@@ -778,7 +780,7 @@ a {
     border: 1px solid var(--line);
     border-radius: 8px;
     background: var(--surface-soft);
-    padding: 14px 16px;
+    padding: 12px 14px;
     display: grid;
     gap: 6px;
 }
@@ -815,17 +817,17 @@ a {
 .field textarea,
 .shell-input {
     width: 100%;
-    min-height: 44px;
+    min-height: 40px;
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 8px 11px;
     font: inherit;
     background: #fff;
     color: var(--text);
 }
 
 .field textarea {
-    min-height: 96px;
+    min-height: 88px;
     resize: vertical;
 }
 
@@ -1194,7 +1196,7 @@ select.shell-input,
 
 .detail-card {
     display: grid;
-    gap: 16px;
+    gap: 12px;
     min-width: 0;
 }
 
@@ -1211,7 +1213,7 @@ select.shell-input,
 
 .detail-card__title {
     margin: 0;
-    font-size: 22px;
+    font-size: 20px;
 }
 
 .detail-card__title--danger {
@@ -1219,17 +1221,18 @@ select.shell-input,
 }
 
 .detail-card__subtitle {
-    margin: 6px 0 0;
+    margin: 4px 0 0;
     color: var(--muted);
-    line-height: 1.5;
+    line-height: 1.4;
+    font-size: 14px;
 }
 
 .detail-card__row {
     display: grid;
     grid-template-columns: minmax(120px, 1.2fr) minmax(80px, 0.8fr) minmax(0, 1fr);
-    gap: 12px;
+    gap: 10px;
     align-items: center;
-    padding: 12px 0;
+    padding: 10px 0;
     border-top: 1px solid var(--line);
 }
 
@@ -1640,6 +1643,7 @@ select.shell-input,
         padding: 14px;
         gap: 12px;
         border-radius: 10px;
+        min-height: 0;
     }
 
     .shell-header__main {

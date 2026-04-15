@@ -5,7 +5,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Workspace companies</h2>
-            <p class="module-subtitle">Create companies, assign plans, and manage lifecycle status.</p>
+            <p class="module-subtitle">Manage companies, plans, and lifecycle access.</p>
         </div>
         <a class="shell-button shell-button--primary" href="<?= site_url('platform/tenants/create') ?>">Add company</a>
     </div>

@@ -5,7 +5,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Plan and usage</h2>
-            <p class="module-subtitle">See your current plan, included features, and current usage.</p>
+            <p class="module-subtitle">See your current plan, included modules, and usage.</p>
         </div>
     </div>
 

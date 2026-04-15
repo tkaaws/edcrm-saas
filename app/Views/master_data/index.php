@@ -11,7 +11,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Business Lookup Data</h2>
-            <p class="module-subtitle">Manage common business lists like enquiry source, communication type, follow-up status, and courses.</p>
+            <p class="module-subtitle">Manage shared lists like sources, follow-up status, and courses.</p>
         </div>
     </div>
 
@@ -19,7 +19,7 @@
         <div class="module-toolbar">
             <div>
                 <h3 class="module-title module-title--small">Lookup data menu</h3>
-                <p class="module-subtitle">Choose a list to review available options and manage company-specific additions.</p>
+                <p class="module-subtitle">Choose a list, review what already exists, then add company options if needed.</p>
             </div>
         </div>
 

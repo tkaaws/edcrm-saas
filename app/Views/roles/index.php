@@ -8,7 +8,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Team access rules</h2>
-            <p class="module-subtitle">Create reusable team roles for different kinds of team members.</p>
+            <p class="module-subtitle">Manage reusable roles and permission sets.</p>
         </div>
         <?php if ($canCreateRoles): ?>
             <a class="shell-button shell-button--primary" href="<?= site_url('roles/create') ?>">Create role</a>

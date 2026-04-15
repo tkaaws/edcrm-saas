@@ -5,7 +5,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Subscription plans</h2>
-            <p class="module-subtitle">Set up workspace plans, team prices, and capacity limits.</p>
+            <p class="module-subtitle">Manage plans, pricing, and limits.</p>
         </div>
         <a class="shell-button shell-button--primary" href="<?= site_url('platform/plans/create') ?>">Create plan</a>
     </div>

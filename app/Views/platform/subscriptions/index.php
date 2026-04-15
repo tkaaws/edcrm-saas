@@ -5,14 +5,14 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Subscriptions</h2>
-            <p class="module-subtitle">All tenant subscriptions across the platform.</p>
+            <p class="module-subtitle">Manage active, trial, and cancelled subscriptions.</p>
         </div>
     </div>
 
     <div class="detail-card">
         <div class="form-section-header">
             <h3 class="detail-card__title">Attach subscription</h3>
-            <p class="detail-card__subtitle">Assign a plan to a company and start the billing cycle from here.</p>
+            <p class="detail-card__subtitle">Assign a plan and start billing for a company.</p>
         </div>
         <form method="post" action="<?= site_url('platform/subscriptions/attach') ?>" class="inline-form inline-form--compact">
             <?= csrf_field() ?>

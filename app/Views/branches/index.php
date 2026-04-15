@@ -8,7 +8,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Branches</h2>
-            <p class="module-subtitle">Manage company locations and decide which branches are available.</p>
+            <p class="module-subtitle">Manage company locations and regional defaults.</p>
         </div>
         <?php if ($canCreateBranches): ?>
             <a class="shell-button shell-button--primary" href="<?= site_url('branches/create') ?>">Add branch</a>
