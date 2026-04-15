@@ -103,11 +103,20 @@ class MasterDataService
             throw new RuntimeException("Tenant entries are not allowed for master type {$typeCode}.");
         }
 
-        $code = $this->normalizeCode((string) ($payload['code'] ?? $payload['label'] ?? ''));
+        $codeSource = (string) ($payload['code'] ?? '');
+        if ($codeSource === '') {
+            $codeSource = (string) ($payload['label'] ?? '');
+        }
+
+        $code = $this->normalizeCode($codeSource);
         $label = trim((string) ($payload['label'] ?? ''));
 
-        if ($code === '' || $label === '') {
-            throw new RuntimeException('Master data code and label are required.');
+        if ($label === '') {
+            throw new RuntimeException('Master data name is required.');
+        }
+
+        if ($code === '') {
+            throw new RuntimeException('Unable to generate a valid master data code from the name.');
         }
 
         if ($this->values->codeExistsForScope((int) $type->id, 'tenant', $code, $tenantId)) {

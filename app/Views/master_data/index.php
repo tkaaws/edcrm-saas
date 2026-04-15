@@ -76,13 +76,9 @@
                             <small>Shown only for lists that use parent and child values.</small>
                         </label>
                     <?php endif; ?>
-                    <label class="field field--full">
-                        <span>Metadata JSON</span>
-                        <textarea name="metadata_json" rows="3"><?= esc(old('metadata_json')) ?></textarea>
-                    </label>
                 </div>
 
-                <p class="module-subtitle">Short code is generated automatically from the name.</p>
+                <p class="module-subtitle">Code is generated automatically from the name.</p>
 
                 <div class="form-actions">
                     <button class="shell-button shell-button--primary" type="submit">Create custom value</button>
