@@ -9,17 +9,20 @@
         </div>
     </div>
 
-    <div class="detail-card" style="margin-bottom:1.5rem">
-        <h3 class="detail-card__title">Attach subscription</h3>
-        <form method="post" action="<?= site_url('platform/subscriptions/attach') ?>" class="inline-form" style="flex-wrap:wrap;gap:.75rem">
+    <div class="detail-card">
+        <div class="form-section-header">
+            <h3 class="detail-card__title">Attach subscription</h3>
+            <p class="detail-card__subtitle">Assign a plan to a company and start the billing cycle from here.</p>
+        </div>
+        <form method="post" action="<?= site_url('platform/subscriptions/attach') ?>" class="inline-form inline-form--compact">
             <?= csrf_field() ?>
-            <select name="tenant_id" class="shell-input" required style="min-width:180px">
+            <select name="tenant_id" class="shell-input input-compact--wide" required>
                 <option value="">- Select tenant -</option>
                 <?php foreach ($tenants as $tenant): ?>
                     <option value="<?= esc($tenant->id) ?>"><?= esc($tenant->name) ?></option>
                 <?php endforeach; ?>
             </select>
-            <select name="plan_id" class="shell-input" required style="min-width:160px">
+            <select name="plan_id" class="shell-input input-compact--wide" required>
                 <option value="">- Select plan -</option>
                 <?php foreach ($plans as $plan): ?>
                     <option value="<?= esc($plan->id) ?>"><?= esc($plan->name) ?></option>
@@ -30,7 +33,7 @@
                 <option value="quarterly">Quarterly</option>
                 <option value="yearly">Yearly</option>
             </select>
-            <input type="number" name="trial_days" class="shell-input" value="14" min="0" max="90" style="width:90px" placeholder="Trial days">
+            <input type="number" name="trial_days" class="shell-input input-compact" value="14" min="0" max="90" placeholder="Trial days">
             <button type="submit" class="shell-button shell-button--primary">Attach</button>
         </form>
     </div>

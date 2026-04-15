@@ -7,7 +7,7 @@
             <h2 class="module-title"><?= esc($tenant->name) ?> Access Controls</h2>
             <p class="module-subtitle">Set which workspace-level defaults can be changed by this company.</p>
         </div>
-        <div style="display:flex;gap:.5rem;">
+        <div class="toolbar-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id) ?>">Back to company</a>
             <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants') ?>">All companies</a>
         </div>
@@ -81,7 +81,7 @@
                             <?php endif; ?>
 
                             <?php if (! $platformOnly): ?>
-                                <div class="form-grid" style="margin-top:.75rem;">
+                                <div class="form-grid section-divider">
                                     <label class="field">
                                         <span>Lock mode</span>
                                         <select name="<?= esc($formKey) ?>__lock_mode">

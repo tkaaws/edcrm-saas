@@ -72,7 +72,7 @@
                 <div class="detail-card__header">
                     <div>
                         <h3 class="detail-card__title">Tenant account</h3>
-                        <p class="detail-card__subtitle">Owning institute and linked platform record.</p>
+                        <p class="detail-card__subtitle">Owning company and linked platform record.</p>
                     </div>
                 </div>
                 <dl class="context-list">
@@ -81,7 +81,7 @@
                     <div><dt>Status</dt><dd><span class="status-badge <?= $tenant->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>"><?= esc(ucfirst($tenant->status)) ?></span></dd></div>
                 </dl>
                 <div class="detail-card__actions">
-                    <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">View tenant</a>
+                    <a href="<?= site_url('platform/tenants/' . $tenant->id) ?>" class="shell-button shell-button--ghost shell-button--sm">Open company</a>
                 </div>
             </article>
         <?php endif; ?>
@@ -113,7 +113,7 @@
             </form>
 
             <?php if (in_array($subscription->status, ['trial', 'active', 'grace', 'suspended'], true)): ?>
-                <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/status') ?>" onsubmit="return confirm('Cancel subscription #<?= esc((string) $subscription->id) ?>?')" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line);">
+                <form method="post" action="<?= site_url('platform/subscriptions/' . $subscription->id . '/status') ?>" onsubmit="return confirm('Cancel subscription #<?= esc((string) $subscription->id) ?>?')" class="section-divider">
                     <?= csrf_field() ?>
                     <input type="hidden" name="status" value="cancelled">
                     <input type="hidden" name="note" value="Cancelled from subscription detail workspace">

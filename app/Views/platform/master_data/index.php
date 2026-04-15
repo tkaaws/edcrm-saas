@@ -229,8 +229,8 @@
 
         <details class="form-card">
             <summary><strong>Advanced catalog setup</strong></summary>
-            <p class="module-subtitle" style="margin-top:1rem;">Use this only when we are introducing a genuinely new business catalog beyond the standard lists.</p>
-            <form method="post" action="<?= site_url('platform/master-data/types') ?>" style="margin-top:1rem;">
+            <p class="module-subtitle section-divider">Use this only when we are introducing a genuinely new business catalog beyond the standard lists.</p>
+            <form method="post" action="<?= site_url('platform/master-data/types') ?>">
                 <?= csrf_field() ?>
                 <div class="form-grid">
                     <label class="field">

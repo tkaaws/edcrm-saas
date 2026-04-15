@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -30,13 +30,13 @@
         // Always visible to tenant users
         ['key' => 'dashboard',   'label' => 'Dashboard',   'href' => site_url('dashboard'),          'meta' => 'Home',       'show' => true],
 
-        // Core ops — always visible once logged in as tenant user
+        // Core ops - always visible once logged in as tenant user
         ['key' => 'users',       'label' => 'Users',       'href' => site_url('users'),              'meta' => 'People',     'show' => ! $isPlatformAdmin && $canPrefix('users.')],
         ['key' => 'branches',    'label' => 'Branches',    'href' => site_url('branches'),           'meta' => 'Locations',  'show' => ! $isPlatformAdmin && $canPrefix('branches.')],
         ['key' => 'roles',       'label' => 'Roles',       'href' => site_url('roles'),              'meta' => 'Access',     'show' => ! $isPlatformAdmin && $canPrefix('roles.')],
         ['key' => 'master_data', 'label' => 'Business Lookup Data', 'href' => site_url('settings/master-data'),'meta' => 'Lists',   'show' => ! $isPlatformAdmin && $canPrefix('settings.')],
 
-        // Feature-gated modules — only shown when plan includes the module
+        // Feature-gated modules - only shown when plan includes the module
         ['key' => 'enquiries',   'label' => 'Enquiries',   'href' => site_url('enquiries'),          'meta' => 'CRM',        'show' => ! $isPlatformAdmin && $feat('crm_core') && ($canPrefix('enquiries.') || $canPrefix('followups.'))],
         ['key' => 'admissions',  'label' => 'Admissions',  'href' => site_url('admissions'),         'meta' => 'Enrolment',  'show' => ! $isPlatformAdmin && $feat('admissions') && ($canPrefix('admissions.') || $canPrefix('fees.'))],
         ['key' => 'batches',     'label' => 'Batches',     'href' => site_url('batches'),            'meta' => 'Scheduling', 'show' => ! $isPlatformAdmin && $feat('batch_management') && ($canPrefix('batches.') || $canPrefix('students.'))],
@@ -62,7 +62,7 @@
                 <div class="shell-brand__mark">E</div>
                 <div>
                     <div class="shell-brand__name">EDCRM SaaS</div>
-                    <div class="shell-brand__meta"><?= esc($isPlatformAdmin ? 'Platform admin' : ($tenantLabel ?? 'Loading…')) ?></div>
+                    <div class="shell-brand__meta"><?= esc($isPlatformAdmin ? 'Platform admin' : ($tenantLabel ?? 'Loading...')) ?></div>
                 </div>
             </div>
 
@@ -137,7 +137,7 @@
                     $impersonationPathText = implode(' > ', array_map(static fn($item): string => (string) $item, $impersonationPath));
                 }
                 ?>
-                <div class="shell-alert shell-alert--warning" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+                <div class="shell-alert shell-alert--warning shell-alert--split">
                     <div>
                         <strong>Support session active.</strong>
                         You are viewing the workspace as <?= esc($userDisplayName ?? 'target user') ?>.
@@ -152,15 +152,15 @@
                             Reason: <?= esc((string) session()->get('impersonation_reason')) ?>.
                         <?php endif; ?>
                     </div>
-                    <div style="display:flex;gap:.75rem;flex-wrap:wrap;">
-                        <form method="post" action="<?= site_url('impersonation/stop') ?>" style="margin:0;">
+                    <div class="shell-alert__actions">
+                        <form method="post" action="<?= site_url('impersonation/stop') ?>">
                             <?= csrf_field() ?>
                             <button class="shell-button shell-button--ghost" type="submit">
                                 <?= $impersonationLevel > 1 ? 'Back one level' : 'Return to previous account' ?>
                             </button>
                         </form>
                         <?php if ($impersonationLevel > 1): ?>
-                            <form method="post" action="<?= site_url('impersonation/stop-all') ?>" style="margin:0;">
+                            <form method="post" action="<?= site_url('impersonation/stop-all') ?>">
                                 <?= csrf_field() ?>
                                 <button class="shell-button shell-button--ghost" type="submit">Return to original account</button>
                             </form>
@@ -173,7 +173,7 @@
             <?php if ($accessWarning === 'grace'): ?>
                 <div class="shell-alert shell-alert--warning">
                     <strong>Subscription expired.</strong>
-                    Your subscription has expired — you are in a grace period. Please renew to avoid service interruption.
+                    Your subscription has expired - you are in a grace period. Please renew to avoid service interruption.
                     <?php if (in_array($roleCode ?? '', ['tenant_owner', 'tenant_admin'])): ?>
                         <a href="<?= site_url('billing') ?>" class="shell-alert__link">Renew now &rarr;</a>
                     <?php endif; ?>
@@ -243,3 +243,4 @@
     </script>
 </body>
 </html>
+

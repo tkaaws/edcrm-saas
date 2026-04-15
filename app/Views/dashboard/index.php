@@ -63,7 +63,7 @@
                 <li>
                     <div>
                         <strong>Company onboarding</strong>
-                        <div class="module-list__meta">New institutes can be created and activated by the EDCRM team.</div>
+                        <div class="module-list__meta">New companies can be created and activated by the EDCRM team.</div>
                     </div>
                     <span class="status-badge status-badge--good">Ready</span>
                 </li>

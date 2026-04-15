@@ -7,7 +7,7 @@
             <h2 class="module-title"><?= esc($branchRecord->name) ?> Branch Settings</h2>
             <p class="module-subtitle">Manage branch-specific preferences and working rules.</p>
         </div>
-        <div style="display:flex;gap:.5rem;">
+        <div class="toolbar-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('branches/' . $branchRecord->id . '/edit') ?>">Edit branch</a>
             <a class="shell-button shell-button--ghost" href="<?= site_url('branches') ?>">Back to branches</a>
         </div>
@@ -87,7 +87,7 @@
                             <?php endif; ?>
 
                             <?php if ($isLocked): ?>
-                                <small>This option is locked by your institute or the EDCRM team.</small>
+                                <small>This option is locked by your company or the EDCRM team.</small>
                             <?php endif; ?>
                         </label>
                     <?php endforeach; ?>

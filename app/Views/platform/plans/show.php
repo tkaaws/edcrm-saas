@@ -30,9 +30,9 @@
                 <form method="post" action="<?= site_url("platform/plans/{$plan->id}/price") ?>" class="inline-form">
                     <?= csrf_field() ?>
                     <input type="hidden" name="billing_cycle" value="monthly">
-                    <input type="number" name="price_amount" class="shell-input shell-input--sm"
+                    <input type="number" name="price_amount" class="shell-input shell-input--sm input-compact"
                            value="<?= $monthlyPrice ? (int)($monthlyPrice->price_amount / 100) : '' ?>"
-                           placeholder="Amount" min="0" step="1" style="width:110px">
+                           placeholder="Amount" min="0" step="1">
                     <button type="submit" class="shell-button shell-button--sm">Update</button>
                 </form>
             </div>
@@ -43,9 +43,9 @@
                 <form method="post" action="<?= site_url("platform/plans/{$plan->id}/price") ?>" class="inline-form">
                     <?= csrf_field() ?>
                     <input type="hidden" name="billing_cycle" value="yearly">
-                    <input type="number" name="price_amount" class="shell-input shell-input--sm"
+                    <input type="number" name="price_amount" class="shell-input shell-input--sm input-compact"
                            value="<?= $yearlyPrice ? (int)($yearlyPrice->price_amount / 100) : '' ?>"
-                           placeholder="Amount" min="0" step="1" style="width:110px">
+                           placeholder="Amount" min="0" step="1">
                     <button type="submit" class="shell-button shell-button--sm">Update</button>
                 </form>
             </div>
@@ -65,9 +65,9 @@
                     <form method="post" action="<?= site_url("platform/plans/{$plan->id}/limit") ?>" class="inline-form">
                         <?= csrf_field() ?>
                         <input type="hidden" name="limit_code" value="<?= esc($lim->code) ?>">
-                        <input type="number" name="limit_value" class="shell-input shell-input--sm"
+                        <input type="number" name="limit_value" class="shell-input shell-input--sm input-compact"
                                value="<?= isset($limitMap[$lim->code]) ? $limitMap[$lim->code] : '' ?>"
-                               placeholder="-1 = unlimited" min="-1" step="1" style="width:100px">
+                               placeholder="-1 = unlimited" min="-1" step="1">
                         <button type="submit" class="shell-button shell-button--sm">Update</button>
                     </form>
                 </div>

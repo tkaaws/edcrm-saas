@@ -7,13 +7,13 @@
             <h2 class="module-title"><?= esc($tenant->name) ?></h2>
             <p class="module-subtitle">Company profile, status control, and assigned subscription.</p>
         </div>
-        <div style="display:flex;gap:.5rem;">
+        <div class="toolbar-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id . '/policy') ?>">Policy</a>
             <?php if (! empty($tenantOwnerUser) && (int) ($tenantOwnerUser->allow_impersonation ?? 1) === 1): ?>
                 <form method="post" action="<?= site_url('impersonation/start/' . $tenantOwnerUser->id) ?>">
                     <?= csrf_field() ?>
                     <input type="hidden" name="reason" value="Platform tenant support access">
-                    <button class="shell-button shell-button--ghost" type="submit">Login as owner</button>
+                    <button class="shell-button shell-button--ghost" type="submit">Support login</button>
                 </form>
             <?php endif; ?>
             <a class="shell-button shell-button--ghost" href="<?= site_url('platform/tenants/' . $tenant->id . '/edit') ?>">Edit</a>
@@ -23,7 +23,7 @@
 
     <div class="settings-grid">
         <div class="form-card">
-            <div class="module-toolbar" style="margin-bottom:1rem;">
+            <div class="module-toolbar">
                 <h3 class="module-title module-title--small">Profile</h3>
                 <span class="status-badge <?= $tenant->status === 'active' ? 'status-badge--good' : ($tenant->status === 'suspended' ? 'status-badge--warm' : 'status-badge--neutral') ?>">
                     <?= esc(ucfirst($tenant->status)) ?>
@@ -42,7 +42,7 @@
                 <div><dt>Created</dt><dd><?= esc($tenant->created_at) ?></dd></div>
             </dl>
 
-            <div style="display:flex;gap:.5rem;margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--line);">
+            <div class="pill-row section-divider">
                 <span class="status-badge status-badge--neutral"><?= esc($userCount) ?> users</span>
                 <span class="status-badge status-badge--neutral"><?= esc($branchCount) ?> branches</span>
             </div>
@@ -50,7 +50,10 @@
 
         <div class="detail-column">
             <div class="form-card">
-                <h3 class="module-title module-title--small" style="margin-bottom:1rem;">Status control</h3>
+                <div class="form-section-header">
+                    <h3 class="module-title module-title--small">Status control</h3>
+                    <p class="module-subtitle">Control whether this company is active, suspended, or kept in draft.</p>
+                </div>
                 <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/status') ?>">
                     <?= csrf_field() ?>
                     <div class="form-grid">
@@ -70,7 +73,10 @@
             </div>
 
             <div class="form-card">
-                <h3 class="module-title module-title--small" style="margin-bottom:1rem;">Subscription and permissions</h3>
+                <div class="form-section-header">
+                    <h3 class="module-title module-title--small">Subscription and permissions</h3>
+                    <p class="module-subtitle">Review the current plan, then update the company plan when needed.</p>
+                </div>
                 <?php if ($subscription): ?>
                     <dl class="context-list context-list--wide">
                         <div><dt>Current plan</dt><dd><?= esc($subscription->plan_name) ?> <code><?= esc($subscription->plan_code) ?></code></dd></div>
@@ -85,10 +91,10 @@
                         <a href="<?= site_url('platform/subscriptions/' . $subscription->id) ?>" class="shell-button shell-button--ghost">Open subscription workspace</a>
                     </div>
                 <?php else: ?>
-                    <p class="module-subtitle" style="margin-bottom:1rem;">No active subscription yet. Assign a plan to unlock modules.</p>
+                    <p class="form-note">No active subscription yet. Assign a plan to unlock modules.</p>
                 <?php endif; ?>
 
-                <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/plan') ?>" class="stack-form" style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--line);">
+                <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/plan') ?>" class="stack-form section-divider">
                     <?= csrf_field() ?>
                     <div class="field">
                         <label class="shell-label">Plan</label>
@@ -131,10 +137,10 @@
             </div>
 
             <div class="form-card form-card--danger">
-                <h3 class="module-title module-title--small" style="margin-bottom:.5rem;color:#c0392b;">Danger zone</h3>
-                <p style="color:var(--muted);margin-bottom:1rem;font-size:.875rem;">
-                    Permanently deletes this company and all its data: users, branches, roles, settings. This action cannot be undone.
-                </p>
+                <div class="form-section-header">
+                    <h3 class="module-title module-title--small detail-card__title--danger">Danger zone</h3>
+                    <p class="form-note">Permanently deletes this company and all its data: users, branches, roles, settings. This action cannot be undone.</p>
+                </div>
                 <form method="post" action="<?= site_url('platform/tenants/' . $tenant->id . '/delete') ?>" onsubmit="return confirm('Delete <?= esc(addslashes($tenant->name)) ?> permanently?\n\nThis will remove all users, branches and tenant data.')">
                     <?= csrf_field() ?>
                     <button type="submit" class="shell-button shell-button--danger">Delete company</button>
