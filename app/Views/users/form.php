@@ -133,22 +133,6 @@
                         <?php endforeach; ?>
                     </select>
                 </label>
-
-                <?php if ($user): ?>
-                    <label class="checkbox-row">
-                        <input type="checkbox" name="is_active" value="1" <?= old('is_active', $user->is_active ?? 1) ? 'checked' : '' ?>>
-                        <span>Active account</span>
-                    </label>
-
-                    <label class="checkbox-row">
-                        <input type="checkbox" name="must_reset_password" value="1" <?= old('must_reset_password', $user->must_reset_password ?? 0) ? 'checked' : '' ?>>
-                        <span>Force password reset on next login</span>
-                    </label>
-                <?php else: ?>
-                    <p class="module-subtitle" style="margin-top:0.75rem;">
-                        New users start as active accounts and will be asked to reset their password on first login.
-                    </p>
-                <?php endif; ?>
             </section>
         </div>
 
