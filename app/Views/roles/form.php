@@ -4,10 +4,10 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title"><?= esc($pageTitle ?? 'Role form') ?></h2>
-            <p class="module-subtitle">Create and maintain role templates with module-level privilege assignment.</p>
+            <h2 class="module-title"><?= esc($pageTitle ?? 'Access profile') ?></h2>
+            <p class="module-subtitle">Choose what this kind of team member can see and do.</p>
         </div>
-        <a class="shell-button shell-button--ghost" href="<?= site_url('roles') ?>">Back to roles</a>
+        <a class="shell-button shell-button--ghost" href="<?= site_url('roles') ?>">Back to access profiles</a>
     </div>
 
     <form class="form-card" method="post" action="<?= esc($formAction) ?>">
@@ -15,25 +15,25 @@
 
         <?php if ($privilegeGroups === []): ?>
             <div class="alert alert--warning">
-                No assignable privileges are available for your current access scope and tenant plan.
+                No available permissions can be assigned from your current account.
             </div>
         <?php endif; ?>
 
         <div class="form-grid">
             <label class="field">
-                <span>Role name</span>
+                <span>Access profile name</span>
                 <input type="text" name="name" value="<?= esc(old('name', $role->name ?? '')) ?>" required>
             </label>
 
             <?php if (! empty($role)): ?>
                 <label class="field">
-                    <span>Role code</span>
+                    <span>Internal code</span>
                     <input type="text" value="<?= esc($role->code ?? '') ?>" readonly>
                 </label>
 
                 <label class="field">
-                    <span>Role type</span>
-                    <input type="text" value="<?= (! empty($role) && $role->is_system) ? 'System role' : 'Custom role' ?>" readonly>
+                    <span>Profile type</span>
+                    <input type="text" value="<?= (! empty($role) && $role->is_system) ? 'Standard profile' : 'Custom profile' ?>" readonly>
                 </label>
             <?php endif; ?>
         </div>
@@ -42,7 +42,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Privileges</h3>
-                    <p class="module-subtitle">Select what this role can do across the CRM platform.</p>
+                    <p class="module-subtitle">Select what this access profile can do across the workspace.</p>
                 </div>
             </div>
 
@@ -57,7 +57,6 @@
                                     <input type="checkbox" name="privilege_ids[]" value="<?= esc((string) $privilege->id) ?>" <?= in_array((int) $privilege->id, $selectedPrivilegeIds, true) ? 'checked' : '' ?>>
                                     <span>
                                         <strong><?= esc($privilege->name) ?></strong>
-                                        <small><?= esc($privilege->code) ?></small>
                                     </span>
                                 </label>
                             <?php endforeach; ?>

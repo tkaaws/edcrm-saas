@@ -4,8 +4,8 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Enquiry intake shell</h2>
-            <p class="module-subtitle">This starter screen proves master-data catalogs are wired into runtime dropdowns before the full enquiry workflow lands.</p>
+            <h2 class="module-title">Enquiries</h2>
+            <p class="module-subtitle">This screen is being prepared for enquiry entry and follow-up work.</p>
         </div>
     </div>
 
@@ -14,7 +14,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Create enquiry</h3>
-                    <p class="module-subtitle">Preview of tenant-resolved catalogs for intake, follow-up, and closure journeys.</p>
+                    <p class="module-subtitle">Preview of the business lists that will be used while creating and following up enquiries.</p>
                 </div>
             </div>
 
@@ -25,7 +25,7 @@
                 </label>
                 <label class="field">
                     <span>Mobile number</span>
-                    <input type="text" placeholder="Preview only" disabled>
+                    <input type="text" placeholder="Coming next" disabled>
                 </label>
                 <label class="field">
                     <span>Enquiry source</span>
@@ -62,15 +62,15 @@
             </div>
 
             <div class="form-actions">
-                <button class="shell-button shell-button--primary" type="button" disabled>Submission wiring next</button>
+                <button class="shell-button shell-button--primary" type="button" disabled>Enquiry form coming next</button>
             </div>
         </form>
 
         <section class="form-card">
             <div class="module-toolbar">
                 <div>
-                    <h3 class="module-title module-title--small">Master-data coverage</h3>
-                    <p class="module-subtitle">Quick count of the catalogs now coming from the shared service.</p>
+                    <h3 class="module-title module-title--small">Available lists</h3>
+                    <p class="module-subtitle">These lists are already ready for use in the enquiry form.</p>
                 </div>
             </div>
 

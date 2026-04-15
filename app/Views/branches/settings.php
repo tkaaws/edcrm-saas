@@ -5,7 +5,7 @@
     <div class="module-toolbar">
         <div>
             <h2 class="module-title"><?= esc($branchRecord->name) ?> Branch Settings</h2>
-            <p class="module-subtitle">Configure branch-level overrides for regional defaults, operations, and enquiry behavior.</p>
+            <p class="module-subtitle">Manage branch-specific preferences and working rules.</p>
         </div>
         <div style="display:flex;gap:.5rem;">
             <a class="shell-button shell-button--ghost" href="<?= site_url('branches/' . $branchRecord->id . '/edit') ?>">Edit branch</a>
@@ -18,7 +18,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Branch profile</h3>
-                    <p class="module-subtitle">Current branch context and inherited tenant defaults.</p>
+                    <p class="module-subtitle">Basic branch details and default setup.</p>
                 </div>
                 <span class="status-badge <?= $branchRecord->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                     <?= esc(ucfirst($branchRecord->status)) ?>
@@ -87,7 +87,7 @@
                             <?php endif; ?>
 
                             <?php if ($isLocked): ?>
-                                <small>This field is locked by tenant or platform policy.</small>
+                                <small>This option is locked by your institute or the EDCRM team.</small>
                             <?php endif; ?>
                         </label>
                     <?php endforeach; ?>

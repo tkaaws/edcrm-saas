@@ -8,11 +8,11 @@
     <?php $canImpersonateUsers = in_array('users.impersonate', $codes, true) || (($roleCode ?? '') === 'platform_admin'); ?>
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Tenant users</h2>
-            <p class="module-subtitle">Manage branch access, role assignment, and account status for each tenant user.</p>
+            <h2 class="module-title">Team members</h2>
+            <p class="module-subtitle">Add people, assign access, and manage who can work in each branch.</p>
         </div>
         <?php if ($canCreateUsers): ?>
-            <a class="shell-button shell-button--primary" href="<?= site_url('users/create') ?>">Create user</a>
+            <a class="shell-button shell-button--primary" href="<?= site_url('users/create') ?>">Add team member</a>
         <?php endif; ?>
     </div>
 
@@ -31,7 +31,7 @@
             <tbody>
                 <?php if ($users === []): ?>
                     <tr>
-                        <td colspan="6" class="empty-state">No users yet. Create the first user for this tenant.</td>
+                        <td colspan="6" class="empty-state">No team members yet. Add the first person for this institute.</td>
                     </tr>
                 <?php endif; ?>
 
@@ -66,7 +66,7 @@
                                     <form method="post" action="<?= site_url('impersonation/start/' . $user->id) ?>">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="reason" value="Tenant support access">
-                                        <button class="shell-button shell-button--soft" type="submit">Login as</button>
+                                        <button class="shell-button shell-button--soft" type="submit">Open as this user</button>
                                     </form>
                                 <?php endif; ?>
                             </div>

@@ -6,79 +6,79 @@
         <article class="metric-card">
             <p class="metric-card__eyebrow">Institute</p>
             <p class="metric-card__value"><?= esc($tenantLabel ?? 'Not resolved') ?></p>
-            <p class="metric-card__caption">Current tenant resolved into session.</p>
+            <p class="metric-card__caption">Your current workspace.</p>
         </article>
 
         <article class="metric-card">
-            <p class="metric-card__eyebrow">Active branch</p>
+            <p class="metric-card__eyebrow">Current branch</p>
             <p class="metric-card__value"><?= esc($branchLabel ?? 'Not assigned') ?></p>
-            <p class="metric-card__caption">Primary branch for branch-aware operations.</p>
+            <p class="metric-card__caption">The branch you are working in right now.</p>
         </article>
 
         <article class="metric-card">
-            <p class="metric-card__eyebrow">Role</p>
+            <p class="metric-card__eyebrow">Access profile</p>
             <p class="metric-card__value"><?= esc($roleLabel ?: 'Pending') ?></p>
-            <p class="metric-card__caption">Your access level for this tenant.</p>
+            <p class="metric-card__caption">What you are allowed to do in this workspace.</p>
         </article>
 
         <article class="metric-card">
-            <p class="metric-card__eyebrow">Session</p>
-            <p class="metric-card__value">Active</p>
+            <p class="metric-card__eyebrow">Signed in</p>
+            <p class="metric-card__value">Yes</p>
             <p class="metric-card__caption"><?= esc($userEmail ?? '') ?></p>
         </article>
     </div>
 
     <div class="panel-grid">
         <article class="panel-card">
-            <h2>Phase 1A status</h2>
+            <h2>Workspace setup</h2>
             <ul class="module-list">
                 <li>
                     <div>
-                        <strong>Authentication</strong>
-                        <div class="module-list__meta">Login, logout, password reset, password history, audit log</div>
+                        <strong>Sign-in and account access</strong>
+                        <div class="module-list__meta">People can sign in and reach the workspace securely.</div>
                     </div>
-                    <span class="status-badge status-badge--good">Done</span>
+                    <span class="status-badge status-badge--good">Ready</span>
                 </li>
                 <li>
                     <div>
-                        <strong>Multi-tenant foundation</strong>
-                        <div class="module-list__meta">Tenant scoping, session context, branch resolution</div>
+                        <strong>Institute and branch setup</strong>
+                        <div class="module-list__meta">Institute context, branch routing, and access boundaries are in place.</div>
                     </div>
-                    <span class="status-badge status-badge--good">Done</span>
+                    <span class="status-badge status-badge--good">Ready</span>
                 </li>
                 <li>
                     <div>
-                        <strong>Admin shell</strong>
-                        <div class="module-list__meta">Layout, sidebar, platform admin isolation</div>
+                        <strong>Workspace layout</strong>
+                        <div class="module-list__meta">Menu, navigation, and page structure are available.</div>
                     </div>
-                    <span class="status-badge status-badge--good">Done</span>
+                    <span class="status-badge status-badge--good">Ready</span>
                 </li>
                 <li>
                     <div>
-                        <strong>Users / Branches / Roles / Settings</strong>
-                        <div class="module-list__meta">CRUD and assignment flows wired</div>
+                        <strong>Team, branches, access profiles, and settings</strong>
+                        <div class="module-list__meta">Core setup screens are available and being refined for day-to-day use.</div>
                     </div>
-                    <span class="status-badge status-badge--warm">Validate</span>
+                    <span class="status-badge status-badge--warm">In review</span>
                 </li>
                 <li>
                     <div>
-                        <strong>Platform tenant onboarding</strong>
-                        <div class="module-list__meta">Provisioning, validation, status management</div>
+                        <strong>Institute onboarding</strong>
+                        <div class="module-list__meta">New institutes can be created and activated by the EDCRM team.</div>
                     </div>
-                    <span class="status-badge status-badge--good">Done</span>
+                    <span class="status-badge status-badge--good">Ready</span>
                 </li>
                 <li>
                     <div>
-                        <strong>Billing and subscriptions</strong>
-                        <div class="module-list__meta">Plans, entitlements, usage limits</div>
+                        <strong>Plan and usage</strong>
+                        <div class="module-list__meta">Subscription, included features, and usage limits are visible.</div>
                     </div>
-                    <span class="status-badge status-badge--neutral">Phase 1B</span>
+                    <span class="status-badge status-badge--neutral">Available</span>
                 </li>
             </ul>
         </article>
 
         <aside class="list-card">
-            <h2>Session context</h2>
+            <h2>Current account</h2>
             <ul>
                 <li>
                     <span>User</span>

@@ -7,11 +7,11 @@
     <?php $canEditRoles = in_array('roles.edit', $codes, true); ?>
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Tenant roles</h2>
-            <p class="module-subtitle">Manage access templates and privilege bundles for institute users.</p>
+            <h2 class="module-title">Access profiles</h2>
+            <p class="module-subtitle">Create reusable access profiles for different kinds of team members.</p>
         </div>
         <?php if ($canCreateRoles): ?>
-            <a class="shell-button shell-button--primary" href="<?= site_url('roles/create') ?>">Create role</a>
+            <a class="shell-button shell-button--primary" href="<?= site_url('roles/create') ?>">Create access profile</a>
         <?php endif; ?>
     </div>
 
@@ -19,9 +19,7 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Role</th>
-                    <th>Code</th>
-                    <th>Type</th>
+                    <th>Access profile</th>
                     <th>Status</th>
                     <th class="data-table__actions">Actions</th>
                 </tr>
@@ -29,7 +27,7 @@
             <tbody>
                 <?php if ($roles === []): ?>
                     <tr>
-                        <td colspan="5" class="empty-state">No roles yet. Create the first tenant-specific role.</td>
+                        <td colspan="3" class="empty-state">No access profiles yet. Create the first one for your team.</td>
                     </tr>
                 <?php endif; ?>
 
@@ -38,11 +36,9 @@
                         <td>
                             <div class="entity-cell">
                                 <strong><?= esc($role->name) ?></strong>
-                                <span><?= $role->is_system ? 'System role' : 'Custom role' ?></span>
+                                <span><?= $role->is_system ? 'Standard profile' : 'Custom profile' ?></span>
                             </div>
                         </td>
-                        <td><?= esc($role->code) ?></td>
-                        <td><?= $role->is_system ? 'System' : 'Custom' ?></td>
                         <td>
                             <span class="status-badge <?= $role->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                 <?= esc(ucfirst($role->status)) ?>

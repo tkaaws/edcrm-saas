@@ -4,8 +4,8 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title"><?= esc($pageTitle ?? 'Branch form') ?></h2>
-            <p class="module-subtitle">Create and maintain institute branches with regional and operational defaults.</p>
+            <h2 class="module-title"><?= esc($pageTitle ?? 'Branch') ?></h2>
+            <p class="module-subtitle">Add or update a branch for your institute.</p>
         </div>
         <a class="shell-button shell-button--ghost" href="<?= site_url('branches') ?>">Back to branches</a>
     </div>
@@ -40,14 +40,14 @@
                 <div class="module-toolbar">
                     <div>
                         <h3 class="module-title module-title--small">Additional details</h3>
-                        <p class="module-subtitle">Regional overrides and extended branch profile settings.</p>
+                        <p class="module-subtitle">Extra details for this branch.</p>
                     </div>
                 </div>
 
                 <div class="form-grid">
                     <label class="field">
-                        <span>Type</span>
-                        <input type="text" name="type" value="<?= esc(old('type', $branch->type ?? '')) ?>" placeholder="main, satellite, online">
+                        <span>Branch type</span>
+                        <input type="text" name="type" value="<?= esc(old('type', $branch->type ?? '')) ?>" placeholder="Main, satellite, online">
                     </label>
 
                     <label class="field">
@@ -91,7 +91,7 @@
             </section>
         <?php else: ?>
             <p class="module-subtitle" style="margin-top:1rem;">
-                Country, currency, timezone, and branch status will inherit tenant defaults for now. You can refine them later from branch settings.
+                Country, currency, timezone, and status will use your institute defaults for now. You can refine them later from branch settings.
             </p>
         <?php endif; ?>
 

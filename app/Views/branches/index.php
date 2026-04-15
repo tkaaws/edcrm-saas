@@ -7,11 +7,11 @@
     <?php $canEditBranches = in_array('branches.edit', $codes, true); ?>
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Tenant branches</h2>
-            <p class="module-subtitle">Manage institute locations, region-specific settings, and branch availability.</p>
+            <h2 class="module-title">Branches</h2>
+            <p class="module-subtitle">Manage your institute locations and decide which branches are active.</p>
         </div>
         <?php if ($canCreateBranches): ?>
-            <a class="shell-button shell-button--primary" href="<?= site_url('branches/create') ?>">Create branch</a>
+            <a class="shell-button shell-button--primary" href="<?= site_url('branches/create') ?>">Add branch</a>
         <?php endif; ?>
     </div>
 
@@ -31,7 +31,7 @@
             <tbody>
                 <?php if ($branches === []): ?>
                     <tr>
-                        <td colspan="7" class="empty-state">No branches yet. Create the first branch for this tenant.</td>
+                        <td colspan="7" class="empty-state">No branches yet. Add the first branch for this institute.</td>
                     </tr>
                 <?php endif; ?>
 

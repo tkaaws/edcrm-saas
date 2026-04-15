@@ -4,10 +4,10 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title"><?= esc($pageTitle ?? 'User form') ?></h2>
-            <p class="module-subtitle">Create and maintain tenant users with role, branch, and password control.</p>
+            <h2 class="module-title"><?= esc($pageTitle ?? 'Team member') ?></h2>
+            <p class="module-subtitle">Set up a person, choose their access, and decide which branch they work with.</p>
         </div>
-        <a class="shell-button shell-button--ghost" href="<?= site_url('users') ?>">Back to users</a>
+        <a class="shell-button shell-button--ghost" href="<?= site_url('users') ?>">Back to team</a>
     </div>
 
     <form class="form-card" method="post" action="<?= esc($formAction) ?>">
@@ -15,7 +15,7 @@
 
         <?php if (($canSubmit ?? true) === false): ?>
             <div class="alert alert--warning">
-                No assignable roles are available for your current access scope and tenant plan.
+                No access profiles are available for you to assign right now.
             </div>
         <?php endif; ?>
 
@@ -33,13 +33,13 @@
             <label class="field">
                 <span>Email</span>
                 <input type="email" name="email" value="<?= esc(old('email', $user->email ?? '')) ?>" required>
-                <small>This email will be used as the login ID.</small>
+                <small>This email will be used for sign-in.</small>
             </label>
 
             <label class="field">
                 <span>Role</span>
                 <select name="role_id" required>
-                    <option value="">Select role</option>
+                    <option value="">Select access profile</option>
                     <?php foreach ($roles as $role): ?>
                         <option value="<?= esc((string) $role->id) ?>" <?= (string) old('role_id', $user->role_id ?? '') === (string) $role->id ? 'selected' : '' ?>>
                             <?= esc($role->name) ?>
@@ -51,7 +51,7 @@
             <label class="field">
                 <span>Reports to</span>
                 <select name="manager_user_id">
-                    <option value="">No reporting head</option>
+                    <option value="">No reporting manager</option>
                     <?php foreach ($managerUsers as $manager): ?>
                         <?php $managerId = (string) $manager->id; ?>
                         <option value="<?= esc($managerId) ?>" <?= (string) old('manager_user_id', $hierarchy->manager_user_id ?? '') === $managerId ? 'selected' : '' ?>>
@@ -59,7 +59,7 @@
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <small>For hierarchy roles, this defines who the user reports to. Branch and tenant roles use assigned branches or tenant-wide access from their role behavior.</small>
+                <small>Use this only when the person reports to a team lead or manager.</small>
             </label>
 
             <label class="field field--full">
@@ -73,7 +73,7 @@
                 <div class="module-toolbar">
                     <div>
                         <h3 class="module-title module-title--small">Additional details</h3>
-                        <p class="module-subtitle">Optional employee profile and contact information for this user.</p>
+                        <p class="module-subtitle">Optional staff and contact details.</p>
                     </div>
                 </div>
 
@@ -121,11 +121,11 @@
             </section>
 
             <section class="choice-card">
-                <h3>Primary branch</h3>
+                <h3>Main branch</h3>
                 <label class="field">
-                    <span>Primary branch</span>
+                    <span>Main branch</span>
                     <select name="primary_branch_id" required>
-                        <option value="">Select primary branch</option>
+                        <option value="">Select main branch</option>
                         <?php foreach ($branches as $branch): ?>
                             <option value="<?= esc((string) $branch->id) ?>" <?= (string) old('primary_branch_id', $primaryBranchId ?? '') === (string) $branch->id ? 'selected' : '' ?>>
                                 <?= esc($branch->name) ?>
@@ -135,10 +135,6 @@
                 </label>
             </section>
         </div>
-
-        <p class="module-subtitle" style="margin-top:1rem;">
-            Access is derived from the selected role, branch assignment, and reporting head relationships. Login always uses email.
-        </p>
 
         <div class="form-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('users') ?>">Cancel</a>
