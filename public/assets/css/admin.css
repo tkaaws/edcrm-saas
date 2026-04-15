@@ -1,19 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
-    --bg: #f7f9fc;
+    --bg: #f0f3ff;
     --surface: #ffffff;
-    --text: #172134;
-    --muted: #637085;
-    --line: #e2e8f0;
-    --brand: #0f66d0;
-    --brand-soft: #edf4ff;
-    --accent: #e8751a;
-    --accent-soft: #fff1e6;
-    --success: #177245;
-    --warning: #9a6700;
-    --danger: #b42318;
-    --sidebar-text: #172134;
+    --text: #181b34;
+    --muted: #676879;
+    --line: #d7ddf3;
+    --brand: #6161ff;
+    --brand-soft: #f0f3ff;
+    --accent: #ffcc00;
+    --accent-soft: #fff8d6;
+    --success: #00ca72;
+    --warning: #b88900;
+    --danger: #fb275d;
+    --sidebar-text: #181b34;
     --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 
@@ -440,13 +440,13 @@ a {
 }
 
 .status-badge--good {
-    background: #dcfce7;
+    background: #dbf7ea;
     color: var(--success);
 }
 
 .status-badge--info {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: #ececff;
+    color: var(--brand);
 }
 
 .status-badge--warm {
@@ -455,7 +455,7 @@ a {
 }
 
 .status-badge--warning {
-    background: #fef3c7;
+    background: #fff6cc;
     color: var(--warning);
 }
 
@@ -1155,15 +1155,15 @@ a {
 }
 
 .usage-bar__fill--ok {
-    background: #22c55e;
+    background: var(--success);
 }
 
 .usage-bar__fill--warn {
-    background: #f59e0b;
+    background: var(--accent);
 }
 
 .usage-bar__fill--danger {
-    background: #ef4444;
+    background: var(--danger);
 }
 
 .module-grid {
