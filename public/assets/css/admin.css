@@ -719,6 +719,42 @@ a {
     gap: 10px;
 }
 
+.billing-overview {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.billing-kpi {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px;
+    display: grid;
+    gap: 8px;
+}
+
+.billing-kpi__label {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.billing-kpi__value {
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+    min-height: 32px;
+}
+
+.billing-kpi__meta {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 .billing-summary {
     gap: 0;
 }
@@ -749,6 +785,31 @@ a {
     min-height: 28px;
 }
 
+.billing-note {
+    margin-top: 4px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid #d7e6ee;
+    background: #f8fbfd;
+    display: grid;
+    gap: 6px;
+}
+
+.billing-note strong {
+    color: var(--text);
+    font-size: 14px;
+}
+
+.billing-note p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.billing-alert {
+    margin-top: .75rem;
+}
+
 .inline-form {
     display: flex;
     flex-wrap: wrap;
@@ -777,6 +838,42 @@ a {
 .detail-column {
     display: grid;
     gap: 18px;
+}
+
+.usage-item {
+    display: grid;
+    gap: 8px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+}
+
+.usage-item:first-of-type {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.usage-item__top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+}
+
+.usage-item__top strong {
+    color: var(--text);
+    font-size: 15px;
+}
+
+.usage-item__top span:last-child {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.usage-item__hint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .usage-bar {
@@ -852,6 +949,10 @@ a {
         grid-template-columns: 1fr 1fr;
     }
 
+    .billing-overview {
+        grid-template-columns: 1fr 1fr;
+    }
+
     .detail-card--wide {
         grid-column: span 2;
     }
@@ -887,7 +988,8 @@ a {
     .privilege-groups,
     .settings-grid,
     .stats-grid,
-    .detail-grid {
+    .detail-grid,
+    .billing-overview {
         grid-template-columns: 1fr;
     }
 
@@ -937,5 +1039,12 @@ a {
     .detail-card__actions {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .usage-item__top,
+    .billing-summary div {
+        grid-template-columns: 1fr;
+        display: grid;
+        align-items: start;
     }
 }
