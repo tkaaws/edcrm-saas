@@ -90,7 +90,7 @@
                                             <option value="">Select plan</option>
                                             <?php foreach ($plans as $plan): ?>
                                                 <option value="<?= esc($plan->id) ?>" <?= (int) ($tenant->current_plan_id ?? 0) === (int) $plan->id ? 'selected' : '' ?>>
-                                                    <?= esc($plan->name) ?> (<?= esc($plan->code) ?>)
+                                                    <?= esc($plan->name) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
