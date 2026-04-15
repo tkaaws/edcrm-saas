@@ -105,7 +105,6 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Short code</th>
                             <th>Visibility</th>
                             <th>Status</th>
                             <th class="data-table__actions">Actions</th>
@@ -114,7 +113,7 @@
                     <tbody>
                         <?php if (($platformValues ?? []) === []): ?>
                             <tr>
-                                <td colspan="5" class="empty-state">No platform values available for this catalog.</td>
+                                <td colspan="4" class="empty-state">No platform values available for this catalog.</td>
                             </tr>
                         <?php endif; ?>
                         <?php foreach (($platformValues ?? []) as $value): ?>
@@ -127,7 +126,6 @@
                                         <span><?= esc($value->description ?: 'Shared platform default') ?></span>
                                     </div>
                                 </td>
-                                <td><?= esc($value->code) ?></td>
                                 <td>
                                     <span class="status-badge <?= $isVisible ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                         <?= $isVisible ? 'Visible' : 'Hidden' ?>
@@ -170,7 +168,6 @@
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th>Short code</th>
                             <th>Status</th>
                             <th class="data-table__actions">Actions</th>
                         </tr>
@@ -178,7 +175,7 @@
                     <tbody>
                         <?php if (($tenantValues ?? []) === []): ?>
                             <tr>
-                                <td colspan="4" class="empty-state">No tenant-specific values yet for this catalog.</td>
+                                <td colspan="3" class="empty-state">No tenant-specific values yet for this catalog.</td>
                             </tr>
                         <?php endif; ?>
                         <?php foreach (($tenantValues ?? []) as $value): ?>
@@ -189,7 +186,6 @@
                                         <span><?= esc($value->description ?: 'Tenant custom value') ?></span>
                                     </div>
                                 </td>
-                                <td><?= esc($value->code) ?></td>
                                 <td>
                                     <span class="status-badge <?= $value->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
                                         <?= esc(ucfirst($value->status)) ?>
