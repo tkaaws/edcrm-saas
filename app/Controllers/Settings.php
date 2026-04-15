@@ -49,20 +49,13 @@ class Settings extends BaseController
             'emailConfig'    => $this->decorateEmailConfig($emailConfig),
             'whatsappConfig' => $this->decorateWhatsappConfig($whatsappConfig),
             'catalogSections' => $this->buildCatalogSections($tenantId),
-            'enquirySettingsUrl' => site_url('settings/enquiry'),
+            'enquiryCatalogSections' => $this->buildEnquirySections($tenantId),
         ]));
     }
 
-    public function enquiry(): string
+    public function enquiry()
     {
-        $tenantId = (int) session()->get('tenant_id');
-
-        return view('settings/enquiry', $this->buildShellViewData([
-            'title'          => 'Enquiry Settings',
-            'pageTitle'      => 'Enquiry Settings',
-            'activeNav'      => 'settings',
-            'catalogSections' => $this->buildEnquirySections($tenantId),
-        ]));
+        return redirect()->to('/settings');
     }
 
     public function updateProfile()
@@ -181,9 +174,7 @@ class Settings extends BaseController
 
         $this->syncLegacySettings($tenantId, $category, $resolvedValues);
 
-        $redirect = $this->isEnquiryCategory($category) ? '/settings/enquiry' : '/settings';
-
-        return redirect()->to($redirect)->with('message', $this->categorySuccessLabel($category) . ' updated successfully.');
+        return redirect()->to('/settings')->with('message', $this->categorySuccessLabel($category) . ' updated successfully.');
     }
 
     public function updateEmailConfig()
