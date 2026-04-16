@@ -1,100 +1,150 @@
 <?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
+<?php
+$codes = session()->get('user_privilege_codes') ?? [];
+$canCreateEnquiry = in_array('enquiries.create', $codes, true);
+$canBulkAssign = in_array('enquiries.bulk_assign', $codes, true);
+$columnCount = match ($currentTab ?? 'enquiries') {
+    'today', 'fresh' => 11,
+    'missed' => 12,
+    'expired', 'closed' => 13,
+    default => 12,
+};
+?>
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Enquiries</h2>
-            <p class="module-subtitle">This screen is being prepared for enquiry entry and follow-up work.</p>
+            <h2 class="module-title"><?= esc($pageTitle ?? 'Enquiries') ?></h2>
+            <p class="module-subtitle">Track active leads, time-sensitive follow-ups, and recovery queues without clutter.</p>
+        </div>
+        <div class="table-actions">
+            <?php if ($canBulkAssign): ?>
+                <a class="shell-button shell-button--ghost" href="<?= site_url('enquiries/bulk-assign') ?>">Bulk assign</a>
+            <?php endif; ?>
+            <?php if ($canCreateEnquiry): ?>
+                <a class="shell-button shell-button--primary" href="<?= site_url('enquiries/create') ?>">Add enquiry</a>
+            <?php endif; ?>
         </div>
     </div>
 
-    <div class="settings-grid">
-        <form class="form-card">
-            <div class="module-toolbar">
-                <div>
-                    <h3 class="module-title module-title--small">Create enquiry</h3>
-                    <p class="module-subtitle">Preview of the business lists that will be used while creating and following up enquiries.</p>
-                </div>
-            </div>
+    <section class="settings-tabs" aria-label="Enquiry navigation">
+        <div class="settings-tabs__nav">
+            <a class="settings-tabs__button <?= $currentTab === 'enquiries' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries?tab=enquiries') ?>">Enquiries</a>
+            <a class="settings-tabs__button <?= $currentTab === 'today' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries?tab=today') ?>">Today</a>
+            <a class="settings-tabs__button <?= $currentTab === 'missed' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries?tab=missed') ?>">Missed</a>
+            <a class="settings-tabs__button <?= $currentTab === 'fresh' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries?tab=fresh') ?>">Fresh</a>
+            <a class="settings-tabs__button <?= $currentTab === 'expired' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries/expired') ?>">Expired Enquiries</a>
+            <a class="settings-tabs__button <?= $currentTab === 'closed' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries/closed') ?>">Closed Enquiries</a>
+            <?php if ($canBulkAssign): ?>
+                <a class="settings-tabs__button" href="<?= site_url('enquiries/bulk-assign') ?>">Bulk Assign</a>
+            <?php endif; ?>
+        </div>
+    </section>
 
-            <div class="form-grid">
-                <label class="field">
-                    <span>Student name</span>
-                    <input type="text" placeholder="Example: Aditi Sharma" disabled>
-                </label>
-                <label class="field">
-                    <span>Mobile number</span>
-                    <input type="text" placeholder="Coming next" disabled>
-                </label>
-                <label class="field">
-                    <span>Enquiry source</span>
-                    <select disabled><?php foreach ($sources as $row): ?><option><?= esc($row->label) ?></option><?php endforeach; ?></select>
-                </label>
-                <label class="field">
-                    <span>Purpose category</span>
-                    <select disabled><?php foreach ($purposes as $row): ?><option><?= esc($row->label) ?></option><?php endforeach; ?></select>
-                </label>
-                <label class="field">
-                    <span>Lead qualification</span>
-                    <select disabled><?php foreach ($qualifications as $row): ?><option><?= esc($row->label) ?></option><?php endforeach; ?></select>
-                </label>
-                <label class="field">
-                    <span>Course</span>
-                    <select disabled><?php foreach ($courses as $row): ?><option><?= esc($row->label) ?></option><?php endforeach; ?></select>
-                </label>
-                <label class="field">
-                    <span>Preferred communication mode</span>
-                    <select disabled><?php foreach ($modes as $row): ?><option><?= esc($row->label) ?></option><?php endforeach; ?></select>
-                </label>
-                <label class="field">
-                    <span>Follow-up status</span>
-                    <select disabled><?php foreach ($followups as $row): ?><option><?= esc($row->label) ?></option><?php endforeach; ?></select>
-                </label>
-                <label class="field">
-                    <span>Closure reason</span>
-                    <select disabled><?php foreach ($closureReasons as $row): ?><option><?= esc($row->label) ?></option><?php endforeach; ?></select>
-                </label>
-                <label class="field">
-                    <span>Lost reason</span>
-                    <select disabled><?php foreach ($lostReasons as $row): ?><option><?= esc($row->label) ?></option><?php endforeach; ?></select>
-                </label>
-            </div>
-
-            <div class="form-actions">
-                <button class="shell-button shell-button--primary" type="button" disabled>Enquiry form coming next</button>
-            </div>
-        </form>
-
-        <section class="form-card">
-            <div class="module-toolbar">
-                <div>
-                    <h3 class="module-title module-title--small">Available lists</h3>
-                    <p class="module-subtitle">These lists are already ready for use in the enquiry form.</p>
-                </div>
-            </div>
-
-            <div class="table-card">
-                <table class="data-table">
-                    <thead>
+    <div class="table-card">
+        <div class="table-wrap">
+            <table class="data-table data-table--cards">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Source</th>
+                        <th>Course</th>
+                        <?php if ($currentTab === 'today'): ?>
+                            <th>Assigned to</th>
+                            <th>Due time</th>
+                        <?php elseif ($currentTab === 'missed'): ?>
+                            <th>Assigned to</th>
+                            <th>Due date</th>
+                            <th>Overdue by</th>
+                        <?php elseif ($currentTab === 'fresh'): ?>
+                            <th>Branch</th>
+                            <th>Assigned to</th>
+                        <?php elseif ($currentTab === 'expired'): ?>
+                            <th>Branch</th>
+                            <th>Assigned to</th>
+                            <th>Last follow-up</th>
+                            <th>Expired on</th>
+                        <?php elseif ($currentTab === 'closed'): ?>
+                            <th>Branch</th>
+                            <th>Assigned to</th>
+                            <th>Closed by</th>
+                            <th>Closed on</th>
+                        <?php else: ?>
+                            <th>Branch</th>
+                            <th>Assigned to</th>
+                            <th>Status</th>
+                        <?php endif; ?>
+                        <th>Created on</th>
+                        <th>Modified on</th>
+                        <th>Created by</th>
+                        <th>Modified by</th>
+                        <th class="data-table__actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($rows === []): ?>
                         <tr>
-                            <th>Catalog</th>
-                            <th>Values loaded</th>
+                            <td colspan="<?= $columnCount ?>" class="empty-state">No enquiries found in this queue yet.</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>Enquiry source</td><td><?= count($sources) ?></td></tr>
-                        <tr><td>Lead qualification</td><td><?= count($qualifications) ?></td></tr>
-                        <tr><td>Follow-up status</td><td><?= count($followups) ?></td></tr>
-                        <tr><td>Communication mode</td><td><?= count($modes) ?></td></tr>
-                        <tr><td>Lost reasons</td><td><?= count($lostReasons) ?></td></tr>
-                        <tr><td>Closure reasons</td><td><?= count($closureReasons) ?></td></tr>
-                        <tr><td>Purpose categories</td><td><?= count($purposes) ?></td></tr>
-                        <tr><td>Courses</td><td><?= count($courses) ?></td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+                    <?php endif; ?>
+
+                    <?php foreach ($rows as $row): ?>
+                        <tr>
+                            <td data-label="Name">
+                                <div class="entity-cell">
+                                    <strong><a href="<?= site_url('enquiries/' . $row->id) ?>"><?= esc($row->student_name) ?></a></strong>
+                                    <span><?= esc($row->city ?: ($row->college_name ?: 'Student enquiry')) ?></span>
+                                </div>
+                            </td>
+                            <td data-label="Mobile"><?= esc($row->mobile_display) ?></td>
+                            <td data-label="Source"><?= esc($row->source_display) ?></td>
+                            <td data-label="Course"><?= esc($row->course_display) ?></td>
+                            <?php if ($currentTab === 'today'): ?>
+                                <td data-label="Assigned to"><?= esc($row->owner_display) ?></td>
+                                <td data-label="Due time"><?= esc($row->next_followup_at ? date('d M Y h:i A', strtotime($row->next_followup_at)) : '-') ?></td>
+                            <?php elseif ($currentTab === 'missed'): ?>
+                                <td data-label="Assigned to"><?= esc($row->owner_display) ?></td>
+                                <td data-label="Due date"><?= esc($row->next_followup_at ? date('d M Y', strtotime($row->next_followup_at)) : '-') ?></td>
+                                <td data-label="Overdue by"><?= esc($row->overdue_by !== null ? $row->overdue_by . ' days' : '-') ?></td>
+                            <?php elseif ($currentTab === 'fresh'): ?>
+                                <td data-label="Branch"><?= esc($row->branch_display) ?></td>
+                                <td data-label="Assigned to"><?= esc($row->owner_display) ?></td>
+                            <?php elseif ($currentTab === 'expired'): ?>
+                                <td data-label="Branch"><?= esc($row->branch_display) ?></td>
+                                <td data-label="Assigned to"><?= esc($row->owner_display) ?></td>
+                                <td data-label="Last follow-up"><?= esc($row->last_followup_at ? date('d M Y', strtotime($row->last_followup_at)) : '-') ?></td>
+                                <td data-label="Expired on"><?= esc($row->expired_on ? date('d M Y', strtotime($row->expired_on)) : '-') ?></td>
+                            <?php elseif ($currentTab === 'closed'): ?>
+                                <td data-label="Branch"><?= esc($row->branch_display) ?></td>
+                                <td data-label="Assigned to"><?= esc($row->owner_display) ?></td>
+                                <td data-label="Closed by"><?= esc($row->closed_by_display) ?></td>
+                                <td data-label="Closed on"><?= esc($row->closed_at ? date('d M Y', strtotime($row->closed_at)) : '-') ?></td>
+                            <?php else: ?>
+                                <td data-label="Branch"><?= esc($row->branch_display) ?></td>
+                                <td data-label="Assigned to"><?= esc($row->owner_display) ?></td>
+                                <td data-label="Status">
+                                    <span class="status-badge status-badge--good"><?= esc($row->queue_status) ?></span>
+                                </td>
+                            <?php endif; ?>
+                            <td data-label="Created on"><?= esc($row->created_at ? date('d M Y', strtotime($row->created_at)) : '-') ?></td>
+                            <td data-label="Modified on"><?= esc($row->updated_at ? date('d M Y', strtotime($row->updated_at)) : '-') ?></td>
+                            <td data-label="Created by"><?= esc($row->created_by_display) ?></td>
+                            <td data-label="Modified by"><?= esc($row->updated_by_display) ?></td>
+                            <td class="data-table__actions" data-label="Actions">
+                                <div class="table-actions">
+                                    <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $row->id) ?>">Open</a>
+                                    <?php if (in_array('enquiries.edit', $codes, true) && in_array($row->lifecycle_status, ['new', 'active'], true)): ?>
+                                        <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $row->id . '/edit') ?>">Edit</a>
+                                    <?php endif; ?>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </section>
 <?= $this->endSection() ?>

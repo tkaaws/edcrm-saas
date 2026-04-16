@@ -34,6 +34,7 @@
         ['key' => 'users',       'label' => 'Users',       'href' => site_url('users'),              'meta' => 'People',     'show' => ! $isPlatformAdmin && $canPrefix('users.')],
         ['key' => 'branches',    'label' => 'Branches',    'href' => site_url('branches'),           'meta' => 'Locations',  'show' => ! $isPlatformAdmin && $canPrefix('branches.')],
         ['key' => 'roles',       'label' => 'Roles',       'href' => site_url('roles'),              'meta' => 'Access',     'show' => ! $isPlatformAdmin && $canPrefix('roles.')],
+        ['key' => 'colleges',    'label' => 'Colleges',    'href' => site_url('colleges'),           'meta' => 'Campus',     'show' => ! $isPlatformAdmin && $canPrefix('colleges.')],
         ['key' => 'master_data', 'label' => 'Business Lookup Data', 'href' => site_url('settings/master-data'),'meta' => 'Lists',   'show' => ! $isPlatformAdmin && $canPrefix('settings.')],
 
         // Feature-gated modules - only shown when plan includes the module

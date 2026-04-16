@@ -134,6 +134,55 @@ class UserAccessScopeService
         return true;
     }
 
+    /**
+     * @return list<int>
+     */
+    public function getAssignedBranchIdsForActor(): array
+    {
+        $actor = $this->getActor();
+        if (! $actor) {
+            return [];
+        }
+
+        return $this->getAssignedBranchIds((int) $actor->id);
+    }
+
+    /**
+     * @return list<int>
+     */
+    public function getHierarchyScopeUserIdsForActor(bool $includeActor = true): array
+    {
+        $actor = $this->getActor();
+        if (! $actor) {
+            return [];
+        }
+
+        $actorId = (int) $actor->id;
+        $ids = $includeActor ? [$actorId] : [];
+        $queue = [$actorId];
+        $seen = [$actorId => true];
+
+        while ($queue !== []) {
+            $currentManagerId = array_shift($queue);
+            $rows = $this->userHierarchyModel->withoutTenantScope()
+                ->where('manager_user_id', $currentManagerId)
+                ->findAll();
+
+            foreach ($rows as $row) {
+                $userId = (int) $row->user_id;
+                if (isset($seen[$userId])) {
+                    continue;
+                }
+
+                $seen[$userId] = true;
+                $ids[] = $userId;
+                $queue[] = $userId;
+            }
+        }
+
+        return $ids;
+    }
+
     public function canAssignManager(?int $managerUserId): bool
     {
         if ($managerUserId === null || $managerUserId < 1) {

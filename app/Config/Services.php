@@ -18,6 +18,8 @@ use App\Services\SettingsResolverService;
 use App\Services\UserAccessScopeService;
 use App\Services\ImpersonationService;
 use App\Services\MasterDataService;
+use App\Services\CollegeService;
+use App\Services\EnquiryQueueService;
 
 /**
  * Services Configuration
@@ -187,5 +189,21 @@ class Services extends BaseService
             return static::getSharedInstance('masterData');
         }
         return new MasterDataService();
+    }
+
+    public static function collegeService(bool $getShared = true): CollegeService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('collegeService');
+        }
+        return new CollegeService();
+    }
+
+    public static function enquiryQueue(bool $getShared = true): EnquiryQueueService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('enquiryQueue');
+        }
+        return new EnquiryQueueService();
     }
 }

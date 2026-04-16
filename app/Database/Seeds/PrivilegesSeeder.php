@@ -38,6 +38,14 @@ class PrivilegesSeeder extends Seeder
             ['code' => 'roles.delete', 'name' => 'Delete Roles', 'module' => 'roles'],
 
             // -------------------------------------------------------
+            // MODULE: colleges
+            // -------------------------------------------------------
+            ['code' => 'colleges.view',   'name' => 'View Colleges',   'module' => 'colleges'],
+            ['code' => 'colleges.create', 'name' => 'Create Colleges', 'module' => 'colleges'],
+            ['code' => 'colleges.edit',   'name' => 'Edit Colleges',   'module' => 'colleges'],
+            ['code' => 'colleges.delete', 'name' => 'Delete Colleges', 'module' => 'colleges'],
+
+            // -------------------------------------------------------
             // MODULE: settings
             // -------------------------------------------------------
             ['code' => 'settings.view',        'name' => 'View Settings',         'module' => 'settings'],
@@ -55,6 +63,19 @@ class PrivilegesSeeder extends Seeder
             ['code' => 'enquiries.assign',      'name' => 'Assign Enquiries',       'module' => 'enquiries'],
             ['code' => 'enquiries.bulk_assign', 'name' => 'Bulk Assign Enquiries',  'module' => 'enquiries'],
             ['code' => 'enquiries.export',      'name' => 'Export Enquiries',       'module' => 'enquiries'],
+            ['code' => 'enquiries.view_mobile_number', 'name' => 'View Enquiry Mobile Numbers', 'module' => 'enquiries'],
+            ['code' => 'enquiries.close',       'name' => 'Close Enquiries',        'module' => 'enquiries'],
+            ['code' => 'enquiries.reopen',      'name' => 'Reopen Enquiries',       'module' => 'enquiries'],
+            ['code' => 'enquiries.convert_to_admission', 'name' => 'Convert Enquiries to Admission', 'module' => 'enquiries'],
+            ['code' => 'enquiries.view_created_on', 'name' => 'View Enquiry Created On', 'module' => 'enquiries'],
+            ['code' => 'enquiries.view_modified_on', 'name' => 'View Enquiry Modified On', 'module' => 'enquiries'],
+            ['code' => 'enquiries.view_created_by', 'name' => 'View Enquiry Created By', 'module' => 'enquiries'],
+            ['code' => 'enquiries.view_modified_by', 'name' => 'View Enquiry Modified By', 'module' => 'enquiries'],
+            ['code' => 'enquiries.reassign_in_edit', 'name' => 'Reassign Enquiries in Edit', 'module' => 'enquiries'],
+            ['code' => 'enquiries.expired_assign', 'name' => 'Assign Expired Enquiries', 'module' => 'enquiries'],
+            ['code' => 'enquiries.closed_assign', 'name' => 'Assign Closed Enquiries', 'module' => 'enquiries'],
+            ['code' => 'enquiries.assignment_history_view', 'name' => 'View Enquiry Assignment History', 'module' => 'enquiries'],
+            ['code' => 'enquiries.activity_view', 'name' => 'View Enquiry Activity', 'module' => 'enquiries'],
 
             // -------------------------------------------------------
             // MODULE: followups
@@ -62,6 +83,7 @@ class PrivilegesSeeder extends Seeder
             ['code' => 'followups.view',   'name' => 'View Followups',   'module' => 'followups'],
             ['code' => 'followups.create', 'name' => 'Create Followups', 'module' => 'followups'],
             ['code' => 'followups.edit',   'name' => 'Edit Followups',   'module' => 'followups'],
+            ['code' => 'followups.delete', 'name' => 'Delete Followups', 'module' => 'followups'],
 
             // -------------------------------------------------------
             // MODULE: admissions

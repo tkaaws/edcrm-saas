@@ -33,6 +33,7 @@ class TenantProvisioningService
         $this->attachRolePrivileges($roleIds, $now);
         $userId   = $this->createOwnerUser($tenantId, $roleIds['tenant_owner'], $data, $now);
         $this->assignUserToPrimaryBranch($userId, $branchId, $now);
+        $this->createDefaultCollege($tenantId, $now);
         $this->createTenantSettings($tenantId, $data, $now);
 
         $this->db->transComplete();
@@ -163,9 +164,16 @@ class TenantProvisioningService
             'tenant_admin' => array_values(array_filter(array_keys($privMap), static fn(string $code) => $code !== 'billing.manage')),
             'branch_manager' => [
                 'users.view', 'branches.view', 'roles.view', 'settings.view',
+                'colleges.view', 'colleges.create', 'colleges.edit',
                 'enquiries.view', 'enquiries.create', 'enquiries.edit',
                 'enquiries.assign', 'enquiries.bulk_assign', 'enquiries.export',
-                'followups.view', 'followups.create', 'followups.edit',
+                'enquiries.view_mobile_number', 'enquiries.close', 'enquiries.reopen',
+                'enquiries.convert_to_admission', 'enquiries.view_created_on',
+                'enquiries.view_modified_on', 'enquiries.view_created_by',
+                'enquiries.view_modified_by', 'enquiries.reassign_in_edit',
+                'enquiries.expired_assign', 'enquiries.closed_assign',
+                'enquiries.assignment_history_view', 'enquiries.activity_view',
+                'followups.view', 'followups.create', 'followups.edit', 'followups.delete',
                 'admissions.view', 'admissions.create', 'admissions.edit', 'admissions.approve',
                 'fees.view', 'fees.create', 'fees.edit', 'fees.receipts',
                 'tickets.view', 'tickets.create', 'tickets.edit', 'tickets.close',
@@ -175,7 +183,8 @@ class TenantProvisioningService
             ],
             'counsellor' => [
                 'enquiries.view', 'enquiries.create', 'enquiries.edit', 'enquiries.assign',
-                'followups.view', 'followups.create', 'followups.edit',
+                'enquiries.view_mobile_number', 'enquiries.close', 'enquiries.convert_to_admission',
+                'followups.view', 'followups.create', 'followups.edit', 'followups.delete',
                 'admissions.view', 'admissions.create', 'students.view', 'reports.view', 'whatsapp.send',
             ],
             'accounts' => [
@@ -294,6 +303,21 @@ class TenantProvisioningService
             'key'         => 'enquiry.visibility.mode',
             'value'       => $this->mapLegacyEnquiryVisibilityMode($data['enquiry_visibility_mode']),
             'value_type'  => 'string',
+            'created_at'  => $now,
+            'updated_at'  => $now,
+        ]);
+    }
+
+    protected function createDefaultCollege(int $tenantId, string $now): void
+    {
+        $this->db->table('colleges')->insert([
+            'tenant_id'   => $tenantId,
+            'name'        => 'Test College',
+            'city_name'   => 'Pune',
+            'state_name'  => 'Maharashtra',
+            'status'      => 'active',
+            'created_by'  => null,
+            'updated_by'  => null,
             'created_at'  => $now,
             'updated_at'  => $now,
         ]);

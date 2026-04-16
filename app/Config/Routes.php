@@ -51,6 +51,14 @@ $routes->group('', ['filter' => ['auth', 'tenant', 'suspension']], static functi
     $routes->post('roles/(:num)', 'Roles::update/$1', ['filter' => ['feature:crm_core', 'privilege:roles.edit']]);
     $routes->post('roles/(:num)/status', 'Roles::updateStatus/$1', ['filter' => ['feature:crm_core', 'privilege:roles.edit']]);
 
+    $routes->get('colleges', 'Colleges::index', ['filter' => ['feature:crm_core', 'privilege:colleges.view']]);
+    $routes->get('colleges/options', 'Colleges::options', ['filter' => ['feature:crm_core', 'privilege:enquiries.view,enquiries.create,enquiries.edit,colleges.view']]);
+    $routes->get('colleges/create', 'Colleges::create', ['filter' => ['feature:crm_core', 'privilege:colleges.create']]);
+    $routes->post('colleges', 'Colleges::store', ['filter' => ['feature:crm_core', 'privilege:colleges.create']]);
+    $routes->get('colleges/(:num)/edit', 'Colleges::edit/$1', ['filter' => ['feature:crm_core', 'privilege:colleges.edit']]);
+    $routes->post('colleges/(:num)', 'Colleges::update/$1', ['filter' => ['feature:crm_core', 'privilege:colleges.edit']]);
+    $routes->post('colleges/(:num)/delete', 'Colleges::delete/$1', ['filter' => ['feature:crm_core', 'privilege:colleges.delete']]);
+
     $routes->get('settings', 'Settings::index', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
     $routes->get('settings/enquiry', 'Settings::enquiry', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
     $routes->get('settings/master-data', 'MasterData::index', ['filter' => ['feature:crm_core', 'privilege:settings.view']]);
@@ -72,7 +80,23 @@ $routes->group('impersonation', ['filter' => ['auth']], static function (RouteCo
 });
 
 $routes->group('enquiries', ['filter' => ['auth', 'tenant', 'suspension', 'feature:crm_core']], static function (RouteCollection $routes): void {
-    $routes->get('/', 'Enquiries::index');
+    $routes->get('/', 'Enquiries::index', ['filter' => 'privilege:enquiries.view']);
+    $routes->get('expired', 'Enquiries::expired', ['filter' => 'privilege:enquiries.view']);
+    $routes->get('closed', 'Enquiries::closed', ['filter' => 'privilege:enquiries.view']);
+    $routes->get('bulk-assign', 'Enquiries::bulkAssign', ['filter' => 'privilege:enquiries.bulk_assign']);
+    $routes->post('bulk-assign', 'Enquiries::bulkAssignSubmit', ['filter' => 'privilege:enquiries.bulk_assign']);
+    $routes->get('create', 'Enquiries::create', ['filter' => 'privilege:enquiries.create']);
+    $routes->post('/', 'Enquiries::store', ['filter' => 'privilege:enquiries.create']);
+    $routes->get('(:num)', 'Enquiries::show/$1', ['filter' => 'privilege:enquiries.view']);
+    $routes->get('(:num)/edit', 'Enquiries::edit/$1', ['filter' => 'privilege:enquiries.edit']);
+    $routes->post('(:num)', 'Enquiries::update/$1', ['filter' => 'privilege:enquiries.edit']);
+    $routes->post('(:num)/followups', 'Enquiries::addFollowup/$1', ['filter' => 'privilege:followups.create']);
+    $routes->get('(:num)/followups/(:num)/edit', 'Enquiries::editFollowup/$1/$2', ['filter' => 'privilege:followups.edit']);
+    $routes->post('(:num)/followups/(:num)', 'Enquiries::updateFollowup/$1/$2', ['filter' => 'privilege:followups.edit']);
+    $routes->post('(:num)/followups/(:num)/delete', 'Enquiries::deleteFollowup/$1/$2', ['filter' => 'privilege:followups.delete']);
+    $routes->post('(:num)/close', 'Enquiries::close/$1', ['filter' => 'privilege:enquiries.close']);
+    $routes->post('(:num)/reopen', 'Enquiries::reopen/$1', ['filter' => 'privilege:enquiries.reopen']);
+    $routes->post('(:num)/assign', 'Enquiries::assign/$1', ['filter' => 'privilege:enquiries.reassign_in_edit,enquiries.expired_assign,enquiries.closed_assign']);
 });
 
 $routes->group('admissions', ['filter' => ['auth', 'tenant', 'suspension', 'feature:admissions']], static function (RouteCollection $routes): void {

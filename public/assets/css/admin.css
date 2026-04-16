@@ -614,6 +614,113 @@ a {
     gap: 6px;
 }
 
+.fact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.data-table__checkbox {
+    width: 44px;
+    text-align: center;
+}
+
+.selection-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.selection-check input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.selection-check span {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid rgba(97, 97, 255, 0.35);
+    border-radius: 5px;
+    background: #fff;
+    position: relative;
+    transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.selection-check span::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 10px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+}
+
+.selection-check input:checked + span {
+    background: #6161ff;
+    border-color: #6161ff;
+    box-shadow: 0 0 0 4px rgba(97, 97, 255, 0.12);
+}
+
+.selection-check input:checked + span::after {
+    opacity: 1;
+}
+
+.selection-check input:focus-visible + span {
+    box-shadow: 0 0 0 4px rgba(97, 97, 255, 0.16);
+}
+
+.stack-list {
+    display: grid;
+    gap: 10px;
+}
+
+.stack-list__item {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid rgba(97, 97, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.82);
+}
+
+.stack-list__item strong {
+    color: #181b34;
+    font-weight: 700;
+}
+
+.stack-list__item span {
+    color: #5f6383;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.fact-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-soft);
+    padding: 14px 16px;
+    display: grid;
+    gap: 6px;
+}
+
+.fact-card span {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.fact-card strong {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+}
+
 .catalog-stat__label {
     color: var(--muted);
     font-size: 13px;

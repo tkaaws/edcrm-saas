@@ -26,6 +26,7 @@ class DelegationGuardService
         'users'      => 'crm_core',
         'branches'   => 'crm_core',
         'roles'      => 'crm_core',
+        'colleges'   => 'crm_core',
         'settings'   => 'crm_core',
         'billing'    => 'crm_core',
         'enquiries'  => 'crm_core',
