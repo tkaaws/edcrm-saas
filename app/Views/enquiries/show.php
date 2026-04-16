@@ -66,10 +66,6 @@
                         <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="college-info-modal">Update college info</button>
                     <?php endif; ?>
 
-                    <?php if ($canAddFollowup): ?>
-                        <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="followup-modal">Add follow-up</button>
-                    <?php endif; ?>
-
                     <?php if ($canCloseEnquiry): ?>
                         <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="close-modal">Close enquiry</button>
                     <?php endif; ?>
@@ -125,6 +121,18 @@
                 </div>
 
                 <div id="enquiry-followups-panel" class="enquiry-panel-tab-content">
+                    <div class="module-toolbar module-toolbar--panel">
+                        <div>
+                            <h3 class="module-title module-title--small">Follow-up timeline</h3>
+                            <p class="module-subtitle">The first note from enquiry capture appears here, and every next touch stays in the same timeline.</p>
+                        </div>
+                        <?php if ($canAddFollowup): ?>
+                            <div class="table-actions">
+                                <button class="shell-button shell-button--primary" type="button" data-modal-open="followup-modal">Add follow-up</button>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
                     <?php if ($canViewFollowups): ?>
                         <?php if ($followupHistory === []): ?>
                             <div class="empty-state">No follow-ups added yet for this enquiry.</div>
@@ -139,14 +147,16 @@
                                                 <div class="timeline-item__header">
                                                     <div>
                                                         <h4><?= esc(trim($row->created_by_name) ?: 'System') ?> created a follow-up</h4>
-                                                        <p><?= esc($row->communication_mode_label ?: '-') ?></p>
+                                                        <p><?= esc($row->communication_mode_label ?: 'Initial enquiry note') ?></p>
                                                     </div>
                                                     <?php if (! empty($row->is_system_generated)): ?>
                                                         <span class="status-badge status-badge--neutral">System generated</span>
                                                     <?php endif; ?>
                                                 </div>
                                                 <div class="timeline-item__meta">
-                                                    <span><strong>Outcome:</strong> <?= esc($row->followup_outcome_label ?: '-') ?></span>
+                                                    <?php if (! empty($row->followup_outcome_label)): ?>
+                                                        <span><strong>Outcome:</strong> <?= esc($row->followup_outcome_label) ?></span>
+                                                    <?php endif; ?>
                                                     <?php if (! empty($row->next_followup_at)): ?>
                                                         <span><strong>Next follow-up:</strong> <?= esc(date('d M Y h:i A', strtotime($row->next_followup_at))) ?></span>
                                                     <?php endif; ?>

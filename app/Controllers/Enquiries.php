@@ -105,6 +105,8 @@ class Enquiries extends BaseController
 
         $branchId = $data['branch_id'] ?: ((int) session()->get('branch_id') ?: null);
         $ownerUserId = $data['owner_user_id'] ?: ((int) session()->get('user_id') ?: null);
+        $hasInitialFollowup = $this->hasInitialFollowup($data);
+        $initialFollowupAt = $hasInitialFollowup ? date('Y-m-d H:i:s') : null;
 
         $enquiryId = $this->enquiryModel->insertWithActor([
             'tenant_id'         => $tenantId,
@@ -121,7 +123,8 @@ class Enquiries extends BaseController
             'primary_course_id' => $data['primary_course_id'] ?: null,
             'city'              => $data['city'] ?: null,
             'notes'             => $data['notes'] ?: null,
-            'lifecycle_status'  => $data['next_followup_at'] ? 'active' : 'new',
+            'lifecycle_status'  => $hasInitialFollowup ? 'active' : 'new',
+            'last_followup_at'  => $initialFollowupAt,
             'next_followup_at'  => $data['next_followup_at'] ?: null,
         ]);
 
@@ -129,8 +132,8 @@ class Enquiries extends BaseController
             'tenant_id'    => $tenantId,
             'enquiry_id'   => (int) $enquiryId,
             'from_status'  => null,
-            'to_status'    => $data['next_followup_at'] ? 'active' : 'new',
-            'reason'       => 'Enquiry created',
+            'to_status'    => $hasInitialFollowup ? 'active' : 'new',
+            'reason'       => $hasInitialFollowup ? 'Enquiry created with initial follow-up' : 'Enquiry created',
             'changed_by'   => session()->get('user_id') ?: null,
         ]);
 
@@ -146,6 +149,20 @@ class Enquiries extends BaseController
                 'assignment_type' => 'manual',
                 'reason'          => 'Initial enquiry ownership',
                 'assigned_on'     => date('Y-m-d H:i:s'),
+            ]);
+        }
+
+        if ($hasInitialFollowup) {
+            $this->followupModel->insertWithActor([
+                'tenant_id'             => $tenantId,
+                'enquiry_id'            => (int) $enquiryId,
+                'branch_id'             => $branchId,
+                'owner_user_id'         => $ownerUserId,
+                'communication_type_id' => null,
+                'followup_outcome_id'   => null,
+                'remarks'               => $data['notes'] !== '' ? $data['notes'] : 'Initial enquiry follow-up captured.',
+                'next_followup_at'      => $data['next_followup_at'] ?: null,
+                'is_system_generated'   => 0,
             ]);
         }
 
@@ -880,6 +897,11 @@ class Enquiries extends BaseController
         }
 
         return $errors;
+    }
+
+    protected function hasInitialFollowup(array $data): bool
+    {
+        return $data['notes'] !== '' || $data['next_followup_at'] !== '';
     }
 
     protected function currentBranchContextId(): ?int
