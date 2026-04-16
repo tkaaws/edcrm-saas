@@ -36,6 +36,10 @@ body {
     overflow: hidden;
 }
 
+.shell-body--modal-open {
+    overflow: hidden;
+}
+
 a {
     color: inherit;
     text-decoration: none;
@@ -962,6 +966,110 @@ a {
     font-size: 15px;
     line-height: 1.55;
     white-space: pre-wrap;
+}
+
+.history-feed {
+    display: grid;
+    gap: 12px;
+}
+
+.history-feed__item {
+    display: grid;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid rgba(97, 97, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.86);
+}
+
+.history-feed__item h4,
+.history-feed__item p,
+.history-feed__item span,
+.history-feed__item small {
+    margin: 0;
+}
+
+.history-feed__item h4 {
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.history-feed__item p {
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.history-feed__item span,
+.history-feed__item small {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.action-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+}
+
+.action-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(4px);
+}
+
+.action-modal__dialog {
+    position: relative;
+    width: min(640px, calc(100vw - 32px));
+    max-height: calc(100vh - 48px);
+    margin: 24px auto;
+    padding: 20px;
+    overflow: auto;
+    border: 1px solid rgba(97, 97, 255, 0.14);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: 0 30px 70px rgba(15, 23, 42, 0.24);
+}
+
+.action-modal__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.action-modal__header h3,
+.action-modal__header p {
+    margin: 0;
+}
+
+.action-modal__header h3 {
+    color: var(--text);
+    font-size: 22px;
+    line-height: 1.15;
+}
+
+.action-modal__header p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.action-modal__close {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface-soft);
+    color: var(--text);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
 }
 
 .fact-card {
