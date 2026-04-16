@@ -198,8 +198,6 @@
         const overlay = document.querySelector('.shell-overlay');
         const navLinks = document.querySelectorAll('.shell-nav a');
         const mobileBreakpoint = window.matchMedia('(max-width: 920px)');
-        const modalOpeners = Array.from(document.querySelectorAll('[data-modal-open]'));
-        const modalClosers = Array.from(document.querySelectorAll('[data-modal-close]'));
 
         if (toggle && overlay) {
             const closeNav = () => {
@@ -250,23 +248,32 @@
             body.classList.remove('shell-body--modal-open');
         };
 
-        modalOpeners.forEach((button) => {
-            button.addEventListener('click', () => {
-                const modal = document.getElementById(button.getAttribute('data-modal-open'));
+        document.addEventListener('click', (event) => {
+            const openTrigger = event.target.closest('[data-modal-open]');
+            if (openTrigger) {
+                event.preventDefault();
+
+                const modal = document.getElementById(openTrigger.getAttribute('data-modal-open'));
                 if (!modal) {
                     return;
                 }
 
+                document.querySelectorAll('.action-modal').forEach((item) => {
+                    if (!item.hidden) {
+                        closeModal(item);
+                    }
+                });
+
                 modal.hidden = false;
                 body.classList.add('shell-body--modal-open');
-            });
-        });
+                return;
+            }
 
-        modalClosers.forEach((button) => {
-            button.addEventListener('click', () => {
-                const modal = button.closest('.action-modal');
-                closeModal(modal);
-            });
+            const closeTrigger = event.target.closest('[data-modal-close]');
+            if (closeTrigger) {
+                event.preventDefault();
+                closeModal(closeTrigger.closest('.action-modal'));
+            }
         });
 
         window.addEventListener('keydown', (event) => {

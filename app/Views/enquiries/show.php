@@ -9,9 +9,6 @@
         </div>
         <div class="table-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('enquiries') ?>">Back to enquiries</a>
-            <?php if ($canEditEnquiry): ?>
-                <a class="shell-button shell-button--primary" href="<?= site_url('enquiries/' . $enquiry->id . '/edit') ?>">Edit enquiry</a>
-            <?php endif; ?>
         </div>
     </div>
 
@@ -57,8 +54,20 @@
                 </div>
 
                 <div class="enquiry-action-stack">
+                    <?php if ($canEditEnquiry): ?>
+                        <button class="shell-button shell-button--primary enquiry-action-stack__button" type="button" data-modal-open="edit-enquiry-modal">Edit enquiry</button>
+                    <?php endif; ?>
+
+                    <?php if ($canEditContactInfo): ?>
+                        <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="contact-info-modal">Change contact info</button>
+                    <?php endif; ?>
+
+                    <?php if ($canEditCollegeInfo): ?>
+                        <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="college-info-modal">Update college info</button>
+                    <?php endif; ?>
+
                     <?php if ($canAddFollowup): ?>
-                        <button class="shell-button shell-button--primary enquiry-action-stack__button" type="button" data-modal-open="followup-modal">Add follow-up</button>
+                        <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="followup-modal">Add follow-up</button>
                     <?php endif; ?>
 
                     <?php if ($canCloseEnquiry): ?>
@@ -148,7 +157,7 @@
                                                 <?php if ($canEditFollowups || $canDeleteFollowups): ?>
                                                     <div class="table-actions">
                                                         <?php if ($canEditFollowups): ?>
-                                                            <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $enquiry->id . '/followups/' . $row->id . '/edit') ?>">Edit</a>
+                                                            <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $enquiry->id . '/followups/' . $row->id . '/edit') ?>">Edit follow-up</a>
                                                         <?php endif; ?>
                                                         <?php if ($canDeleteFollowups): ?>
                                                             <form method="post" action="<?= site_url('enquiries/' . $enquiry->id . '/followups/' . $row->id . '/delete') ?>" onsubmit="return confirm('Delete this follow-up?');">
@@ -201,6 +210,169 @@
     </div>
 </section>
 
+<?php if ($canEditEnquiry): ?>
+    <div class="action-modal" id="edit-enquiry-modal" hidden>
+        <div class="action-modal__backdrop" data-modal-close></div>
+        <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="edit-enquiry-modal-title">
+            <div class="action-modal__header">
+                <div>
+                    <h3 id="edit-enquiry-modal-title">Edit enquiry</h3>
+                    <p>Update core enquiry details without leaving the working desk.</p>
+                </div>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+            </div>
+
+            <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $enquiry->id) ?>">
+                <?= csrf_field() ?>
+                <input type="hidden" name="branch_id" value="<?= esc((string) ($enquiry->branch_id ?? '')) ?>">
+                <input type="hidden" name="owner_user_id" value="<?= esc((string) ($enquiry->owner_user_id ?? '')) ?>">
+                <div class="form-grid">
+                    <label class="field">
+                        <span>Student name</span>
+                        <input type="text" name="student_name" value="<?= esc(old('student_name', $enquiry->student_name ?? '')) ?>" required>
+                    </label>
+                    <label class="field">
+                        <span>Enquiry source</span>
+                        <select name="source_id" required>
+                            <option value="">Select source</option>
+                            <?php $selectedSourceId = (int) old('source_id', $enquiry->source_id ?? 0); ?>
+                            <?php foreach ($sources as $row): ?>
+                                <option value="<?= (int) $row->id ?>" <?= $selectedSourceId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>Course</span>
+                        <select name="primary_course_id" required>
+                            <option value="">Select course</option>
+                            <?php $selectedCourseId = (int) old('primary_course_id', $enquiry->primary_course_id ?? 0); ?>
+                            <?php foreach ($courses as $row): ?>
+                                <option value="<?= (int) $row->id ?>" <?= $selectedCourseId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>Lead stage</span>
+                        <select name="qualification_id">
+                            <option value="">Select stage</option>
+                            <?php $selectedQualificationId = (int) old('qualification_id', $enquiry->qualification_id ?? 0); ?>
+                            <?php foreach ($qualifications as $row): ?>
+                                <option value="<?= (int) $row->id ?>" <?= $selectedQualificationId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>College</span>
+                        <select name="college_id" required>
+                            <option value="">Select college</option>
+                            <?php $selectedCollegeId = (int) old('college_id', $enquiry->college_id ?? 0); ?>
+                            <?php foreach ($colleges as $row): ?>
+                                <option value="<?= (int) $row->id ?>" <?= $selectedCollegeId === (int) $row->id ? 'selected' : '' ?>>
+                                    <?= esc($row->name . ' - ' . $row->city_name . ', ' . $row->state_name) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>City</span>
+                        <input type="text" name="city" value="<?= esc(old('city', $enquiry->city ?? '')) ?>">
+                    </label>
+                    <label class="field">
+                        <span>Next follow-up</span>
+                        <input type="datetime-local" name="next_followup_at" value="<?= esc(old('next_followup_at', $enquiry->next_followup_at ? date('Y-m-d\TH:i', strtotime($enquiry->next_followup_at)) : '')) ?>">
+                    </label>
+                    <label class="field field--full">
+                        <span>Remarks</span>
+                        <textarea name="notes" rows="4"><?= esc(old('notes', $enquiry->notes ?? '')) ?></textarea>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                    <button class="shell-button shell-button--primary" type="submit">Save enquiry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php if ($canEditContactInfo): ?>
+    <div class="action-modal" id="contact-info-modal" hidden>
+        <div class="action-modal__backdrop" data-modal-close></div>
+        <div class="action-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="contact-info-modal-title">
+            <div class="action-modal__header">
+                <div>
+                    <h3 id="contact-info-modal-title">Change contact info</h3>
+                    <p>Update the student’s contact details without opening the full enquiry form.</p>
+                </div>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+            </div>
+
+            <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $enquiry->id . '/contact') ?>">
+                <?= csrf_field() ?>
+                <div class="form-grid">
+                    <label class="field">
+                        <span>Mobile</span>
+                        <input type="text" name="mobile" value="<?= esc(old('mobile', $enquiry->mobile ?? '')) ?>" required>
+                    </label>
+                    <label class="field">
+                        <span>WhatsApp number</span>
+                        <input type="text" name="whatsapp_number" value="<?= esc(old('whatsapp_number', $enquiry->whatsapp_number ?? '')) ?>">
+                    </label>
+                    <label class="field field--full">
+                        <span>Email</span>
+                        <input type="email" name="email" value="<?= esc(old('email', $enquiry->email ?? '')) ?>">
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                    <button class="shell-button shell-button--primary" type="submit">Save contact info</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php if ($canEditCollegeInfo): ?>
+    <div class="action-modal" id="college-info-modal" hidden>
+        <div class="action-modal__backdrop" data-modal-close></div>
+        <div class="action-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="college-info-modal-title">
+            <div class="action-modal__header">
+                <div>
+                    <h3 id="college-info-modal-title">Update college info</h3>
+                    <p>Keep college and city in sync without exposing the whole enquiry form.</p>
+                </div>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+            </div>
+
+            <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $enquiry->id . '/college') ?>">
+                <?= csrf_field() ?>
+                <div class="form-grid">
+                    <label class="field field--full">
+                        <span>College</span>
+                        <select name="college_id" required>
+                            <option value="">Select college</option>
+                            <?php $selectedCollegeId = (int) old('college_id', $enquiry->college_id ?? 0); ?>
+                            <?php foreach ($colleges as $row): ?>
+                                <option value="<?= (int) $row->id ?>" <?= $selectedCollegeId === (int) $row->id ? 'selected' : '' ?>>
+                                    <?= esc($row->name . ' - ' . $row->city_name . ', ' . $row->state_name) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span>City</span>
+                        <input type="text" name="city" value="<?= esc(old('city', $enquiry->city ?? '')) ?>">
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                    <button class="shell-button shell-button--primary" type="submit">Save college info</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
 <?php if ($canAddFollowup): ?>
     <div class="action-modal" id="followup-modal" hidden>
         <div class="action-modal__backdrop" data-modal-close></div>
@@ -210,7 +382,7 @@
                     <h3 id="followup-modal-title">Add follow-up</h3>
                     <p>Capture the latest conversation without leaving the enquiry view.</p>
                 </div>
-                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">×</button>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
             </div>
 
             <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $enquiry->id . '/followups') ?>">
@@ -265,7 +437,7 @@
                     <h3 id="close-modal-title">Close enquiry</h3>
                     <p>Ask for the closure reason only when the user chooses to close the lead.</p>
                 </div>
-                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">×</button>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
             </div>
 
             <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $enquiry->id . '/close') ?>">
@@ -301,7 +473,7 @@
                     <h3 id="assign-modal-title"><?= esc($enquiry->lifecycle_status === 'closed' ? 'Assign closed enquiry' : 'Assign enquiry') ?></h3>
                     <p>Choose branch and owner only when reassignment is actually needed.</p>
                 </div>
-                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">×</button>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
             </div>
 
             <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $enquiry->id . '/assign') ?>">
@@ -343,9 +515,6 @@
 (() => {
     const tabButtons = Array.from(document.querySelectorAll('.enquiry-panel-tabs__button'));
     const panels = Array.from(document.querySelectorAll('.enquiry-panel-tab-content'));
-    const modalOpeners = Array.from(document.querySelectorAll('[data-modal-open]'));
-    const modalClosers = Array.from(document.querySelectorAll('[data-modal-close]'));
-    const body = document.body;
 
     tabButtons.forEach((button) => {
         button.addEventListener('click', () => {
@@ -362,44 +531,6 @@
 
             button.classList.add('enquiry-panel-tabs__button--active');
             button.setAttribute('aria-selected', 'true');
-        });
-    });
-
-    const closeModal = (modal) => {
-        modal.hidden = true;
-        body.classList.remove('shell-body--modal-open');
-    };
-
-    modalOpeners.forEach((button) => {
-        button.addEventListener('click', () => {
-            const modal = document.getElementById(button.getAttribute('data-modal-open'));
-            if (!modal) {
-                return;
-            }
-
-            modal.hidden = false;
-            body.classList.add('shell-body--modal-open');
-        });
-    });
-
-    modalClosers.forEach((button) => {
-        button.addEventListener('click', () => {
-            const modal = button.closest('.action-modal');
-            if (modal) {
-                closeModal(modal);
-            }
-        });
-    });
-
-    window.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') {
-            return;
-        }
-
-        document.querySelectorAll('.action-modal').forEach((modal) => {
-            if (!modal.hidden) {
-                closeModal(modal);
-            }
         });
     });
 })();

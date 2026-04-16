@@ -172,6 +172,8 @@ class Enquiries extends BaseController
             'activeNav' => 'enquiries',
             'enquiry' => $enquiry,
             'canEditEnquiry' => service('permissions')->has('enquiries.edit') && $enquiry->lifecycle_status !== 'admitted',
+            'canEditContactInfo' => service('permissions')->has('enquiries.edit') && $enquiry->lifecycle_status !== 'admitted',
+            'canEditCollegeInfo' => service('permissions')->has('enquiries.edit') && $enquiry->lifecycle_status !== 'admitted',
             'canCloseEnquiry' => service('permissions')->has('enquiries.close') && in_array($enquiry->lifecycle_status, ['new', 'active'], true),
             'canReopenEnquiry' => service('permissions')->has('enquiries.reopen') && $enquiry->lifecycle_status === 'closed',
             'canAssignFromDetail' => $this->canAssignFromDetail($enquiry),
@@ -180,6 +182,10 @@ class Enquiries extends BaseController
             'closeReasons' => service('masterData')->getEffectiveValues('enquiry_closure_reason', $tenantId),
             'followupStatuses' => service('masterData')->getEffectiveValues('followup_status', $tenantId),
             'communicationModes' => service('masterData')->getEffectiveValues('mode_of_communication', $tenantId),
+            'sources' => service('masterData')->getEffectiveValues('enquiry_source', $tenantId),
+            'qualifications' => service('masterData')->getEffectiveValues('lead_qualification', $tenantId),
+            'courses' => service('masterData')->getEffectiveValues('course', $tenantId),
+            'colleges' => $this->collegeModel->getActiveOptions($tenantId, '', 500),
             'assignmentHistory' => $this->getAssignmentHistory((int) $enquiry->id),
             'statusHistory' => $this->getStatusHistory((int) $enquiry->id),
             'followupHistory' => $canViewFollowups ? $this->getFollowupHistory((int) $enquiry->id) : [],
@@ -267,6 +273,66 @@ class Enquiries extends BaseController
         $this->enquiryModel->updateWithActor((int) $enquiry->id, $update);
 
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'Enquiry updated successfully.');
+    }
+
+    public function updateContactInfo(int $id)
+    {
+        $tenantId = (int) session()->get('tenant_id');
+        $enquiry = $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId());
+        if (! $enquiry) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        if (! service('permissions')->has('enquiries.edit') || $enquiry->lifecycle_status === 'admitted') {
+            return redirect()->back()->with('error', 'You do not have access to update contact details for this enquiry.');
+        }
+
+        $email = strtolower(trim((string) $this->request->getPost('email')));
+        $mobile = trim((string) $this->request->getPost('mobile'));
+        $whatsappNumber = trim((string) $this->request->getPost('whatsapp_number'));
+
+        if ($mobile === '') {
+            return redirect()->back()->withInput()->with('error', 'Mobile number is required.');
+        }
+
+        if ($email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return redirect()->back()->withInput()->with('error', 'Email must be a valid email address.');
+        }
+
+        $this->enquiryModel->updateWithActor((int) $enquiry->id, [
+            'email' => $email !== '' ? $email : null,
+            'mobile' => $mobile,
+            'whatsapp_number' => $whatsappNumber !== '' ? $whatsappNumber : null,
+        ]);
+
+        return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'Contact details updated successfully.');
+    }
+
+    public function updateCollegeInfo(int $id)
+    {
+        $tenantId = (int) session()->get('tenant_id');
+        $enquiry = $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId());
+        if (! $enquiry) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        if (! service('permissions')->has('enquiries.edit') || $enquiry->lifecycle_status === 'admitted') {
+            return redirect()->back()->with('error', 'You do not have access to update college details for this enquiry.');
+        }
+
+        $collegeId = (int) $this->request->getPost('college_id');
+        $city = trim((string) $this->request->getPost('city'));
+
+        if ($collegeId < 1) {
+            return redirect()->back()->withInput()->with('error', 'Choose a college before saving.');
+        }
+
+        $this->enquiryModel->updateWithActor((int) $enquiry->id, [
+            'college_id' => $collegeId,
+            'city' => $city !== '' ? $city : null,
+        ]);
+
+        return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'College details updated successfully.');
     }
 
     public function close(int $id)
