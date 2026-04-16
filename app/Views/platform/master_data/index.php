@@ -81,6 +81,12 @@
                     <h3 class="module-title module-title--small"><?= $hasSelection ? 'Available options in ' . esc($selectedType->name) : 'Platform values' ?></h3>
                     <p class="module-subtitle">Shared values available across companies unless hidden locally.</p>
                 </div>
+                <?php if ($selectedType): ?>
+                    <div class="toolbar-actions">
+                        <button class="shell-button shell-button--ghost" type="button" data-modal-open="advanced-catalog-type-modal">Advanced type</button>
+                        <button class="shell-button shell-button--primary" type="button" data-modal-open="platform-master-value-modal">Add value</button>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="table-card">
@@ -160,83 +166,94 @@
                 <?php endif; ?>
             </section>
 
-            <form class="form-card" method="post" action="<?= site_url('platform/master-data/values') ?>">
-                <?= csrf_field() ?>
-                <div class="module-toolbar">
-                    <div>
-                        <h3 class="module-title module-title--small">Add a new platform value</h3>
-                        <p class="module-subtitle">Use this only when the required option does not already exist in the list above.</p>
-                    </div>
+        </div>
+    <?php endif; ?>
+</section>
+
+<?php if ($selectedType): ?>
+    <div class="action-modal" id="platform-master-value-modal" hidden>
+        <div class="action-modal__backdrop" data-modal-close></div>
+        <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="platform-master-value-modal-title">
+            <div class="action-modal__header">
+                <div>
+                    <h3 id="platform-master-value-modal-title">Add a new platform value</h3>
+                    <p>Use this only when the required option does not already exist in the list above.</p>
                 </div>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">×</button>
+            </div>
 
-                <?php if ($selectedType): ?>
-                    <input type="hidden" name="type_id" value="<?= esc((string) $selectedType->id) ?>">
-                    <div class="form-grid">
-                        <label class="field">
-                            <span>Name</span>
-                            <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
-                        </label>
-                        <label class="field">
-                            <span>Sort order</span>
-                            <input type="number" name="sort_order" value="<?= esc(old('sort_order', '0')) ?>">
-                        </label>
-                        <label class="field">
-                            <span>Status</span>
-                            <select name="status">
-                                <option value="active" <?= old('status', 'active') === 'active' ? 'selected' : '' ?>>Active</option>
-                                <option value="inactive" <?= old('status') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+            <form class="form-stack" method="post" action="<?= site_url('platform/master-data/values') ?>">
+                <?= csrf_field() ?>
+                <input type="hidden" name="type_id" value="<?= esc((string) $selectedType->id) ?>">
+                <div class="form-grid">
+                    <label class="field">
+                        <span>Name</span>
+                        <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
+                    </label>
+                    <label class="field">
+                        <span>Sort order</span>
+                        <input type="number" name="sort_order" value="<?= esc(old('sort_order', '0')) ?>">
+                    </label>
+                    <label class="field">
+                        <span>Status</span>
+                        <select name="status">
+                            <option value="active" <?= old('status', 'active') === 'active' ? 'selected' : '' ?>>Active</option>
+                            <option value="inactive" <?= old('status') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                        </select>
+                    </label>
+                    <label class="field field--full">
+                        <span>Description</span>
+                        <textarea name="description" rows="2"><?= esc(old('description')) ?></textarea>
+                    </label>
+                    <?php if ((int) $selectedType->supports_hierarchy === 1): ?>
+                        <label class="field field--full">
+                            <span>Parent option</span>
+                            <select name="parent_value_id">
+                                <option value="">No parent</option>
+                                <?php foreach ($values as $value): ?>
+                                    <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>><?= esc($value->label) ?></option>
+                                <?php endforeach; ?>
                             </select>
+                            <small>Use this only for lists that need parent and child values.</small>
                         </label>
-                        <label class="field field--full">
-                            <span>Description</span>
-                            <textarea name="description" rows="2"><?= esc(old('description')) ?></textarea>
-                        </label>
-                        <?php if ((int) $selectedType->supports_hierarchy === 1): ?>
-                            <label class="field field--full">
-                                <span>Parent option</span>
-                                <select name="parent_value_id">
-                                    <option value="">No parent</option>
-                                    <?php foreach ($values as $value): ?>
-                                        <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
-                                            <?= esc($value->label) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <small>Use this only for lists that need parent and child values.</small>
-                            </label>
-                        <?php endif; ?>
-                        <label class="field field--full">
-                            <span>Extra details (optional)</span>
-                            <textarea name="metadata_json" rows="3" placeholder='{"duration_months": 6}'><?= esc(old('metadata_json')) ?></textarea>
-                        </label>
-                    </div>
-
-                    <div class="choice-list">
-                        <input type="hidden" name="is_system" value="0">
-                        <label class="field-toggle">
-                            <span class="field-toggle__copy">
-                                <strong><?= old('is_system') ? 'Shared platform option' : 'Standard platform option' ?></strong>
-                                <small>Turn this on when this value should be treated as a shared system option.</small>
-                            </span>
-                            <span class="field-toggle__control">
-                                <input type="checkbox" name="is_system" value="1" <?= old('is_system') ? 'checked' : '' ?>>
-                            </span>
-                        </label>
-                    </div>
-
-                    <div class="form-actions">
-                        <button class="shell-button shell-button--primary" type="submit">Create value</button>
-                    </div>
-                <?php else: ?>
-                    <p class="empty-state">Choose a lookup list first to add platform values.</p>
-                <?php endif; ?>
+                    <?php endif; ?>
+                    <label class="field field--full">
+                        <span>Extra details (optional)</span>
+                        <textarea name="metadata_json" rows="3" placeholder='{"duration_months": 6}'><?= esc(old('metadata_json')) ?></textarea>
+                    </label>
+                </div>
+                <div class="choice-list">
+                    <input type="hidden" name="is_system" value="0">
+                    <label class="field-toggle">
+                        <span class="field-toggle__copy">
+                            <strong><?= old('is_system') ? 'Shared platform option' : 'Standard platform option' ?></strong>
+                            <small>Turn this on when this value should be treated as a shared system option.</small>
+                        </span>
+                        <span class="field-toggle__control">
+                            <input type="checkbox" name="is_system" value="1" <?= old('is_system') ? 'checked' : '' ?>>
+                        </span>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                    <button class="shell-button shell-button--primary" type="submit">Create value</button>
+                </div>
             </form>
         </div>
+    </div>
 
-        <details class="form-card">
-            <summary><strong>Advanced catalog setup</strong></summary>
-            <p class="module-subtitle section-divider">Use this only when we are introducing a genuinely new business catalog beyond the standard lists.</p>
-            <form method="post" action="<?= site_url('platform/master-data/types') ?>">
+    <div class="action-modal" id="advanced-catalog-type-modal" hidden>
+        <div class="action-modal__backdrop" data-modal-close></div>
+        <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="advanced-catalog-type-modal-title">
+            <div class="action-modal__header">
+                <div>
+                    <h3 id="advanced-catalog-type-modal-title">Advanced catalog setup</h3>
+                    <p>Use this only when we are introducing a genuinely new business catalog beyond the standard lists.</p>
+                </div>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">×</button>
+            </div>
+
+            <form class="form-stack" method="post" action="<?= site_url('platform/master-data/types') ?>">
                 <?= csrf_field() ?>
                 <div class="form-grid">
                     <label class="field">
@@ -303,10 +320,11 @@
                     </label>
                 </div>
                 <div class="form-actions">
-                    <button class="shell-button shell-button--ghost" type="submit">Create advanced type</button>
+                    <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                    <button class="shell-button shell-button--primary" type="submit">Create advanced type</button>
                 </div>
             </form>
-        </details>
-    <?php endif; ?>
-</section>
+        </div>
+    </div>
+<?php endif; ?>
 <?= $this->endSection() ?>

@@ -1034,6 +1034,10 @@ a {
     box-shadow: 0 30px 70px rgba(15, 23, 42, 0.24);
 }
 
+.action-modal__dialog--wide {
+    width: min(860px, calc(100vw - 32px));
+}
+
 .action-modal__header {
     display: flex;
     align-items: flex-start;
@@ -1130,6 +1134,98 @@ a {
     color: var(--muted);
     line-height: 1.4;
     font-size: 14px;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.summary-card {
+    display: grid;
+    gap: 14px;
+}
+
+.summary-card__rows {
+    display: grid;
+    gap: 2px;
+}
+
+.summary-card__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+}
+
+.summary-card__row:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.summary-card__row span {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.summary-card__row strong {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.45;
+    font-weight: 600;
+    text-align: right;
+}
+
+.summary-card__row--stack {
+    flex-direction: column;
+    gap: 6px;
+}
+
+.summary-card__footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.summary-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.summary-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--surface-soft);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.summary-pill--locked {
+    color: var(--warning);
+    background: var(--accent-soft);
+    border-color: #ffe49a;
+}
+
+.summary-pill--editable {
+    color: var(--brand-strong);
+    background: #eef1ff;
+    border-color: #d6dbff;
+}
+
+.modal-form-note {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .text-muted {
@@ -2451,6 +2547,19 @@ select.shell-input,
     .context-list--wide {
         grid-template-columns: 1fr;
         gap: 10px;
+    }
+
+    .summary-card__row {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .summary-card__row strong {
+        text-align: left;
+    }
+
+    .summary-card__footer .shell-button {
+        width: 100%;
     }
 
     .field-toggle {

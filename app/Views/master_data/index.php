@@ -46,6 +46,9 @@
                     <h3 class="module-title module-title--small"><?= esc($selectedType->name) ?></h3>
                     <p class="module-subtitle">Keep this list simple. Standard values stay protected, and your custom values can be managed here.</p>
                 </div>
+                <?php if ($canAddCompanyValue): ?>
+                    <button class="shell-button shell-button--primary" type="button" data-modal-open="company-master-value-modal">Add value</button>
+                <?php endif; ?>
             </div>
 
             <div class="table-wrap">
@@ -110,62 +113,70 @@
             </div>
         </section>
 
-        <div class="catalog-grid">
-            <form class="form-card" method="post" action="<?= site_url('settings/master-data/' . $selectedType->code) ?>">
-                <?= csrf_field() ?>
-                <div class="module-toolbar">
-                    <div>
-                        <h3 class="module-title module-title--small">Add a new value</h3>
-                        <p class="module-subtitle">Add a value only when your company needs an option that is not already available above.</p>
-                    </div>
-                </div>
-
-                <?php if ($canAddCompanyValue): ?>
-                    <div class="form-grid">
-                        <label class="field">
-                            <span>Name</span>
-                            <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
-                        </label>
-                        <label class="field">
-                            <span>Sort order</span>
-                            <input type="number" name="sort_order" value="<?= esc(old('sort_order', '0')) ?>">
-                        </label>
-                        <label class="field">
-                            <span>Status</span>
-                            <select name="status">
-                                <option value="active" <?= old('status', 'active') === 'active' ? 'selected' : '' ?>>Active</option>
-                                <option value="inactive" <?= old('status') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
-                            </select>
-                        </label>
-                        <label class="field field--full">
-                            <span>Description</span>
-                            <textarea name="description" rows="2"><?= esc(old('description')) ?></textarea>
-                        </label>
-                        <?php if ((int) $selectedType->supports_hierarchy === 1): ?>
-                            <label class="field field--full">
-                                <span>Parent option</span>
-                                <select name="parent_value_id">
-                                    <option value="">No parent</option>
-                                    <?php foreach (($catalogValues ?? []) as $value): ?>
-                                        <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
-                                            <?= esc($value->label) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <small>Use this only for lists that need parent and child values.</small>
-                            </label>
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="form-actions">
-                        <button class="shell-button shell-button--primary" type="submit">Create value</button>
-                    </div>
-                <?php else: ?>
-                    <p class="empty-state">This list is managed centrally. New values cannot be added for this company.</p>
-                <?php endif; ?>
-            </form>
-        </div>
+        <?php if (! $canAddCompanyValue): ?>
+            <section class="form-card">
+                <p class="empty-state">This list is managed centrally. New values cannot be added for this company.</p>
+            </section>
+        <?php endif; ?>
     <?php endif; ?>
 
 </section>
+
+<?php if ($hasSelection && $canAddCompanyValue): ?>
+    <div class="action-modal" id="company-master-value-modal" hidden>
+        <div class="action-modal__backdrop" data-modal-close></div>
+        <div class="action-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="company-master-value-modal-title">
+            <div class="action-modal__header">
+                <div>
+                    <h3 id="company-master-value-modal-title">Add a new value</h3>
+                    <p>Add a value only when your company truly needs an option that is not already available in this list.</p>
+                </div>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">×</button>
+            </div>
+
+            <form class="form-stack" method="post" action="<?= site_url('settings/master-data/' . $selectedType->code) ?>">
+                <?= csrf_field() ?>
+                <div class="form-grid">
+                    <label class="field">
+                        <span>Name</span>
+                        <input type="text" name="label" value="<?= esc(old('label')) ?>" required>
+                    </label>
+                    <label class="field">
+                        <span>Sort order</span>
+                        <input type="number" name="sort_order" value="<?= esc(old('sort_order', '0')) ?>">
+                    </label>
+                    <label class="field">
+                        <span>Status</span>
+                        <select name="status">
+                            <option value="active" <?= old('status', 'active') === 'active' ? 'selected' : '' ?>>Active</option>
+                            <option value="inactive" <?= old('status') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                        </select>
+                    </label>
+                    <label class="field field--full">
+                        <span>Description</span>
+                        <textarea name="description" rows="2"><?= esc(old('description')) ?></textarea>
+                    </label>
+                    <?php if ((int) $selectedType->supports_hierarchy === 1): ?>
+                        <label class="field field--full">
+                            <span>Parent option</span>
+                            <select name="parent_value_id">
+                                <option value="">No parent</option>
+                                <?php foreach (($catalogValues ?? []) as $value): ?>
+                                    <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
+                                        <?= esc($value->label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <small>Use this only for lists that need parent and child values.</small>
+                        </label>
+                    <?php endif; ?>
+                </div>
+                <div class="form-actions">
+                    <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                    <button class="shell-button shell-button--primary" type="submit">Create value</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
 <?= $this->endSection() ?>
