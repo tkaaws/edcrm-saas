@@ -4,7 +4,7 @@
 <section class="module-page">
     <div class="module-toolbar">
         <div>
-            <h2 class="module-title">Subscription plans</h2>
+            <h2 class="module-title">Subscription plans for you</h2>
             <p class="module-subtitle">Manage plans, pricing, and limits.</p>
         </div>
         <a class="shell-button shell-button--primary" href="<?= site_url('platform/plans/create') ?>">Create plan</a>
