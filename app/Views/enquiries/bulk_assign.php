@@ -3,6 +3,19 @@
 <?= $this->section('content') ?>
 <?php $codes = session()->get('user_privilege_codes') ?? []; ?>
 <section class="module-page">
+    <?php
+    $primaryQueues = [
+        ['label' => 'Enquiries', 'url' => site_url('enquiries?tab=enquiries')],
+        ['label' => 'Today', 'url' => site_url('enquiries?tab=today')],
+        ['label' => 'Missed', 'url' => site_url('enquiries?tab=missed')],
+        ['label' => 'Fresh', 'url' => site_url('enquiries?tab=fresh')],
+    ];
+    $secondaryQueues = [
+        ['label' => 'Expired', 'url' => site_url('enquiries/expired')],
+        ['label' => 'Closed', 'url' => site_url('enquiries/closed')],
+        ['label' => 'Bulk Assign', 'url' => site_url('enquiries/bulk-assign'), 'active' => true],
+    ];
+    ?>
     <div class="module-toolbar">
         <div>
             <h2 class="module-title">Bulk Assign Enquiries</h2>
@@ -16,17 +29,20 @@
         </div>
     </div>
 
-    <section class="settings-tabs" aria-label="Enquiry navigation">
-        <div class="settings-tabs__nav">
-            <a class="settings-tabs__button" href="<?= site_url('enquiries?tab=enquiries') ?>">Enquiries</a>
-            <a class="settings-tabs__button" href="<?= site_url('enquiries?tab=today') ?>">Today</a>
-            <a class="settings-tabs__button" href="<?= site_url('enquiries?tab=missed') ?>">Missed</a>
-            <a class="settings-tabs__button" href="<?= site_url('enquiries?tab=fresh') ?>">Fresh</a>
-            <a class="settings-tabs__button" href="<?= site_url('enquiries/expired') ?>">Expired Enquiries</a>
-            <a class="settings-tabs__button" href="<?= site_url('enquiries/closed') ?>">Closed Enquiries</a>
-            <a class="settings-tabs__button settings-tabs__button--active" href="<?= site_url('enquiries/bulk-assign') ?>">Bulk Assign</a>
+    <nav class="queue-nav" aria-label="Enquiry navigation">
+        <div class="queue-nav__group">
+            <?php foreach ($primaryQueues as $tab): ?>
+                <a class="queue-nav__link" href="<?= $tab['url'] ?>"><?= esc($tab['label']) ?></a>
+            <?php endforeach; ?>
         </div>
-    </section>
+        <div class="queue-nav__group queue-nav__group--secondary">
+            <?php foreach ($secondaryQueues as $tab): ?>
+                <a class="queue-nav__link queue-nav__link--soft <?= ! empty($tab['active']) ? 'queue-nav__link--active' : '' ?>" href="<?= $tab['url'] ?>">
+                    <?= esc($tab['label']) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </nav>
 
     <form class="form-card form-stack" method="get" action="<?= site_url('enquiries/bulk-assign') ?>">
         <section class="form-card form-card--nested">

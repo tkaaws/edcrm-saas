@@ -4,7 +4,6 @@
 <section class="module-page">
     <?php
     $hasSelection = $selectedType !== null;
-    $valueCount = count($values ?? []);
     ?>
     <div class="module-toolbar">
         <div>
@@ -43,7 +42,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Lookup data menu</h3>
-                    <p class="module-subtitle">Choose a list to review available options first, then add or update values.</p>
+                    <p class="module-subtitle">Choose a business list, review the available options, then add a new value only when needed.</p>
                 </div>
             </div>
 
@@ -60,17 +59,7 @@
             <div class="catalog-hero">
                 <div class="catalog-hero__copy">
                     <h3 class="module-title module-title--small"><?= esc($selectedType->name) ?></h3>
-                    <p class="module-subtitle">Review platform values first, then manage list rules and add new values when needed.</p>
-                </div>
-                <div class="catalog-stats">
-                    <div class="catalog-stat">
-                        <span class="catalog-stat__label">Platform values</span>
-                        <strong class="catalog-stat__value"><?= esc((string) $valueCount) ?></strong>
-                    </div>
-                    <div class="catalog-stat">
-                        <span class="catalog-stat__label">Company additions</span>
-                        <strong class="catalog-stat__value"><?= (int) $selectedType->allow_tenant_entries === 1 ? 'On' : 'Off' ?></strong>
-                    </div>
+                    <p class="module-subtitle">Keep this list clean and business-friendly so companies see only the values they actually need.</p>
                 </div>
             </div>
         <?php endif; ?>
@@ -83,7 +72,6 @@
                 </div>
                 <?php if ($selectedType): ?>
                     <div class="toolbar-actions">
-                        <button class="shell-button shell-button--ghost" type="button" data-modal-open="advanced-catalog-type-modal">Advanced type</button>
                         <button class="shell-button shell-button--primary" type="button" data-modal-open="platform-master-value-modal">Add value</button>
                     </div>
                 <?php endif; ?>
@@ -138,35 +126,6 @@
             </div>
         </section>
 
-        <div class="catalog-grid">
-            <section class="form-card">
-                <div class="module-toolbar">
-                    <div>
-                        <h3 class="module-title module-title--small">List rules</h3>
-                        <p class="module-subtitle">The current business list you are managing.</p>
-                    </div>
-                </div>
-
-                <?php if ($selectedType): ?>
-                    <div class="table-card">
-                        <div class="table-wrap">
-                            <table class="data-table">
-                                <tbody>
-                                    <tr><th>Name</th><td><?= esc($selectedType->name) ?></td></tr>
-                                    <tr><th>Used in</th><td><?= esc(ucwords(str_replace('_', ' ', $selectedType->module_code))) ?></td></tr>
-                                    <tr><th>Company custom entries</th><td><?= (int) $selectedType->allow_tenant_entries === 1 ? 'Allowed' : 'Platform only' ?></td></tr>
-                                    <tr><th>Company hide/show</th><td><?= (int) $selectedType->allow_tenant_hide_platform_values === 1 ? 'Allowed' : 'Locked' ?></td></tr>
-                                    <tr><th>Status</th><td><?= esc(ucfirst($selectedType->status)) ?></td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                <?php else: ?>
-                    <p class="empty-state">Choose a lookup list first to view list rules.</p>
-                <?php endif; ?>
-            </section>
-
-        </div>
     <?php endif; ?>
 </section>
 
@@ -217,111 +176,10 @@
                             <small>Use this only for lists that need parent and child values.</small>
                         </label>
                     <?php endif; ?>
-                    <label class="field field--full">
-                        <span>Extra details (optional)</span>
-                        <textarea name="metadata_json" rows="3" placeholder='{"duration_months": 6}'><?= esc(old('metadata_json')) ?></textarea>
-                    </label>
-                </div>
-                <div class="choice-list">
-                    <input type="hidden" name="is_system" value="0">
-                    <label class="field-toggle">
-                        <span class="field-toggle__copy">
-                            <strong><?= old('is_system') ? 'Shared platform option' : 'Standard platform option' ?></strong>
-                            <small>Turn this on when this value should be treated as a shared system option.</small>
-                        </span>
-                        <span class="field-toggle__control">
-                            <input type="checkbox" name="is_system" value="1" <?= old('is_system') ? 'checked' : '' ?>>
-                        </span>
-                    </label>
                 </div>
                 <div class="form-actions">
                     <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
                     <button class="shell-button shell-button--primary" type="submit">Create value</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="action-modal" id="advanced-catalog-type-modal" hidden>
-        <div class="action-modal__backdrop" data-modal-close></div>
-        <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="advanced-catalog-type-modal-title">
-            <div class="action-modal__header">
-                <div>
-                    <h3 id="advanced-catalog-type-modal-title">Advanced catalog setup</h3>
-                    <p>Use this only when we are introducing a genuinely new business catalog beyond the standard lists.</p>
-                </div>
-                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">×</button>
-            </div>
-
-            <form class="form-stack" method="post" action="<?= site_url('platform/master-data/types') ?>">
-                <?= csrf_field() ?>
-                <div class="form-grid">
-                    <label class="field">
-                        <span>Name</span>
-                        <input type="text" name="name" value="<?= esc(old('name')) ?>">
-                    </label>
-                    <label class="field">
-                        <span>Code</span>
-                        <input type="text" name="code" value="<?= esc(old('code')) ?>" placeholder="auto-generated if left blank">
-                    </label>
-                    <label class="field">
-                        <span>Module code</span>
-                        <input type="text" name="module_code" value="<?= esc(old('module_code', 'enquiries')) ?>">
-                    </label>
-                    <label class="field">
-                        <span>Sort order</span>
-                        <input type="number" name="sort_order" value="<?= esc(old('sort_order', '0')) ?>">
-                    </label>
-                    <label class="field field--full">
-                        <span>Description</span>
-                        <textarea name="description" rows="2"><?= esc(old('description')) ?></textarea>
-                    </label>
-                </div>
-                <div class="choice-list">
-                    <input type="hidden" name="allow_tenant_entries" value="0">
-                    <label class="field-toggle">
-                        <span class="field-toggle__copy">
-                            <strong><?= old('allow_tenant_entries') ? 'Company additions allowed' : 'Platform-only values' ?></strong>
-                            <small>Allow companies to add their own values to this list.</small>
-                        </span>
-                        <span class="field-toggle__control">
-                            <input type="checkbox" name="allow_tenant_entries" value="1" <?= old('allow_tenant_entries') ? 'checked' : '' ?>>
-                        </span>
-                    </label>
-                    <input type="hidden" name="allow_tenant_hide_platform_values" value="0">
-                    <label class="field-toggle">
-                        <span class="field-toggle__copy">
-                            <strong><?= old('allow_tenant_hide_platform_values') ? 'Company visibility control on' : 'Platform values locked on' ?></strong>
-                            <small>Let companies hide or show platform values in their own workspace.</small>
-                        </span>
-                        <span class="field-toggle__control">
-                            <input type="checkbox" name="allow_tenant_hide_platform_values" value="1" <?= old('allow_tenant_hide_platform_values') ? 'checked' : '' ?>>
-                        </span>
-                    </label>
-                    <input type="hidden" name="strict_reporting_catalog" value="0">
-                    <label class="field-toggle">
-                        <span class="field-toggle__copy">
-                            <strong><?= old('strict_reporting_catalog') ? 'Strict reporting list' : 'Flexible reporting list' ?></strong>
-                            <small>Keep reporting values tightly controlled when reporting consistency matters.</small>
-                        </span>
-                        <span class="field-toggle__control">
-                            <input type="checkbox" name="strict_reporting_catalog" value="1" <?= old('strict_reporting_catalog') ? 'checked' : '' ?>>
-                        </span>
-                    </label>
-                    <input type="hidden" name="supports_hierarchy" value="0">
-                    <label class="field-toggle">
-                        <span class="field-toggle__copy">
-                            <strong><?= old('supports_hierarchy') ? 'Parent-child values on' : 'Flat value list' ?></strong>
-                            <small>Turn this on only when this list needs parent and child values.</small>
-                        </span>
-                        <span class="field-toggle__control">
-                            <input type="checkbox" name="supports_hierarchy" value="1" <?= old('supports_hierarchy') ? 'checked' : '' ?>>
-                        </span>
-                    </label>
-                </div>
-                <div class="form-actions">
-                    <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
-                    <button class="shell-button shell-button--primary" type="submit">Create advanced type</button>
                 </div>
             </form>
         </div>

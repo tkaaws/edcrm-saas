@@ -13,6 +13,21 @@ $columnCount = match ($currentTab ?? 'enquiries') {
 };
 ?>
 <section class="module-page">
+    <?php
+    $primaryQueues = [
+        'enquiries' => ['label' => 'Enquiries', 'url' => site_url('enquiries?tab=enquiries')],
+        'today'     => ['label' => 'Today', 'url' => site_url('enquiries?tab=today')],
+        'missed'    => ['label' => 'Missed', 'url' => site_url('enquiries?tab=missed')],
+        'fresh'     => ['label' => 'Fresh', 'url' => site_url('enquiries?tab=fresh')],
+    ];
+    $secondaryQueues = [
+        'expired' => ['label' => 'Expired', 'url' => site_url('enquiries/expired')],
+        'closed'  => ['label' => 'Closed', 'url' => site_url('enquiries/closed')],
+    ];
+    if ($canBulkAssign) {
+        $secondaryQueues['bulk-assign'] = ['label' => 'Bulk Assign', 'url' => site_url('enquiries/bulk-assign')];
+    }
+    ?>
     <div class="module-toolbar">
         <div>
             <h2 class="module-title"><?= esc($pageTitle ?? 'Enquiries') ?></h2>
@@ -28,19 +43,22 @@ $columnCount = match ($currentTab ?? 'enquiries') {
         </div>
     </div>
 
-    <section class="settings-tabs" aria-label="Enquiry navigation">
-        <div class="settings-tabs__nav">
-            <a class="settings-tabs__button <?= $currentTab === 'enquiries' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries?tab=enquiries') ?>">Enquiries</a>
-            <a class="settings-tabs__button <?= $currentTab === 'today' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries?tab=today') ?>">Today</a>
-            <a class="settings-tabs__button <?= $currentTab === 'missed' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries?tab=missed') ?>">Missed</a>
-            <a class="settings-tabs__button <?= $currentTab === 'fresh' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries?tab=fresh') ?>">Fresh</a>
-            <a class="settings-tabs__button <?= $currentTab === 'expired' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries/expired') ?>">Expired Enquiries</a>
-            <a class="settings-tabs__button <?= $currentTab === 'closed' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('enquiries/closed') ?>">Closed Enquiries</a>
-            <?php if ($canBulkAssign): ?>
-                <a class="settings-tabs__button" href="<?= site_url('enquiries/bulk-assign') ?>">Bulk Assign</a>
-            <?php endif; ?>
+    <nav class="queue-nav" aria-label="Enquiry navigation">
+        <div class="queue-nav__group">
+            <?php foreach ($primaryQueues as $tabCode => $tab): ?>
+                <a class="queue-nav__link <?= $currentTab === $tabCode ? 'queue-nav__link--active' : '' ?>" href="<?= $tab['url'] ?>">
+                    <?= esc($tab['label']) ?>
+                </a>
+            <?php endforeach; ?>
         </div>
-    </section>
+        <div class="queue-nav__group queue-nav__group--secondary">
+            <?php foreach ($secondaryQueues as $tabCode => $tab): ?>
+                <a class="queue-nav__link queue-nav__link--soft <?= $currentTab === $tabCode ? 'queue-nav__link--active' : '' ?>" href="<?= $tab['url'] ?>">
+                    <?= esc($tab['label']) ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    </nav>
 
     <div class="table-card">
         <div class="table-wrap">
