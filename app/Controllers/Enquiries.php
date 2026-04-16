@@ -203,8 +203,6 @@ class Enquiries extends BaseController
             'qualifications' => service('masterData')->getEffectiveValues('lead_qualification', $tenantId),
             'courses' => service('masterData')->getEffectiveValues('course', $tenantId),
             'colleges' => $this->collegeModel->getActiveOptions($tenantId, '', 500),
-            'assignmentHistory' => $this->getAssignmentHistory((int) $enquiry->id),
-            'statusHistory' => $this->getStatusHistory((int) $enquiry->id),
             'followupHistory' => $canViewFollowups ? $this->getFollowupHistory((int) $enquiry->id) : [],
             'canViewFollowups' => $canViewFollowups,
             'canAddFollowup' => service('permissions')->has('followups.create') && in_array($enquiry->lifecycle_status, ['new', 'active'], true),
