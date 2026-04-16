@@ -28,10 +28,9 @@ $columnCount = match ($currentTab ?? 'enquiries') {
         $secondaryQueues['bulk-assign'] = ['label' => 'Bulk Assign', 'url' => site_url('enquiries/bulk-assign')];
     }
     ?>
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title"><?= esc($pageTitle ?? 'Enquiries') ?></h2>
-            <p class="module-subtitle">Track active leads, time-sensitive follow-ups, and recovery queues without clutter.</p>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
+            <p class="module-subtitle">Track active leads, follow-ups, and recovery queues without clutter.</p>
         </div>
         <div class="table-actions">
             <?php if ($canBulkAssign): ?>

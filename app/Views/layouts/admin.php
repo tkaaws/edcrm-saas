@@ -139,18 +139,18 @@
                 }
                 ?>
                 <div class="shell-alert shell-alert--warning shell-alert--split">
-                    <div>
+                    <div class="shell-alert__body">
                         <strong>Support session active.</strong>
-                        You are viewing the workspace as <?= esc($userDisplayName ?? 'target user') ?>.
+                        <span>You are viewing the workspace as <?= esc($userDisplayName ?? 'target user') ?>.</span>
                         <?php if (session()->get('impersonation_actor_name')): ?>
-                            Original account: <?= esc((string) session()->get('impersonation_actor_name')) ?>.
+                            <span>Original account: <?= esc((string) session()->get('impersonation_actor_name')) ?>.</span>
                         <?php endif; ?>
                         <?php if ($impersonationPathText !== ''): ?>
-                            Path: <?= esc($impersonationPathText) ?>.
+                            <span>Path: <?= esc($impersonationPathText) ?>.</span>
                         <?php endif; ?>
-                        Level <?= esc((string) $impersonationLevel) ?> of <?= esc((string) $impersonationMaxDepth) ?>.
+                        <span>Level <?= esc((string) $impersonationLevel) ?> of <?= esc((string) $impersonationMaxDepth) ?>.</span>
                         <?php if (session()->get('impersonation_reason')): ?>
-                            Reason: <?= esc((string) session()->get('impersonation_reason')) ?>.
+                            <span>Reason: <?= esc((string) session()->get('impersonation_reason')) ?>.</span>
                         <?php endif; ?>
                     </div>
                     <div class="shell-alert__actions">
