@@ -148,13 +148,12 @@
                             <th>Modified on</th>
                             <th>Created by</th>
                             <th>Modified by</th>
-                            <th class="data-table__actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if ($rows === []): ?>
                             <tr>
-                                <td colspan="13" class="empty-state">No enquiries matched the current filters.</td>
+                                <td colspan="12" class="empty-state">No enquiries matched the current filters.</td>
                             </tr>
                         <?php endif; ?>
 
@@ -182,7 +181,6 @@
                                 <td data-label="Modified on"><?= esc($row->updated_at ? date('d M Y', strtotime($row->updated_at)) : '-') ?></td>
                                 <td data-label="Created by"><?= esc($row->created_by_display) ?></td>
                                 <td data-label="Modified by"><?= esc($row->updated_by_display) ?></td>
-                                <td class="data-table__actions" data-label="Actions"><span class="text-muted">Open from name</span></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
