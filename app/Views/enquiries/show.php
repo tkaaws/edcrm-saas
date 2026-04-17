@@ -177,7 +177,7 @@
                                                 <div class="timeline-item__card">
                                                     <div class="timeline-item__header">
                                                         <div>
-                                                            <h4><?= esc($event->summary ?: 'Enquiry updated') ?></h4>
+                                                            <h4><?= esc($event->display_title ?? $event->summary ?: 'Enquiry updated') ?></h4>
                                                             <p><?= esc($event->actor_display ?? 'System') ?></p>
                                                         </div>
                                                     </div>

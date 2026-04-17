@@ -1047,15 +1047,83 @@ class Enquiries extends BaseController
             $fieldNames = array_unique(array_merge(array_keys($oldValues), array_keys($newValues)));
 
             foreach ($fieldNames as $field) {
+                if ($this->shouldHideAuditField((string) $row->entity_type, (string) $field)) {
+                    continue;
+                }
+
                 $row->changes[] = (object) [
                     'field' => $this->labelAuditField((string) $field),
                     'old_value' => $this->formatAuditValue((string) $field, $oldValues[$field] ?? null),
                     'new_value' => $this->formatAuditValue((string) $field, $newValues[$field] ?? null),
                 ];
             }
+
+            if ($row->changes === [] && in_array((string) $row->entity_type, ['enquiry', 'enquiry_followup'], true)) {
+                continue;
+            }
+
+            $row->display_title = $this->buildAuditDisplayTitle($row);
         }
 
-        return $rows;
+        return array_values(array_filter($rows));
+    }
+
+    protected function shouldHideAuditField(string $entityType, string $field): bool
+    {
+        $hiddenFields = [
+            'updated_at',
+        ];
+
+        if (in_array($field, $hiddenFields, true)) {
+            return true;
+        }
+
+        if ($entityType === 'enquiry' && in_array($field, ['last_followup_at', 'next_followup_at'], true)) {
+            return true;
+        }
+
+        if ($entityType === 'enquiry_followup' && in_array($field, ['updated_by', 'created_by', 'updated_at', 'created_at', 'tenant_id', 'enquiry_id'], true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function buildAuditDisplayTitle(object $row): string
+    {
+        $entityType = (string) ($row->entity_type ?? '');
+        $action = (string) ($row->action ?? '');
+
+        if ($entityType === 'enquiry_followup') {
+            return match ($action) {
+                'created' => 'Follow-up added',
+                'updated' => 'Follow-up updated',
+                'deleted' => 'Follow-up deleted',
+                default => 'Follow-up activity',
+            };
+        }
+
+        if ($entityType === 'enquiry_assignment') {
+            return 'Enquiry reassigned';
+        }
+
+        if ($entityType === 'enquiry_status') {
+            return 'Status changed';
+        }
+
+        if ($entityType === 'enquiry') {
+            if ($action === 'created') {
+                return 'Enquiry created';
+            }
+
+            if (count($row->changes) === 1) {
+                return $row->changes[0]->field . ' updated';
+            }
+
+            return 'Enquiry updated';
+        }
+
+        return (string) ($row->summary ?: 'Activity updated');
     }
 
     protected function decodeAuditJson(?string $json): array
