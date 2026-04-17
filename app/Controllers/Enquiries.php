@@ -189,8 +189,8 @@ class Enquiries extends BaseController
             'activeNav' => 'enquiries',
             'enquiry' => $enquiry,
             'canEditEnquiry' => service('permissions')->has('enquiries.edit') && $enquiry->lifecycle_status !== 'admitted',
-            'canEditContactInfo' => service('permissions')->has('enquiries.edit') && $enquiry->lifecycle_status !== 'admitted',
-            'canEditCollegeInfo' => service('permissions')->has('enquiries.edit') && $enquiry->lifecycle_status !== 'admitted',
+            'canEditContactInfo' => service('permissions')->has('enquiries.update_contact_info') && $enquiry->lifecycle_status !== 'admitted',
+            'canEditCollegeInfo' => service('permissions')->has('enquiries.update_college_info') && $enquiry->lifecycle_status !== 'admitted',
             'canCloseEnquiry' => service('permissions')->has('enquiries.close') && in_array($enquiry->lifecycle_status, ['new', 'active'], true),
             'canReopenEnquiry' => service('permissions')->has('enquiries.reopen') && $enquiry->lifecycle_status === 'closed',
             'canAssignFromDetail' => $this->canAssignFromDetail($enquiry),
@@ -298,7 +298,7 @@ class Enquiries extends BaseController
             throw PageNotFoundException::forPageNotFound();
         }
 
-        if (! service('permissions')->has('enquiries.edit') || $enquiry->lifecycle_status === 'admitted') {
+        if (! service('permissions')->has('enquiries.update_contact_info') || $enquiry->lifecycle_status === 'admitted') {
             return redirect()->back()->with('error', 'You do not have access to update contact details for this enquiry.');
         }
 
@@ -331,7 +331,7 @@ class Enquiries extends BaseController
             throw PageNotFoundException::forPageNotFound();
         }
 
-        if (! service('permissions')->has('enquiries.edit') || $enquiry->lifecycle_status === 'admitted') {
+        if (! service('permissions')->has('enquiries.update_college_info') || $enquiry->lifecycle_status === 'admitted') {
             return redirect()->back()->with('error', 'You do not have access to update college details for this enquiry.');
         }
 

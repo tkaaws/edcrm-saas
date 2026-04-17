@@ -63,12 +63,21 @@
             <div class="privilege-groups">
                 <?php $selectedPrivilegeIds = array_map('intval', old('privilege_ids', $selectedPrivilegeIds ?? [])); ?>
                 <?php foreach ($privilegeGroups as $module => $privileges): ?>
+                    <?php $moduleKey = strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $module)); ?>
                     <section class="choice-card">
-                        <h3><?= esc(ucwords(str_replace('_', ' ', $module))) ?></h3>
+                        <div class="module-toolbar module-toolbar--compact">
+                            <div class="module-toolbar__copy">
+                                <h3 class="module-title module-title--small"><?= esc(ucwords(str_replace('_', ' ', $module))) ?></h3>
+                            </div>
+                            <div class="table-actions">
+                                <button class="shell-button shell-button--ghost shell-button--sm" type="button" data-privilege-select-all="<?= esc($moduleKey) ?>">Select all</button>
+                                <button class="shell-button shell-button--soft shell-button--sm" type="button" data-privilege-clear-all="<?= esc($moduleKey) ?>">Clear</button>
+                            </div>
+                        </div>
                         <div class="choice-list">
                             <?php foreach ($privileges as $privilege): ?>
                                 <label class="checkbox-row checkbox-row--stacked">
-                                    <input type="checkbox" name="privilege_ids[]" value="<?= esc((string) $privilege->id) ?>" <?= in_array((int) $privilege->id, $selectedPrivilegeIds, true) ? 'checked' : '' ?>>
+                                    <input type="checkbox" name="privilege_ids[]" value="<?= esc((string) $privilege->id) ?>" data-privilege-module="<?= esc($moduleKey) ?>" <?= in_array((int) $privilege->id, $selectedPrivilegeIds, true) ? 'checked' : '' ?>>
                                     <span>
                                         <strong><?= esc($privilege->name) ?></strong>
                                     </span>
@@ -86,4 +95,21 @@
         </div>
     </form>
 </section>
+<script>
+(() => {
+    const toggleGroup = (moduleKey, checked) => {
+        document.querySelectorAll(`[data-privilege-module="${moduleKey}"]`).forEach((checkbox) => {
+            checkbox.checked = checked;
+        });
+    };
+
+    document.querySelectorAll('[data-privilege-select-all]').forEach((button) => {
+        button.addEventListener('click', () => toggleGroup(button.getAttribute('data-privilege-select-all'), true));
+    });
+
+    document.querySelectorAll('[data-privilege-clear-all]').forEach((button) => {
+        button.addEventListener('click', () => toggleGroup(button.getAttribute('data-privilege-clear-all'), false));
+    });
+})();
+</script>
 <?= $this->endSection() ?>

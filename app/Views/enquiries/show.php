@@ -235,22 +235,6 @@
                         </select>
                     </label>
                     <label class="field">
-                        <span>College</span>
-                        <select name="college_id" required>
-                            <option value="">Select college</option>
-                            <?php $selectedCollegeId = (int) old('college_id', $enquiry->college_id ?? 0); ?>
-                            <?php foreach ($colleges as $row): ?>
-                                <option value="<?= (int) $row->id ?>" <?= $selectedCollegeId === (int) $row->id ? 'selected' : '' ?>>
-                                    <?= esc($row->name . ' - ' . $row->city_name . ', ' . $row->state_name) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>City</span>
-                        <input type="text" name="city" value="<?= esc(old('city', $enquiry->city ?? '')) ?>">
-                    </label>
-                    <label class="field">
                         <span>Next follow-up</span>
                         <input type="datetime-local" name="next_followup_at" value="<?= esc(old('next_followup_at', $enquiry->next_followup_at ? date('Y-m-d\TH:i', strtotime($enquiry->next_followup_at)) : '')) ?>">
                     </label>

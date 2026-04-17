@@ -64,6 +64,8 @@ class PrivilegesSeeder extends Seeder
             ['code' => 'enquiries.bulk_assign', 'name' => 'Bulk Assign Enquiries',  'module' => 'enquiries'],
             ['code' => 'enquiries.export',      'name' => 'Export Enquiries',       'module' => 'enquiries'],
             ['code' => 'enquiries.view_mobile_number', 'name' => 'View Enquiry Mobile Numbers', 'module' => 'enquiries'],
+            ['code' => 'enquiries.update_contact_info', 'name' => 'Update Enquiry Contact Info', 'module' => 'enquiries'],
+            ['code' => 'enquiries.update_college_info', 'name' => 'Update Enquiry College Info', 'module' => 'enquiries'],
             ['code' => 'enquiries.close',       'name' => 'Close Enquiries',        'module' => 'enquiries'],
             ['code' => 'enquiries.reopen',      'name' => 'Reopen Enquiries',       'module' => 'enquiries'],
             ['code' => 'enquiries.convert_to_admission', 'name' => 'Convert Enquiries to Admission', 'module' => 'enquiries'],
