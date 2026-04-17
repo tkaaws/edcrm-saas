@@ -330,6 +330,7 @@ a {
 }
 
 .shell-body--sidebar-collapsed .shell-sidebar {
+    width: 84px;
     padding-inline: 10px;
 }
 
@@ -369,38 +370,30 @@ a {
         overflow-x: hidden;
     }
 
-    .shell-body--sidebar-collapsed .shell-sidebar:hover,
-    .shell-body--sidebar-collapsed .shell-sidebar:focus-within {
+    .shell-body--sidebar-collapsed .shell-sidebar:hover {
         width: 256px;
         padding-inline: 14px;
         z-index: 40;
         box-shadow: 0 14px 36px rgba(24, 27, 52, 0.14);
     }
 
-    .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-brand,
-    .shell-body--sidebar-collapsed .shell-sidebar:focus-within .shell-brand {
+    .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-brand {
         justify-content: flex-start;
     }
 
     .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-brand > div:not(.shell-brand__mark),
-    .shell-body--sidebar-collapsed .shell-sidebar:focus-within .shell-brand > div:not(.shell-brand__mark),
     .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-nav__item span,
-    .shell-body--sidebar-collapsed .shell-sidebar:focus-within .shell-nav__item span,
     .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-nav__item small,
-    .shell-body--sidebar-collapsed .shell-sidebar:focus-within .shell-nav__item small,
-    .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-sidebar__section,
-    .shell-body--sidebar-collapsed .shell-sidebar:focus-within .shell-sidebar__section {
+    .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-sidebar__section {
         display: block;
     }
 
-    .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-nav__item,
-    .shell-body--sidebar-collapsed .shell-sidebar:focus-within .shell-nav__item {
+    .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-nav__item {
         justify-content: space-between;
         padding-inline: 10px;
     }
 
-    .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-nav__item::before,
-    .shell-body--sidebar-collapsed .shell-sidebar:focus-within .shell-nav__item::before {
+    .shell-body--sidebar-collapsed .shell-sidebar:hover .shell-nav__item::before {
         display: none;
     }
 }
