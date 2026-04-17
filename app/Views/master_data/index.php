@@ -6,17 +6,11 @@
     $hasSelection = $selectedType !== null;
     $canAddCompanyValue = $hasSelection && (int) $selectedType->allow_tenant_entries === 1;
     ?>
-    <div class="module-toolbar module-toolbar--compact">
-        <div class="module-toolbar__copy">
-            <p class="module-subtitle">Manage shared lists like sources, follow-up status, and courses.</p>
-        </div>
-    </div>
-
     <section class="form-card">
         <div class="module-toolbar module-toolbar--compact lookup-toolbar">
             <div class="lookup-toolbar__summary">
                 <strong>Choose a list</strong>
-                <p class="module-subtitle">Review one list at a time and add company values only when needed.</p>
+                <p class="module-subtitle">Pick one list and manage only what your company needs.</p>
             </div>
         </div>
 
@@ -34,7 +28,7 @@
             <div class="module-toolbar">
                 <div>
                     <h3 class="module-title module-title--small">Choose a lookup list</h3>
-                    <p class="module-subtitle">Start by choosing one list from the menu above. We will show the available options and let you add new ones only when needed.</p>
+                    <p class="module-subtitle">Start with one list from above. We will show the current options and let you add a new one only when needed.</p>
                 </div>
             </div>
         </section>

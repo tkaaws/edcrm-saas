@@ -2590,6 +2590,45 @@ select.shell-input,
         padding: 0 2px;
     }
 
+    .lookup-toolbar {
+        margin-bottom: 2px;
+    }
+
+    .lookup-toolbar__summary {
+        gap: 2px;
+    }
+
+    .lookup-toolbar__summary strong {
+        font-size: 14px;
+        line-height: 1.2;
+    }
+
+    .catalog-menu-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .catalog-menu-grid .shell-button {
+        min-height: 30px;
+        padding: 7px 10px;
+        font-size: 13px;
+        border-radius: 10px;
+    }
+
+    .form-card {
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .table-card {
+        padding: 10px;
+    }
+
+    .module-title.module-title--small {
+        font-size: 16px;
+        line-height: 1.2;
+    }
+
     .settings-tabs__nav {
         grid-template-columns: 1fr 1fr;
         display: grid;
