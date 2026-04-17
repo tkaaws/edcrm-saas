@@ -26,6 +26,7 @@ class Branches extends BaseController
             'pageTitle' => 'Branches',
             'activeNav' => 'branches',
             'branches'  => $this->branchModel->getAdminGrid($tenantId),
+            'regionalInputOptions' => $this->regionalInputOptions(),
         ]));
     }
 

@@ -37,7 +37,7 @@ $columnCount = match ($currentTab ?? 'enquiries') {
                 <a class="shell-button shell-button--ghost" href="<?= site_url('enquiries/bulk-assign') ?>">Bulk assign</a>
             <?php endif; ?>
             <?php if ($canCreateEnquiry): ?>
-                <a class="shell-button shell-button--primary" href="<?= site_url('enquiries/create') ?>">Add enquiry</a>
+                <button class="shell-button shell-button--primary" type="button" data-modal-open="create-enquiry-modal">Add enquiry</button>
             <?php endif; ?>
         </div>
     </div>
@@ -153,7 +153,7 @@ $columnCount = match ($currentTab ?? 'enquiries') {
                                 <div class="table-actions">
                                     <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $row->id) ?>">Open</a>
                                     <?php if (in_array('enquiries.edit', $codes, true) && in_array($row->lifecycle_status, ['new', 'active'], true)): ?>
-                                        <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $row->id . '/edit') ?>">Edit</a>
+                                        <button class="shell-button shell-button--ghost shell-button--sm" type="button" data-modal-open="edit-enquiry-modal-<?= (int) $row->id ?>">Edit</button>
                                     <?php endif; ?>
                                 </div>
                             </td>
@@ -164,4 +164,57 @@ $columnCount = match ($currentTab ?? 'enquiries') {
         </div>
     </div>
 </section>
+
+<?php if ($canCreateEnquiry): ?>
+    <div class="action-modal" id="create-enquiry-modal" hidden>
+        <div class="action-modal__backdrop" data-modal-close></div>
+        <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="create-enquiry-modal-title">
+            <div class="action-modal__header">
+                <div>
+                    <h3 id="create-enquiry-modal-title">Add enquiry</h3>
+                    <p>Capture a new lead without leaving the enquiry workspace.</p>
+                </div>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+            </div>
+            <form class="form-stack" method="post" action="<?= site_url('enquiries') ?>">
+                <?= csrf_field() ?>
+                <?php $enquiry = null; $showAssignmentSection = false; ?>
+                <?= $this->include('enquiries/_form_sections') ?>
+                <div class="form-actions">
+                    <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                    <button class="shell-button shell-button--primary" type="submit">Create enquiry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php foreach ($rows as $row): ?>
+    <?php if (in_array('enquiries.edit', $codes, true) && in_array($row->lifecycle_status, ['new', 'active'], true)): ?>
+        <div class="action-modal" id="edit-enquiry-modal-<?= (int) $row->id ?>" hidden>
+            <div class="action-modal__backdrop" data-modal-close></div>
+            <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="edit-enquiry-modal-title-<?= (int) $row->id ?>">
+                <div class="action-modal__header">
+                    <div>
+                        <h3 id="edit-enquiry-modal-title-<?= (int) $row->id ?>">Edit enquiry</h3>
+                        <p>Update the core lead details without leaving the enquiry list.</p>
+                    </div>
+                    <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+                </div>
+                <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $row->id) ?>">
+                    <?= csrf_field() ?>
+                    <?php
+                    $enquiry = $row;
+                    $showAssignmentSection = in_array('enquiries.reassign_in_edit', $codes, true) && in_array($row->lifecycle_status, ['new', 'active'], true);
+                    ?>
+                    <?= $this->include('enquiries/_form_sections') ?>
+                    <div class="form-actions">
+                        <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                        <button class="shell-button shell-button--primary" type="submit">Save enquiry</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php endforeach; ?>
 <?= $this->endSection() ?>

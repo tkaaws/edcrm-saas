@@ -10,7 +10,7 @@
             <p class="module-subtitle">Manage company locations and regional defaults.</p>
         </div>
         <?php if ($canCreateBranches): ?>
-            <a class="shell-button shell-button--primary" href="<?= site_url('branches/create') ?>">Add branch</a>
+            <button class="shell-button shell-button--primary" type="button" data-modal-open="branch-create-modal">Add branch</button>
         <?php endif; ?>
     </div>
 
@@ -56,7 +56,7 @@
                                 <div class="table-actions">
                                     <?php if ($canEditBranches): ?>
                                         <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('branches/' . $branch->id . '/settings') ?>">Settings</a>
-                                        <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('branches/' . $branch->id . '/edit') ?>">Edit</a>
+                                        <button class="shell-button shell-button--ghost shell-button--sm" type="button" data-modal-open="branch-edit-modal-<?= (int) $branch->id ?>">Edit</button>
                                         <form method="post" action="<?= site_url('branches/' . $branch->id . '/status') ?>">
                                             <?= csrf_field() ?>
                                             <button class="shell-button shell-button--soft shell-button--sm" type="submit">
@@ -73,4 +73,53 @@
         </div>
     </div>
 </section>
+
+<?php if ($canCreateBranches): ?>
+    <div class="action-modal" id="branch-create-modal" hidden>
+        <div class="action-modal__backdrop" data-modal-close></div>
+        <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="branch-create-modal-title">
+            <div class="action-modal__header">
+                <div>
+                    <h3 id="branch-create-modal-title">Add branch</h3>
+                    <p>Create a branch without leaving the branch list.</p>
+                </div>
+                <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+            </div>
+            <form class="form-stack" method="post" action="<?= site_url('branches') ?>">
+                <?= csrf_field() ?>
+                <?php $branch = null; ?>
+                <?= $this->include('branches/_form_sections') ?>
+                <div class="form-actions">
+                    <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                    <button class="shell-button shell-button--primary" type="submit">Create branch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php foreach ($branches as $branch): ?>
+    <?php if ($canEditBranches): ?>
+        <div class="action-modal" id="branch-edit-modal-<?= (int) $branch->id ?>" hidden>
+            <div class="action-modal__backdrop" data-modal-close></div>
+            <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="branch-edit-modal-title-<?= (int) $branch->id ?>">
+                <div class="action-modal__header">
+                    <div>
+                        <h3 id="branch-edit-modal-title-<?= (int) $branch->id ?>">Edit branch</h3>
+                        <p>Update the branch details without leaving the branch list.</p>
+                    </div>
+                    <button class="action-modal__close" type="button" data-modal-close aria-label="Close">&times;</button>
+                </div>
+                <form class="form-stack" method="post" action="<?= site_url('branches/' . $branch->id) ?>">
+                    <?= csrf_field() ?>
+                    <?= $this->include('branches/_form_sections') ?>
+                    <div class="form-actions">
+                        <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
+                        <button class="shell-button shell-button--primary" type="submit">Save branch</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php endforeach; ?>
 <?= $this->endSection() ?>

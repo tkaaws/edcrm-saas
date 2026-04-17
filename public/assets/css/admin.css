@@ -176,6 +176,8 @@ a {
     padding: 8px 10px 12px;
     display: grid;
     gap: 6px;
+    align-content: start;
+    grid-auto-rows: max-content;
 }
 
 .shell-header {
@@ -328,6 +330,7 @@ a {
 .shell-content {
     display: grid;
     gap: 6px;
+    align-content: start;
 }
 
 .toolbar-actions {
@@ -534,6 +537,7 @@ a {
 .module-page {
     display: grid;
     gap: 6px;
+    align-content: start;
 }
 
 .settings-tabs {

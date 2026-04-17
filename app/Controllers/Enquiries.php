@@ -721,6 +721,12 @@ class Enquiries extends BaseController
             'activeNav' => 'enquiries',
             'rows' => $rows,
             'currentTab' => $tab,
+            'sources' => service('masterData')->getEffectiveValues('enquiry_source', $tenantId),
+            'qualifications' => service('masterData')->getEffectiveValues('lead_qualification', $tenantId),
+            'courses' => service('masterData')->getEffectiveValues('course', $tenantId),
+            'colleges' => $this->collegeModel->getActiveOptions($tenantId, '', 500),
+            'assignableBranches' => $this->getAssignableBranches(),
+            'assignableUsers' => $this->getAssignableUsers($tenantId),
         ]));
     }
 
