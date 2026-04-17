@@ -1030,8 +1030,10 @@ class Enquiries extends BaseController
                 "TRIM(CONCAT(COALESCE(actor.first_name, ''), ' ', COALESCE(actor.last_name, ''))) AS actor_name",
             ])
             ->join('users actor', 'actor.id = logs.user_id', 'left')
-            ->where('logs.entity_type', 'enquiry')
-            ->where('logs.entity_id', $enquiryId)
+            ->groupStart()
+                ->whereIn('logs.entity_type', ['enquiry', 'enquiry_followup', 'enquiry_assignment', 'enquiry_status'])
+                ->where('logs.entity_id', $enquiryId)
+            ->groupEnd()
             ->orderBy('logs.created_at', 'DESC')
             ->get()
             ->getResult();
@@ -1072,6 +1074,7 @@ class Enquiries extends BaseController
         return match ($field) {
             'owner_user_id' => 'Assigned to',
             'branch_id' => 'Branch',
+            'assigned_on' => 'Assigned on',
             'student_name' => 'Student name',
             'whatsapp_number' => 'WhatsApp number',
             'source_id' => 'Enquiry source',
@@ -1086,6 +1089,18 @@ class Enquiries extends BaseController
             'closed_by' => 'Closed by',
             'admitted_at' => 'Admitted on',
             'lifecycle_status' => 'Status',
+            'communication_type_id' => 'Communication mode',
+            'followup_outcome_id' => 'Follow-up outcome',
+            'is_system_generated' => 'System generated',
+            'from_branch_id' => 'From branch',
+            'to_branch_id' => 'To branch',
+            'from_user_id' => 'From user',
+            'to_user_id' => 'To user',
+            'assignment_type' => 'Assignment type',
+            'reason' => 'Reason',
+            'bulk_batch_id' => 'Bulk batch',
+            'from_status' => 'From status',
+            'to_status' => 'To status',
             default => ucwords(str_replace('_', ' ', $field)),
         };
     }
@@ -1097,11 +1112,14 @@ class Enquiries extends BaseController
         }
 
         return match ($field) {
-            'source_id', 'qualification_id', 'primary_course_id', 'closed_reason_id' => $this->resolveMasterValueLabel((int) $value),
+            'source_id', 'qualification_id', 'primary_course_id', 'closed_reason_id', 'communication_type_id', 'followup_outcome_id' => $this->resolveMasterValueLabel((int) $value),
             'college_id' => $this->resolveCollegeLabel((int) $value),
-            'branch_id' => $this->resolveBranchLabel((int) $value),
-            'owner_user_id', 'closed_by' => $this->resolveUserLabel((int) $value),
+            'branch_id', 'from_branch_id', 'to_branch_id' => $this->resolveBranchLabel((int) $value),
+            'owner_user_id', 'closed_by', 'from_user_id', 'to_user_id' => $this->resolveUserLabel((int) $value),
             'lifecycle_status' => ucfirst((string) $value),
+            'assignment_type' => ucwords(str_replace('_', ' ', (string) $value)),
+            'is_system_generated' => (int) $value === 1 ? 'Yes' : 'No',
+            'from_status', 'to_status' => $value === null || $value === '' ? '-' : ucfirst((string) $value),
             'last_followup_at', 'next_followup_at', 'closed_at', 'admitted_at' => date('d M Y h:i A', strtotime((string) $value)),
             default => (string) $value,
         };
