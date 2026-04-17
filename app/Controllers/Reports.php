@@ -103,6 +103,7 @@ class Reports extends BaseController
             $row->module_label = $this->mapEntityTypeToModule((string) $row->entity_type);
             $row->display_title = $this->buildActivityTitle($row);
             $row->changes = $this->buildActivityChanges($row);
+            $row->display_summary = $this->buildActivitySummary($row);
         }
 
         return $rows;
@@ -271,6 +272,32 @@ class Reports extends BaseController
         }
 
         return $changes;
+    }
+
+    protected function buildActivitySummary(object $row): string
+    {
+        if (! empty($row->changes)) {
+            $parts = [];
+
+            foreach ($row->changes as $change) {
+                $parts[] = sprintf(
+                    '%s: %s -> %s',
+                    $change->field,
+                    $change->old_value,
+                    $change->new_value
+                );
+            }
+
+            return implode(' | ', $parts);
+        }
+
+        $summary = trim((string) ($row->summary ?? ''));
+
+        if ($summary !== '') {
+            return $summary;
+        }
+
+        return $row->display_title;
     }
 
     protected function decodeAuditJson(?string $json): array
