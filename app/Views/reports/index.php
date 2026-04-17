@@ -37,24 +37,36 @@
                 <label>To</label>
                 <input type="date" name="to" value="<?= esc($toDate) ?>">
             </div>
-            <?php if ($scope === 'team' && $canViewTeam): ?>
-                <div>
-                    <label>Employee</label>
-                    <select name="user_id">
-                        <option value="">All visible team members</option>
-                        <?php foreach ($userOptions as $user): ?>
-                            <?php $label = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')); ?>
-                            <option value="<?= esc((string) $user->id) ?>" <?= $selectedUserId === (int) $user->id ? 'selected' : '' ?>>
-                                <?= esc($label ?: ($user->email ?? 'User #' . $user->id)) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            <?php endif; ?>
             <div class="form-actions">
                 <button class="shell-button shell-button--ghost" type="submit">Apply filters</button>
             </div>
         </form>
+
+        <?php if ($scope === 'team' && $canViewTeam && $userOptions !== []): ?>
+            <section class="report-people-filter">
+                <div class="report-people-filter__head">
+                    <h4>Employee</h4>
+                    <p>Click a team member to see only their activity.</p>
+                </div>
+                <div class="report-people-filter__list">
+                    <a
+                        class="report-person-chip <?= $selectedUserId < 1 ? 'report-person-chip--active' : '' ?>"
+                        href="<?= site_url('reports?scope=team&from=' . urlencode($fromDate) . '&to=' . urlencode($toDate)) ?>"
+                    >
+                        All team members
+                    </a>
+                    <?php foreach ($userOptions as $user): ?>
+                        <?php $label = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')); ?>
+                        <a
+                            class="report-person-chip <?= $selectedUserId === (int) $user->id ? 'report-person-chip--active' : '' ?>"
+                            href="<?= site_url('reports?scope=team&from=' . urlencode($fromDate) . '&to=' . urlencode($toDate) . '&user_id=' . urlencode((string) $user->id)) ?>"
+                        >
+                            <?= esc($label ?: ($user->email ?? 'User #' . $user->id)) ?>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+        <?php endif; ?>
     </section>
 
     <section class="detail-card report-card">
