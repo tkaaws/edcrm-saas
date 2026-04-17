@@ -43,6 +43,7 @@ class Reports extends BaseController
         $allowedUserIds = $scope === 'team'
             ? $this->getTeamScopeUserIds()
             : [(int) session()->get('user_id')];
+        $allowedUserIds = $this->normalizeIntList($allowedUserIds);
 
         if ($allowedUserIds === []) {
             $allowedUserIds = [(int) session()->get('user_id')];
@@ -177,6 +178,18 @@ class Reports extends BaseController
         }
 
         return $ids;
+    }
+
+    /**
+     * @param array<int|string> $values
+     * @return list<int>
+     */
+    protected function normalizeIntList(array $values): array
+    {
+        $normalized = array_map(static fn($value): int => (int) $value, $values);
+        $normalized = array_values(array_unique(array_filter($normalized, static fn(int $value): bool => $value > 0)));
+
+        return $normalized;
     }
 
     /**
