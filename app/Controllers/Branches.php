@@ -20,12 +20,19 @@ class Branches extends BaseController
     public function index(): string
     {
         $tenantId = (int) session()->get('tenant_id');
+        $branches = $this->branchModel->getAdminGrid($tenantId);
+        $editableBranchesById = [];
+
+        foreach ($branches as $branch) {
+            $editableBranchesById[(int) $branch->id] = $this->branchModel->findForTenant((int) $branch->id) ?: $branch;
+        }
 
         return view('branches/index', $this->buildShellViewData([
             'title'     => 'Branches',
             'pageTitle' => 'Branches',
             'activeNav' => 'branches',
-            'branches'  => $this->branchModel->getAdminGrid($tenantId),
+            'branches'  => $branches,
+            'editableBranchesById' => $editableBranchesById,
             'regionalInputOptions' => $this->regionalInputOptions(),
         ]));
     }

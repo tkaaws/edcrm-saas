@@ -177,10 +177,22 @@
                                                 <div class="timeline-item__card">
                                                     <div class="timeline-item__header">
                                                         <div>
-                                                            <h4><?= esc($event->reason ?: 'Activity recorded') ?></h4>
-                                                            <p><?= esc(trim($event->changed_by_name ?? '') ?: 'System') ?></p>
+                                                            <h4><?= esc($event->summary ?: 'Enquiry updated') ?></h4>
+                                                            <p><?= esc($event->actor_display ?? 'System') ?></p>
                                                         </div>
                                                     </div>
+                                                    <?php if (! empty($event->changes)): ?>
+                                                        <div class="history-change-list">
+                                                            <?php foreach ($event->changes as $change): ?>
+                                                                <div class="history-change-list__item">
+                                                                    <strong><?= esc($change->field) ?></strong>
+                                                                    <span><?= esc($change->old_value) ?></span>
+                                                                    <em>&rarr;</em>
+                                                                    <span><?= esc($change->new_value) ?></span>
+                                                                </div>
+                                                            <?php endforeach; ?>
+                                                        </div>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                         </article>
@@ -214,13 +226,13 @@
                 <div class="form-grid">
                     <label class="field">
                         <span>Student name</span>
-                        <input type="text" name="student_name" value="<?= esc(old('student_name', $enquiry->student_name ?? '')) ?>" required>
+                        <input type="text" name="student_name" value="<?= esc($enquiry->student_name ?? '') ?>" required>
                     </label>
                     <label class="field">
                         <span>Enquiry source</span>
                         <select name="source_id" required>
                             <option value="">Select source</option>
-                            <?php $selectedSourceId = (int) old('source_id', $enquiry->source_id ?? 0); ?>
+                            <?php $selectedSourceId = (int) ($enquiry->source_id ?? 0); ?>
                             <?php foreach ($sources as $row): ?>
                                 <option value="<?= (int) $row->id ?>" <?= $selectedSourceId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
                             <?php endforeach; ?>
@@ -230,7 +242,7 @@
                         <span>Course</span>
                         <select name="primary_course_id" required>
                             <option value="">Select course</option>
-                            <?php $selectedCourseId = (int) old('primary_course_id', $enquiry->primary_course_id ?? 0); ?>
+                            <?php $selectedCourseId = (int) ($enquiry->primary_course_id ?? 0); ?>
                             <?php foreach ($courses as $row): ?>
                                 <option value="<?= (int) $row->id ?>" <?= $selectedCourseId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
                             <?php endforeach; ?>
@@ -240,7 +252,7 @@
                         <span>Lead stage</span>
                         <select name="qualification_id">
                             <option value="">Select stage</option>
-                            <?php $selectedQualificationId = (int) old('qualification_id', $enquiry->qualification_id ?? 0); ?>
+                            <?php $selectedQualificationId = (int) ($enquiry->qualification_id ?? 0); ?>
                             <?php foreach ($qualifications as $row): ?>
                                 <option value="<?= (int) $row->id ?>" <?= $selectedQualificationId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
                             <?php endforeach; ?>
@@ -248,11 +260,11 @@
                     </label>
                     <label class="field">
                         <span>Next follow-up</span>
-                        <input type="datetime-local" name="next_followup_at" value="<?= esc(old('next_followup_at', $enquiry->next_followup_at ? date('Y-m-d\TH:i', strtotime($enquiry->next_followup_at)) : '')) ?>">
+                        <input type="datetime-local" name="next_followup_at" value="<?= esc($enquiry->next_followup_at ? date('Y-m-d\TH:i', strtotime($enquiry->next_followup_at)) : '') ?>">
                     </label>
                     <label class="field field--full">
                         <span>Remarks</span>
-                        <textarea name="notes" rows="4"><?= esc(old('notes', $enquiry->notes ?? '')) ?></textarea>
+                        <textarea name="notes" rows="4"><?= esc($enquiry->notes ?? '') ?></textarea>
                     </label>
                 </div>
                 <div class="form-actions">
@@ -281,15 +293,15 @@
                 <div class="form-grid">
                     <label class="field">
                         <span>Mobile</span>
-                        <input type="text" name="mobile" value="<?= esc(old('mobile', $enquiry->mobile ?? '')) ?>" required>
+                        <input type="text" name="mobile" value="<?= esc($enquiry->mobile ?? '') ?>" required>
                     </label>
                     <label class="field">
                         <span>WhatsApp number</span>
-                        <input type="text" name="whatsapp_number" value="<?= esc(old('whatsapp_number', $enquiry->whatsapp_number ?? '')) ?>">
+                        <input type="text" name="whatsapp_number" value="<?= esc($enquiry->whatsapp_number ?? '') ?>">
                     </label>
                     <label class="field field--full">
                         <span>Email</span>
-                        <input type="email" name="email" value="<?= esc(old('email', $enquiry->email ?? '')) ?>">
+                        <input type="email" name="email" value="<?= esc($enquiry->email ?? '') ?>">
                     </label>
                 </div>
                 <div class="form-actions">
@@ -320,7 +332,7 @@
                         <span>College</span>
                         <select name="college_id" required>
                             <option value="">Select college</option>
-                            <?php $selectedCollegeId = (int) old('college_id', $enquiry->college_id ?? 0); ?>
+                            <?php $selectedCollegeId = (int) ($enquiry->college_id ?? 0); ?>
                             <?php foreach ($colleges as $row): ?>
                                 <option value="<?= (int) $row->id ?>" <?= $selectedCollegeId === (int) $row->id ? 'selected' : '' ?>>
                                     <?= esc($row->name . ' - ' . $row->city_name . ', ' . $row->state_name) ?>
@@ -330,7 +342,7 @@
                     </label>
                     <label class="field">
                         <span>City</span>
-                        <input type="text" name="city" value="<?= esc(old('city', $enquiry->city ?? '')) ?>">
+                        <input type="text" name="city" value="<?= esc($enquiry->city ?? '') ?>">
                     </label>
                 </div>
                 <div class="form-actions">

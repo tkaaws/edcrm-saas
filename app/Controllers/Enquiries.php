@@ -213,7 +213,7 @@ class Enquiries extends BaseController
             'canEditFollowups' => $canEditFollowups,
             'canDeleteFollowups' => $canDeleteFollowups,
             'canViewHistory' => service('permissions')->has('enquiries.activity_view'),
-            'historyEvents' => service('permissions')->has('enquiries.activity_view') ? $this->getStatusHistory((int) $enquiry->id) : [],
+            'historyEvents' => service('permissions')->has('enquiries.activity_view') ? $this->getAuditHistory((int) $enquiry->id) : [],
         ]));
     }
 
@@ -335,8 +335,6 @@ class Enquiries extends BaseController
             'whatsapp_number' => $whatsappNumber !== '' ? $whatsappNumber : null,
         ]);
 
-        $this->recordActivityEvent($tenantId, (int) $enquiry->id, 'contact.updated', 'Contact details updated.');
-
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'Contact details updated successfully.');
     }
 
@@ -363,8 +361,6 @@ class Enquiries extends BaseController
             'college_id' => $collegeId,
             'city' => $city !== '' ? $city : null,
         ]);
-
-        $this->recordActivityEvent($tenantId, (int) $enquiry->id, 'college.updated', 'College details updated.');
 
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'College details updated successfully.');
     }
@@ -632,8 +628,6 @@ class Enquiries extends BaseController
         ]);
 
         $this->refreshEnquiryFollowupSnapshot((int) $enquiry->id);
-        $this->recordActivityEvent($tenantId, (int) $enquiry->id, 'followup.updated', 'Follow-up updated.');
-
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'Follow-up updated successfully.');
     }
 
@@ -656,8 +650,6 @@ class Enquiries extends BaseController
 
         $this->followupModel->delete($followupId);
         $this->refreshEnquiryFollowupSnapshot((int) $enquiry->id);
-        $this->recordActivityEvent($tenantId, (int) $enquiry->id, 'followup.deleted', 'Follow-up deleted.');
-
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'Follow-up deleted successfully.');
     }
 
@@ -755,10 +747,14 @@ class Enquiries extends BaseController
         $tenantId = (int) session()->get('tenant_id');
         $tab = in_array($tab, ['enquiries', 'today', 'missed', 'fresh', 'expired', 'closed'], true) ? $tab : 'enquiries';
         $rows = $this->queueService->getRows($tenantId, $tab, $this->currentBranchContextId());
+        $editableRowsById = [];
 
         foreach ($rows as $row) {
             $this->decorateEnquiryRow($row);
             $row->mobile_display = $this->formatMobile((string) $row->mobile);
+            if (in_array($row->lifecycle_status, ['new', 'active'], true)) {
+                $editableRowsById[(int) $row->id] = $this->queueService->findVisibleById($tenantId, (int) $row->id, $this->currentBranchContextId()) ?: $row;
+            }
         }
 
         return view('enquiries/index', $this->buildShellViewData([
@@ -774,6 +770,7 @@ class Enquiries extends BaseController
             'assignableBranches' => $this->getAssignableBranches(),
             'assignableUsers' => $this->getAssignableUsers($tenantId),
             'assignableUsersByBranch' => $this->getAssignableUsersByBranch($tenantId),
+            'editableRowsById' => $editableRowsById,
         ]));
     }
 
@@ -1007,42 +1004,6 @@ class Enquiries extends BaseController
         return substr($digits, 0, 2) . str_repeat('x', max(strlen($digits) - 4, 0)) . substr($digits, -2);
     }
 
-    protected function getAssignmentHistory(int $enquiryId): array
-    {
-        return db_connect()->table('enquiry_assignment_history history')
-            ->select([
-                'history.*',
-                'from_branch.name AS from_branch_name',
-                'to_branch.name AS to_branch_name',
-                "TRIM(CONCAT(COALESCE(from_user.first_name, ''), ' ', COALESCE(from_user.last_name, ''))) AS from_user_name",
-                "TRIM(CONCAT(COALESCE(to_user.first_name, ''), ' ', COALESCE(to_user.last_name, ''))) AS to_user_name",
-                "TRIM(CONCAT(COALESCE(assigned_by_user.first_name, ''), ' ', COALESCE(assigned_by_user.last_name, ''))) AS assigned_by_name",
-            ])
-            ->join('tenant_branches from_branch', 'from_branch.id = history.from_branch_id', 'left')
-            ->join('tenant_branches to_branch', 'to_branch.id = history.to_branch_id', 'left')
-            ->join('users from_user', 'from_user.id = history.from_user_id', 'left')
-            ->join('users to_user', 'to_user.id = history.to_user_id', 'left')
-            ->join('users assigned_by_user', 'assigned_by_user.id = history.assigned_by', 'left')
-            ->where('history.enquiry_id', $enquiryId)
-            ->orderBy('history.created_at', 'DESC')
-            ->get()
-            ->getResult();
-    }
-
-    protected function getStatusHistory(int $enquiryId): array
-    {
-        return db_connect()->table('enquiry_status_logs logs')
-            ->select([
-                'logs.*',
-                "TRIM(CONCAT(COALESCE(changed_by_user.first_name, ''), ' ', COALESCE(changed_by_user.last_name, ''))) AS changed_by_name",
-            ])
-            ->join('users changed_by_user', 'changed_by_user.id = logs.changed_by', 'left')
-            ->where('logs.enquiry_id', $enquiryId)
-            ->orderBy('logs.created_at', 'DESC')
-            ->get()
-            ->getResult();
-    }
-
     protected function getFollowupHistory(int $enquiryId): array
     {
         return db_connect()->table('enquiry_followups followups')
@@ -1059,6 +1020,139 @@ class Enquiries extends BaseController
             ->orderBy('followups.created_at', 'DESC')
             ->get()
             ->getResult();
+    }
+
+    protected function getAuditHistory(int $enquiryId): array
+    {
+        $rows = db_connect()->table('audit_logs logs')
+            ->select([
+                'logs.*',
+                "TRIM(CONCAT(COALESCE(actor.first_name, ''), ' ', COALESCE(actor.last_name, ''))) AS actor_name",
+            ])
+            ->join('users actor', 'actor.id = logs.user_id', 'left')
+            ->where('logs.entity_type', 'enquiry')
+            ->where('logs.entity_id', $enquiryId)
+            ->orderBy('logs.created_at', 'DESC')
+            ->get()
+            ->getResult();
+
+        foreach ($rows as $row) {
+            $row->actor_display = trim((string) ($row->actor_name ?? '')) ?: 'System';
+            $row->changes = [];
+
+            $oldValues = $this->decodeAuditJson($row->old_values ?? null);
+            $newValues = $this->decodeAuditJson($row->new_values ?? null);
+            $fieldNames = array_unique(array_merge(array_keys($oldValues), array_keys($newValues)));
+
+            foreach ($fieldNames as $field) {
+                $row->changes[] = (object) [
+                    'field' => $this->labelAuditField((string) $field),
+                    'old_value' => $this->formatAuditValue((string) $field, $oldValues[$field] ?? null),
+                    'new_value' => $this->formatAuditValue((string) $field, $newValues[$field] ?? null),
+                ];
+            }
+        }
+
+        return $rows;
+    }
+
+    protected function decodeAuditJson(?string $json): array
+    {
+        if (! $json) {
+            return [];
+        }
+
+        $decoded = json_decode($json, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    protected function labelAuditField(string $field): string
+    {
+        return match ($field) {
+            'owner_user_id' => 'Assigned to',
+            'branch_id' => 'Branch',
+            'student_name' => 'Student name',
+            'whatsapp_number' => 'WhatsApp number',
+            'source_id' => 'Enquiry source',
+            'college_id' => 'College',
+            'qualification_id' => 'Lead stage',
+            'primary_course_id' => 'Course',
+            'closed_reason_id' => 'Close reason',
+            'closed_remarks' => 'Close remarks',
+            'last_followup_at' => 'Last follow-up',
+            'next_followup_at' => 'Next follow-up',
+            'closed_at' => 'Closed on',
+            'closed_by' => 'Closed by',
+            'admitted_at' => 'Admitted on',
+            'lifecycle_status' => 'Status',
+            default => ucwords(str_replace('_', ' ', $field)),
+        };
+    }
+
+    protected function formatAuditValue(string $field, mixed $value): string
+    {
+        if ($value === null || $value === '') {
+            return '-';
+        }
+
+        return match ($field) {
+            'source_id', 'qualification_id', 'primary_course_id', 'closed_reason_id' => $this->resolveMasterValueLabel((int) $value),
+            'college_id' => $this->resolveCollegeLabel((int) $value),
+            'branch_id' => $this->resolveBranchLabel((int) $value),
+            'owner_user_id', 'closed_by' => $this->resolveUserLabel((int) $value),
+            'lifecycle_status' => ucfirst((string) $value),
+            'last_followup_at', 'next_followup_at', 'closed_at', 'admitted_at' => date('d M Y h:i A', strtotime((string) $value)),
+            default => (string) $value,
+        };
+    }
+
+    protected function resolveMasterValueLabel(int $id): string
+    {
+        if ($id < 1) {
+            return '-';
+        }
+
+        $row = db_connect()->table('master_data_values')->select('label')->where('id', $id)->get()->getRow();
+
+        return $row->label ?? '-';
+    }
+
+    protected function resolveCollegeLabel(int $id): string
+    {
+        if ($id < 1) {
+            return '-';
+        }
+
+        $row = db_connect()->table('colleges')->select('name')->where('id', $id)->get()->getRow();
+
+        return $row->name ?? '-';
+    }
+
+    protected function resolveBranchLabel(int $id): string
+    {
+        if ($id < 1) {
+            return '-';
+        }
+
+        $row = db_connect()->table('tenant_branches')->select('name')->where('id', $id)->get()->getRow();
+
+        return $row->name ?? '-';
+    }
+
+    protected function resolveUserLabel(int $id): string
+    {
+        if ($id < 1) {
+            return '-';
+        }
+
+        $row = db_connect()->table('users')
+            ->select("TRIM(CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, ''))) AS name")
+            ->where('id', $id)
+            ->get()
+            ->getRow();
+
+        return trim((string) ($row->name ?? '')) ?: '-';
     }
 
     protected function findFollowupForEnquiry(int $tenantId, int $enquiryId, int $followupId): ?object
@@ -1129,19 +1223,6 @@ class Enquiries extends BaseController
             'is_system_generated' => 1,
         ]);
 
-        $this->recordActivityEvent($tenantId, $enquiryId, 'assignment.changed', $comment);
         $this->refreshEnquiryFollowupSnapshot($enquiryId);
-    }
-
-    protected function recordActivityEvent(int $tenantId, int $enquiryId, string $eventType, string $reason): void
-    {
-        $this->statusLogModel->insertWithActor([
-            'tenant_id' => $tenantId,
-            'enquiry_id' => $enquiryId,
-            'from_status' => $eventType,
-            'to_status' => $eventType,
-            'reason' => $reason,
-            'changed_by' => session()->get('user_id') ?: null,
-        ]);
     }
 }

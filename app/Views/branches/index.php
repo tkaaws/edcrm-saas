@@ -5,6 +5,7 @@
     <?php $codes = session()->get('user_privilege_codes') ?? []; ?>
     <?php $canCreateBranches = in_array('branches.create', $codes, true); ?>
     <?php $canEditBranches = in_array('branches.edit', $codes, true); ?>
+    <?php $editableBranchesById = $editableBranchesById ?? []; ?>
     <div class="module-toolbar module-toolbar--compact">
         <div class="module-toolbar__copy">
             <p class="module-subtitle">Manage company locations and regional defaults.</p>
@@ -87,7 +88,7 @@
             </div>
             <form class="form-stack" method="post" action="<?= site_url('branches') ?>">
                 <?= csrf_field() ?>
-                <?php $formBranch = null; ?>
+                <?php $formBranch = null; $useOldInput = true; ?>
                 <?= $this->include('branches/_form_sections') ?>
                 <div class="form-actions">
                     <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
@@ -100,6 +101,7 @@
 
 <?php foreach ($branches as $branch): ?>
     <?php if ($canEditBranches): ?>
+        <?php $editBranch = $editableBranchesById[(int) $branch->id] ?? $branch; ?>
         <div class="action-modal" id="branch-edit-modal-<?= (int) $branch->id ?>" hidden>
             <div class="action-modal__backdrop" data-modal-close></div>
             <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="branch-edit-modal-title-<?= (int) $branch->id ?>">
@@ -112,7 +114,7 @@
                 </div>
                 <form class="form-stack" method="post" action="<?= site_url('branches/' . $branch->id) ?>">
                     <?= csrf_field() ?>
-                    <?php $formBranch = $branch; ?>
+                    <?php $formBranch = $editBranch; $useOldInput = false; ?>
                     <?= $this->include('branches/_form_sections') ?>
                     <div class="form-actions">
                         <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>

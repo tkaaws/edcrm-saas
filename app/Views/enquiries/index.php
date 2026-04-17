@@ -5,6 +5,7 @@
 $codes = session()->get('user_privilege_codes') ?? [];
 $canCreateEnquiry = in_array('enquiries.create', $codes, true);
 $canBulkAssign = in_array('enquiries.bulk_assign', $codes, true);
+$editableRowsById = $editableRowsById ?? [];
 $columnCount = match ($currentTab ?? 'enquiries') {
     'today', 'fresh' => 11,
     'missed' => 12,
@@ -177,7 +178,7 @@ $columnCount = match ($currentTab ?? 'enquiries') {
             </div>
             <form class="form-stack" method="post" action="<?= site_url('enquiries') ?>">
                 <?= csrf_field() ?>
-                <?php $formEnquiry = null; $showAssignmentSection = false; ?>
+                <?php $formEnquiry = null; $showAssignmentSection = false; $useOldInput = true; ?>
                 <?= $this->include('enquiries/_form_sections') ?>
                 <div class="form-actions">
                     <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
@@ -190,6 +191,7 @@ $columnCount = match ($currentTab ?? 'enquiries') {
 
 <?php foreach ($rows as $row): ?>
     <?php if (in_array('enquiries.edit', $codes, true) && in_array($row->lifecycle_status, ['new', 'active'], true)): ?>
+        <?php $editRow = $editableRowsById[(int) $row->id] ?? $row; ?>
         <div class="action-modal" id="edit-enquiry-modal-<?= (int) $row->id ?>" hidden>
             <div class="action-modal__backdrop" data-modal-close></div>
             <div class="action-modal__dialog action-modal__dialog--wide" role="dialog" aria-modal="true" aria-labelledby="edit-enquiry-modal-title-<?= (int) $row->id ?>">
@@ -203,8 +205,9 @@ $columnCount = match ($currentTab ?? 'enquiries') {
                 <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $row->id) ?>">
                     <?= csrf_field() ?>
                     <?php
-                    $formEnquiry = $row;
+                    $formEnquiry = $editRow;
                     $showAssignmentSection = in_array('enquiries.reassign_in_edit', $codes, true) && in_array($row->lifecycle_status, ['new', 'active'], true);
+                    $useOldInput = false;
                     ?>
                     <?= $this->include('enquiries/_form_sections') ?>
                     <div class="form-actions">
