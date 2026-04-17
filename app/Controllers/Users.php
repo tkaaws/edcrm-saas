@@ -182,6 +182,13 @@ class Users extends BaseController
         }
 
         $this->userModel->updateWithActor($id, $updateData);
+
+        if ($data['password'] !== '') {
+            $refreshedUser = $this->userModel->withoutTenantScope()->find($id);
+            if (! $refreshedUser || ! $this->userModel->verifyPassword($data['password'], (string) ($refreshedUser->password_hash ?? ''))) {
+                return redirect()->back()->withInput()->with('error', 'Password could not be updated correctly. Please try again.');
+            }
+        }
         $this->syncUserBranches($id, $data['branch_ids'], (int) $data['primary_branch_id']);
         $this->syncUserHierarchy($tenantId, $id, $data['manager_user_id']);
 
@@ -241,7 +248,7 @@ class Users extends BaseController
             'department'          => trim((string) $this->request->getPost('department')),
             'designation'         => trim((string) $this->request->getPost('designation')),
             'manager_user_id'     => (int) $this->request->getPost('manager_user_id'),
-            'password'            => (string) $this->request->getPost('password'),
+            'password'            => trim((string) $this->request->getPost('password')),
             'role_id'             => (int) $this->request->getPost('role_id'),
             'branch_ids'          => array_values(array_unique(array_filter($branchIds))),
             'primary_branch_id'   => (int) $this->request->getPost('primary_branch_id'),
