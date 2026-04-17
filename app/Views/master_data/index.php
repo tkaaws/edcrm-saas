@@ -13,10 +13,10 @@
     </div>
 
     <section class="form-card">
-        <div class="module-toolbar">
-            <div>
-                <h3 class="module-title module-title--small">Lookup data menu</h3>
-                <p class="module-subtitle">Choose a list, review what already exists, then add company options if needed.</p>
+        <div class="module-toolbar module-toolbar--compact lookup-toolbar">
+            <div class="lookup-toolbar__summary">
+                <strong>Choose a list</strong>
+                <p class="module-subtitle">Review one list at a time and add company values only when needed.</p>
             </div>
         </div>
 
@@ -40,7 +40,7 @@
         </section>
     <?php else: ?>
         <section class="form-card">
-            <div class="module-toolbar">
+            <div class="module-toolbar module-toolbar--compact">
                 <div>
                     <h3 class="module-title module-title--small"><?= esc($selectedType->name) ?></h3>
                     <p class="module-subtitle">Keep this list simple. Standard values stay protected, and your custom values can be managed here.</p>

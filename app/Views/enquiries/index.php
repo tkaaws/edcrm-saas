@@ -142,7 +142,7 @@ $columnCount = match ($currentTab ?? 'enquiries') {
                                 <td data-label="Branch"><?= esc($row->branch_display) ?></td>
                                 <td data-label="Assigned to"><?= esc($row->owner_display) ?></td>
                                 <td data-label="Status">
-                                    <span class="status-badge status-badge--good"><?= esc($row->queue_status) ?></span>
+                                    <span class="status-badge <?= $row->display_status === 'Active' ? 'status-badge--good' : 'status-badge--neutral' ?>"><?= esc($row->display_status) ?></span>
                                 </td>
                             <?php endif; ?>
                             <td data-label="Created on"><?= esc($row->created_at ? date('d M Y', strtotime($row->created_at)) : '-') ?></td>
@@ -151,7 +151,6 @@ $columnCount = match ($currentTab ?? 'enquiries') {
                             <td data-label="Modified by"><?= esc($row->updated_by_display) ?></td>
                             <td class="data-table__actions" data-label="Actions">
                                 <div class="table-actions">
-                                    <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $row->id) ?>">Open</a>
                                     <?php if (in_array('enquiries.edit', $codes, true) && in_array($row->lifecycle_status, ['new', 'active'], true)): ?>
                                         <button class="shell-button shell-button--ghost shell-button--sm" type="button" data-modal-open="edit-enquiry-modal-<?= (int) $row->id ?>">Edit</button>
                                     <?php endif; ?>
@@ -178,7 +177,7 @@ $columnCount = match ($currentTab ?? 'enquiries') {
             </div>
             <form class="form-stack" method="post" action="<?= site_url('enquiries') ?>">
                 <?= csrf_field() ?>
-                <?php $enquiry = null; $showAssignmentSection = false; ?>
+                <?php $formEnquiry = null; $showAssignmentSection = false; ?>
                 <?= $this->include('enquiries/_form_sections') ?>
                 <div class="form-actions">
                     <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
@@ -204,7 +203,7 @@ $columnCount = match ($currentTab ?? 'enquiries') {
                 <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $row->id) ?>">
                     <?= csrf_field() ?>
                     <?php
-                    $enquiry = $row;
+                    $formEnquiry = $row;
                     $showAssignmentSection = in_array('enquiries.reassign_in_edit', $codes, true) && in_array($row->lifecycle_status, ['new', 'active'], true);
                     ?>
                     <?= $this->include('enquiries/_form_sections') ?>
@@ -217,4 +216,58 @@ $columnCount = match ($currentTab ?? 'enquiries') {
         </div>
     <?php endif; ?>
 <?php endforeach; ?>
+<script>
+(() => {
+    const syncBranchUsers = (scope) => {
+        const branchSelects = scope.querySelectorAll('[data-branch-select]');
+        branchSelects.forEach((branchSelect) => {
+            const targetId = branchSelect.getAttribute('data-user-target');
+            const userSelect = targetId ? document.getElementById(targetId) : null;
+            if (!userSelect) {
+                return;
+            }
+
+            const updateOptions = () => {
+                const selectedBranch = branchSelect.value;
+                const selectedUser = userSelect.getAttribute('data-selected-user') || userSelect.value;
+                let hasVisibleSelectedUser = false;
+                const firstOption = userSelect.options[0] || null;
+
+                userSelect.disabled = selectedBranch === '';
+                if (firstOption) {
+                    firstOption.textContent = selectedBranch === '' ? 'Choose branch first' : 'Keep current owner';
+                }
+
+                Array.from(userSelect.options).forEach((option, index) => {
+                    if (index === 0) {
+                        option.hidden = false;
+                        return;
+                    }
+
+                    const branchIds = (option.dataset.branchIds || '').split(',').filter(Boolean);
+                    const visible = selectedBranch === '' || branchIds.includes(selectedBranch);
+                    option.hidden = !visible;
+                    if (!visible && option.selected) {
+                        option.selected = false;
+                    }
+                    if (visible && option.value === selectedUser) {
+                        hasVisibleSelectedUser = true;
+                    }
+                });
+
+                if (selectedBranch !== '' && hasVisibleSelectedUser) {
+                    userSelect.value = selectedUser;
+                } else if (selectedBranch !== '' && userSelect.selectedIndex > 0 && userSelect.options[userSelect.selectedIndex].hidden) {
+                    userSelect.value = '';
+                }
+            };
+
+            branchSelect.addEventListener('change', updateOptions);
+            updateOptions();
+        });
+    };
+
+    syncBranchUsers(document);
+})();
+</script>
 <?= $this->endSection() ?>

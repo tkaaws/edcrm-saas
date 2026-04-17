@@ -16,16 +16,12 @@
         ['label' => 'Bulk Assign', 'url' => site_url('enquiries/bulk-assign'), 'active' => true],
     ];
     ?>
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Bulk Assign Enquiries</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Filter the lead pool first, then move the selected enquiries to the right branch and owner in one pass.</p>
         </div>
         <div class="table-actions">
             <a class="shell-button shell-button--ghost" href="<?= site_url('enquiries') ?>">Back to enquiries</a>
-            <?php if (in_array('enquiries.create', $codes, true)): ?>
-                <a class="shell-button shell-button--primary" href="<?= site_url('enquiries/create') ?>">Add enquiry</a>
-            <?php endif; ?>
         </div>
     </div>
 
@@ -57,17 +53,15 @@
                     <input type="text" name="search" value="<?= esc($filters['search'] ?? '') ?>" placeholder="Name, mobile, source, course, branch">
                 </label>
                 <label class="field">
-                    <span>Queue</span>
-                    <select name="queue">
-                        <?php $selectedQueue = (string) ($filters['queue'] ?? 'all'); ?>
+                    <span>Status</span>
+                    <select name="status">
+                        <?php $selectedQueue = (string) ($filters['status'] ?? 'all'); ?>
                         <?php foreach ([
-                            'all' => 'All visible enquiries',
-                            'open' => 'Open enquiries',
-                            'today' => 'Today',
-                            'missed' => 'Missed',
-                            'fresh' => 'Fresh',
+                            'all' => 'All statuses',
+                            'active' => 'Active',
                             'expired' => 'Expired',
                             'closed' => 'Closed',
+                            'admitted' => 'Admitted',
                         ] as $value => $label): ?>
                             <option value="<?= esc($value) ?>" <?= $selectedQueue === $value ? 'selected' : '' ?>><?= esc($label) ?></option>
                         <?php endforeach; ?>
@@ -95,7 +89,7 @@
                 </label>
                 <label class="field">
                     <span>Branch</span>
-                    <select name="branch_id">
+                    <select name="branch_id" id="filter-branch-select">
                         <option value="">All allowed branches</option>
                         <?php $selected = (int) ($filters['branch_id'] ?? 0); ?>
                         <?php foreach ($assignableBranches as $branch): ?>
@@ -105,11 +99,11 @@
                 </label>
                 <label class="field">
                     <span>Assigned to</span>
-                    <select name="owner_user_id">
-                        <option value="">All allowed users</option>
+                    <select name="owner_user_id" id="filter-owner-user-select">
+                        <option value="">Choose branch first</option>
                         <?php $selected = (int) ($filters['owner_user_id'] ?? 0); ?>
                         <?php foreach ($assignableUsers as $user): ?>
-                            <option value="<?= (int) $user->id ?>" <?= $selected === (int) $user->id ? 'selected' : '' ?>>
+                            <option value="<?= (int) $user->id ?>" data-branch-ids="<?= esc(implode(',', $assignableUsersByBranch[(int) $user->id] ?? [])) ?>" <?= $selected === (int) $user->id ? 'selected' : '' ?>>
                                 <?= esc(trim($user->first_name . ' ' . $user->last_name) ?: $user->email) ?>
                             </option>
                         <?php endforeach; ?>
@@ -183,16 +177,12 @@
                                 <td data-label="Course"><?= esc($row->course_display) ?></td>
                                 <td data-label="Branch"><?= esc($row->branch_display) ?></td>
                                 <td data-label="Assigned to"><?= esc($row->owner_display) ?></td>
-                                <td data-label="Status"><span class="status-badge status-badge--good"><?= esc($row->queue_status) ?></span></td>
+                                <td data-label="Status"><span class="status-badge <?= $row->display_status === 'Active' ? 'status-badge--good' : 'status-badge--neutral' ?>"><?= esc($row->display_status) ?></span></td>
                                 <td data-label="Created on"><?= esc($row->created_at ? date('d M Y', strtotime($row->created_at)) : '-') ?></td>
                                 <td data-label="Modified on"><?= esc($row->updated_at ? date('d M Y', strtotime($row->updated_at)) : '-') ?></td>
                                 <td data-label="Created by"><?= esc($row->created_by_display) ?></td>
                                 <td data-label="Modified by"><?= esc($row->updated_by_display) ?></td>
-                                <td class="data-table__actions" data-label="Actions">
-                                    <div class="table-actions">
-                                        <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $row->id) ?>">Open</a>
-                                    </div>
-                                </td>
+                                <td class="data-table__actions" data-label="Actions"><span class="text-muted">Open from name</span></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -209,7 +199,7 @@
             <div class="form-grid">
                 <label class="field">
                     <span>Branch</span>
-                    <select name="branch_id" required>
+                    <select name="branch_id" id="assign-branch-select" required>
                         <option value="">Select branch</option>
                         <?php foreach ($assignableBranches as $branch): ?>
                             <option value="<?= (int) $branch->id ?>"><?= esc($branch->name) ?></option>
@@ -218,18 +208,18 @@
                 </label>
                 <label class="field">
                     <span>Assigned to</span>
-                    <select name="owner_user_id" required>
-                        <option value="">Select user</option>
+                    <select name="owner_user_id" id="assign-owner-user-select" required>
+                        <option value="">Choose branch first</option>
                         <?php foreach ($assignableUsers as $user): ?>
-                            <option value="<?= (int) $user->id ?>">
+                            <option value="<?= (int) $user->id ?>" data-branch-ids="<?= esc(implode(',', $assignableUsersByBranch[(int) $user->id] ?? [])) ?>">
                                 <?= esc(trim($user->first_name . ' ' . $user->last_name) ?: $user->email) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </label>
                 <label class="field field--full">
-                    <span>Assignment reason</span>
-                    <textarea name="assignment_reason" rows="3" placeholder="Why are these enquiries being reassigned?"></textarea>
+                    <span>Comment</span>
+                    <textarea name="assignment_comment" rows="3" placeholder="Add a quick note. This will be saved as a system follow-up."></textarea>
                 </label>
             </div>
 
@@ -245,21 +235,53 @@
     const master = document.getElementById('bulk-assign-all');
     const rows = Array.from(document.querySelectorAll('.bulk-assign-row'));
 
-    if (!master || rows.length === 0) {
-        return;
+    const syncUsers = (branchSelect, userSelect) => {
+        if (!branchSelect || !userSelect) {
+            return;
+        }
+
+        const firstOption = userSelect.options[0] || null;
+        const update = () => {
+            const selectedBranch = branchSelect.value;
+            userSelect.disabled = selectedBranch === '';
+            if (firstOption) {
+                firstOption.textContent = selectedBranch === '' ? 'Choose branch first' : 'Select user';
+            }
+            Array.from(userSelect.options).forEach((option, index) => {
+                if (index === 0) {
+                    option.hidden = false;
+                    return;
+                }
+
+                const branchIds = (option.dataset.branchIds || '').split(',').filter(Boolean);
+                const visible = selectedBranch === '' || branchIds.includes(selectedBranch);
+                option.hidden = !visible;
+                if (!visible && option.selected) {
+                    option.selected = false;
+                }
+            });
+        };
+
+        branchSelect.addEventListener('change', update);
+        update();
+    };
+
+    if (master && rows.length > 0) {
+        master.addEventListener('change', () => {
+            rows.forEach((checkbox) => {
+                checkbox.checked = master.checked;
+            });
+        });
+
+        rows.forEach((checkbox) => {
+            checkbox.addEventListener('change', () => {
+                master.checked = rows.every((row) => row.checked);
+            });
+        });
     }
 
-    master.addEventListener('change', () => {
-        rows.forEach((checkbox) => {
-            checkbox.checked = master.checked;
-        });
-    });
-
-    rows.forEach((checkbox) => {
-        checkbox.addEventListener('change', () => {
-            master.checked = rows.every((row) => row.checked);
-        });
-    });
+    syncUsers(document.getElementById('filter-branch-select'), document.getElementById('filter-owner-user-select'));
+    syncUsers(document.getElementById('assign-branch-select'), document.getElementById('assign-owner-user-select'));
 })();
 </script>
 <?= $this->endSection() ?>

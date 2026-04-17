@@ -72,7 +72,7 @@
                 <?php foreach ($navItems as $item): ?>
                     <?php if (! $item['show']) continue; ?>
                     <?php $classes = 'shell-nav__item' . ($activeNav === $item['key'] ? ' shell-nav__item--active' : ''); ?>
-                    <a class="<?= esc($classes) ?>" href="<?= esc($item['href']) ?>">
+                    <a class="<?= esc($classes) ?>" href="<?= esc($item['href']) ?>" data-short="<?= esc(substr((string) $item['label'], 0, 1)) ?>">
                         <span><?= esc($item['label']) ?></span>
                         <small><?= esc($item['meta']) ?></small>
                     </a>
@@ -99,7 +99,7 @@
         </aside>
 
         <div class="shell-main">
-            <header class="shell-header">
+            <header class="shell-header" style="background:transparent;border:0;padding:0;box-shadow:none;min-height:auto;height:auto;">
                 <div class="shell-header__main">
                     <button class="shell-button shell-button--ghost shell-menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
                     <div>
@@ -199,20 +199,38 @@
         const overlay = document.querySelector('.shell-overlay');
         const navLinks = document.querySelectorAll('.shell-nav a');
         const mobileBreakpoint = window.matchMedia('(max-width: 920px)');
+        const desktopSidebarKey = 'edcrm.sidebar.collapsed';
+
+        const applySidebarState = () => {
+            const collapsed = localStorage.getItem(desktopSidebarKey) === '1';
+            if (!mobileBreakpoint.matches) {
+                body.classList.toggle('shell-body--sidebar-collapsed', collapsed);
+                if (toggle) {
+                    toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                }
+            }
+        };
 
         if (toggle && overlay) {
             const closeNav = () => {
                 body.classList.remove('shell-body--nav-open');
-                toggle.setAttribute('aria-expanded', 'false');
+                if (mobileBreakpoint.matches) {
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
             };
 
             const openNav = () => {
                 body.classList.add('shell-body--nav-open');
-                toggle.setAttribute('aria-expanded', 'true');
+                if (mobileBreakpoint.matches) {
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
             };
 
             toggle.addEventListener('click', () => {
                 if (!mobileBreakpoint.matches) {
+                    const collapsed = body.classList.toggle('shell-body--sidebar-collapsed');
+                    localStorage.setItem(desktopSidebarKey, collapsed ? '1' : '0');
+                    toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
                     return;
                 }
 
@@ -236,9 +254,12 @@
             window.addEventListener('resize', () => {
                 if (!mobileBreakpoint.matches) {
                     closeNav();
+                    applySidebarState();
                 }
             });
         }
+
+        applySidebarState();
 
         const closeModal = (modal) => {
             if (!modal) {

@@ -66,6 +66,7 @@ class Enquiries extends BaseController
         );
 
         foreach ($rows as $row) {
+            $this->decorateEnquiryRow($row);
             $row->mobile_display = $this->formatMobile((string) $row->mobile);
         }
 
@@ -79,6 +80,7 @@ class Enquiries extends BaseController
             'courses' => service('masterData')->getEffectiveValues('course', $tenantId),
             'assignableBranches' => $this->getAssignableBranches(),
             'assignableUsers' => $this->getAssignableUsers($tenantId),
+            'assignableUsersByBranch' => $this->getAssignableUsersByBranch($tenantId),
         ]));
     }
 
@@ -177,6 +179,7 @@ class Enquiries extends BaseController
             throw PageNotFoundException::forPageNotFound();
         }
 
+        $this->decorateEnquiryRow($enquiry);
         $enquiry->mobile_display = $this->formatMobile((string) $enquiry->mobile);
         $enquiry->whatsapp_display = $enquiry->whatsapp_number ? $this->formatMobile((string) $enquiry->whatsapp_number) : '-';
         $canViewFollowups = service('permissions')->has('followups.view');
@@ -196,6 +199,7 @@ class Enquiries extends BaseController
             'canAssignFromDetail' => $this->canAssignFromDetail($enquiry),
             'assignableBranches' => $this->getAssignableBranches(),
             'assignableUsers' => $this->getAssignableUsers($tenantId),
+            'assignableUsersByBranch' => $this->getAssignableUsersByBranch($tenantId),
             'closeReasons' => service('masterData')->getEffectiveValues('enquiry_closure_reason', $tenantId),
             'followupStatuses' => service('masterData')->getEffectiveValues('followup_status', $tenantId),
             'communicationModes' => service('masterData')->getEffectiveValues('mode_of_communication', $tenantId),
@@ -208,6 +212,8 @@ class Enquiries extends BaseController
             'canAddFollowup' => service('permissions')->has('followups.create') && in_array($enquiry->lifecycle_status, ['new', 'active'], true),
             'canEditFollowups' => $canEditFollowups,
             'canDeleteFollowups' => $canDeleteFollowups,
+            'canViewHistory' => service('permissions')->has('enquiries.activity_view'),
+            'historyEvents' => service('permissions')->has('enquiries.activity_view') ? $this->getStatusHistory((int) $enquiry->id) : [],
         ]));
     }
 
@@ -228,6 +234,7 @@ class Enquiries extends BaseController
             'showAssignmentSection' => $this->canReassignInEdit($enquiry),
             'assignableBranches' => $this->getAssignableBranches(),
             'assignableUsers' => $this->getAssignableUsers($tenantId),
+            'assignableUsersByBranch' => $this->getAssignableUsersByBranch($tenantId),
         ]));
     }
 
@@ -282,6 +289,14 @@ class Enquiries extends BaseController
                     'reason'          => 'Updated from enquiry edit',
                     'assigned_on'     => date('Y-m-d H:i:s'),
                 ]);
+
+                $this->createSystemAssignmentFollowup(
+                    $tenantId,
+                    (int) $enquiry->id,
+                    $newBranchId ?: (int) ($enquiry->branch_id ?? 0),
+                    $newOwnerId ?: (int) ($enquiry->owner_user_id ?? 0),
+                    'Enquiry reassigned from edit enquiry.'
+                );
             }
         }
 
@@ -320,6 +335,8 @@ class Enquiries extends BaseController
             'whatsapp_number' => $whatsappNumber !== '' ? $whatsappNumber : null,
         ]);
 
+        $this->recordActivityEvent($tenantId, (int) $enquiry->id, 'contact.updated', 'Contact details updated.');
+
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'Contact details updated successfully.');
     }
 
@@ -346,6 +363,8 @@ class Enquiries extends BaseController
             'college_id' => $collegeId,
             'city' => $city !== '' ? $city : null,
         ]);
+
+        $this->recordActivityEvent($tenantId, (int) $enquiry->id, 'college.updated', 'College details updated.');
 
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'College details updated successfully.');
     }
@@ -435,10 +454,14 @@ class Enquiries extends BaseController
 
         $branchId = (int) $this->request->getPost('branch_id');
         $ownerUserId = (int) $this->request->getPost('owner_user_id');
-        $reason = trim((string) $this->request->getPost('assignment_reason'));
+        $comment = trim((string) $this->request->getPost('assignment_comment'));
 
         if ($branchId < 1 || $ownerUserId < 1) {
             return redirect()->back()->withInput()->with('error', 'Choose both branch and assigned to before saving.');
+        }
+
+        if (! $this->isUserAssignableToBranch($tenantId, $ownerUserId, $branchId)) {
+            return redirect()->back()->withInput()->with('error', 'Choose an employee from the selected branch.');
         }
 
         $this->enquiryModel->updateWithActor((int) $enquiry->id, [
@@ -456,9 +479,17 @@ class Enquiries extends BaseController
             'to_user_id'      => $ownerUserId,
             'assigned_by'     => session()->get('user_id') ?: null,
             'assignment_type' => 'manual',
-            'reason'          => $reason !== '' ? $reason : 'Reassigned from enquiry detail',
+            'reason'          => 'Reassigned from enquiry detail',
             'assigned_on'     => date('Y-m-d H:i:s'),
         ]);
+
+        $this->createSystemAssignmentFollowup(
+            $tenantId,
+            (int) $enquiry->id,
+            $branchId,
+            $ownerUserId,
+            $comment !== '' ? $comment : 'Enquiry reassigned from enquiry detail.'
+        );
 
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'Enquiry assignment updated.');
     }
@@ -601,6 +632,7 @@ class Enquiries extends BaseController
         ]);
 
         $this->refreshEnquiryFollowupSnapshot((int) $enquiry->id);
+        $this->recordActivityEvent($tenantId, (int) $enquiry->id, 'followup.updated', 'Follow-up updated.');
 
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'Follow-up updated successfully.');
     }
@@ -624,6 +656,7 @@ class Enquiries extends BaseController
 
         $this->followupModel->delete($followupId);
         $this->refreshEnquiryFollowupSnapshot((int) $enquiry->id);
+        $this->recordActivityEvent($tenantId, (int) $enquiry->id, 'followup.deleted', 'Follow-up deleted.');
 
         return redirect()->to('/enquiries/' . (int) $enquiry->id)->with('message', 'Follow-up deleted successfully.');
     }
@@ -634,7 +667,7 @@ class Enquiries extends BaseController
         $selectedIds = array_values(array_unique(array_filter(array_map('intval', (array) $this->request->getPost('enquiry_ids')), static fn(int $id): bool => $id > 0)));
         $branchId = (int) $this->request->getPost('branch_id');
         $ownerUserId = (int) $this->request->getPost('owner_user_id');
-        $reason = trim((string) $this->request->getPost('assignment_reason'));
+        $comment = trim((string) $this->request->getPost('assignment_comment'));
 
         if ($selectedIds === []) {
             return redirect()->back()->withInput()->with('error', 'Select at least one enquiry for bulk assignment.');
@@ -650,6 +683,10 @@ class Enquiries extends BaseController
 
         if (! $this->userAccessScope->canAssignManager($ownerUserId)) {
             return redirect()->back()->withInput()->with('error', 'Selected assignee is outside your allowed scope.');
+        }
+
+        if (! $this->isUserAssignableToBranch($tenantId, $ownerUserId, $branchId)) {
+            return redirect()->back()->withInput()->with('error', 'Choose an employee from the selected branch.');
         }
 
         $visibleRows = $this->queueService->getVisibleRows($tenantId, $this->currentBranchContextId());
@@ -690,10 +727,18 @@ class Enquiries extends BaseController
                 'to_user_id'      => $ownerUserId,
                 'assigned_by'     => session()->get('user_id') ?: null,
                 'assignment_type' => 'bulk_manual',
-                'reason'          => $reason !== '' ? $reason : 'Bulk assigned from enquiry workspace',
+                'reason'          => 'Bulk assigned from enquiry workspace',
                 'bulk_batch_id'   => $batchId,
                 'assigned_on'     => date('Y-m-d H:i:s'),
             ]);
+
+            $this->createSystemAssignmentFollowup(
+                $tenantId,
+                $enquiryId,
+                $branchId,
+                $ownerUserId,
+                $comment !== '' ? $comment : 'Enquiry reassigned from bulk assign.'
+            );
 
             $updated++;
         }
@@ -712,6 +757,7 @@ class Enquiries extends BaseController
         $rows = $this->queueService->getRows($tenantId, $tab, $this->currentBranchContextId());
 
         foreach ($rows as $row) {
+            $this->decorateEnquiryRow($row);
             $row->mobile_display = $this->formatMobile((string) $row->mobile);
         }
 
@@ -727,6 +773,7 @@ class Enquiries extends BaseController
             'colleges' => $this->collegeModel->getActiveOptions($tenantId, '', 500),
             'assignableBranches' => $this->getAssignableBranches(),
             'assignableUsers' => $this->getAssignableUsers($tenantId),
+            'assignableUsersByBranch' => $this->getAssignableUsersByBranch($tenantId),
         ]));
     }
 
@@ -734,7 +781,7 @@ class Enquiries extends BaseController
     {
         return [
             'search' => trim((string) $this->request->getGet('search')),
-            'queue' => trim((string) $this->request->getGet('queue')),
+            'status' => trim((string) $this->request->getGet('status')),
             'source_id' => (int) $this->request->getGet('source_id'),
             'primary_course_id' => (int) $this->request->getGet('primary_course_id'),
             'branch_id' => (int) $this->request->getGet('branch_id'),
@@ -745,9 +792,9 @@ class Enquiries extends BaseController
     protected function filterBulkAssignRows(array $rows, array $filters): array
     {
         $search = strtolower($filters['search']);
-        $queue = $filters['queue'];
+        $status = $filters['status'];
 
-        return array_values(array_filter($rows, static function (object $row) use ($filters, $search, $queue): bool {
+        return array_values(array_filter($rows, static function (object $row) use ($filters, $search, $status): bool {
             if ($search !== '') {
                 $haystack = strtolower(implode(' ', [
                     (string) ($row->student_name ?? ''),
@@ -779,17 +826,15 @@ class Enquiries extends BaseController
                 return false;
             }
 
-            if ($queue === '' || $queue === 'all') {
+            if ($status === '' || $status === 'all') {
                 return true;
             }
 
-            return match ($queue) {
-                'today' => $row->queue_status === 'Today',
-                'missed' => $row->queue_status === 'Missed',
-                'fresh' => $row->queue_status === 'Fresh',
+            return match ($status) {
+                'active' => in_array($row->lifecycle_status, ['new', 'active'], true) && empty($row->is_expired),
                 'expired' => ! empty($row->is_expired),
                 'closed' => $row->lifecycle_status === 'closed',
-                'open' => in_array($row->lifecycle_status, ['new', 'active'], true) && empty($row->is_expired),
+                'admitted' => $row->lifecycle_status === 'admitted',
                 default => true,
             };
         }));
@@ -808,6 +853,7 @@ class Enquiries extends BaseController
             'colleges' => $this->collegeModel->getActiveOptions($tenantId, '', 500),
             'assignableBranches' => $this->getAssignableBranches(),
             'assignableUsers' => $this->getAssignableUsers($tenantId),
+            'assignableUsersByBranch' => $this->getAssignableUsersByBranch($tenantId),
         ], $data));
     }
 
@@ -824,6 +870,31 @@ class Enquiries extends BaseController
         return array_values(array_filter($users, function (object $user) use ($tenantId): bool {
             return $this->delegationGuard->canAssignRoleForTenant($tenantId, (int) $user->role_id);
         }));
+    }
+
+    protected function getAssignableUsersByBranch(int $tenantId): array
+    {
+        $map = [];
+
+        foreach ($this->getAssignableUsers($tenantId) as $user) {
+            $map[(int) $user->id] = array_values(array_map(
+                static fn(array $branch): int => (int) $branch['id'],
+                $this->userModel->getBranches((int) $user->id)
+            ));
+        }
+
+        return $map;
+    }
+
+    protected function isUserAssignableToBranch(int $tenantId, int $userId, int $branchId): bool
+    {
+        foreach ($this->getAssignableUsersByBranch($tenantId)[$userId] ?? [] as $allowedBranchId) {
+            if ((int) $allowedBranchId === $branchId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function canReassignInEdit(object $enquiry): bool
@@ -898,6 +969,10 @@ class Enquiries extends BaseController
 
         if ($isUpdate && $data['owner_user_id'] > 0 && ! $this->userAccessScope->canAssignManager($data['owner_user_id'])) {
             $errors[] = 'Selected assignee is outside your allowed scope.';
+        }
+
+        if ($isUpdate && $data['branch_id'] > 0 && $data['owner_user_id'] > 0 && ! $this->isUserAssignableToBranch($tenantId, $data['owner_user_id'], $data['branch_id'])) {
+            $errors[] = 'Choose an employee from the selected branch.';
         }
 
         return $errors;
@@ -1018,5 +1093,55 @@ class Enquiries extends BaseController
         }
 
         $this->enquiryModel->updateWithActor($enquiryId, $update);
+    }
+
+    protected function decorateEnquiryRow(object $row): void
+    {
+        if (($row->lifecycle_status ?? '') === 'admitted') {
+            $row->display_status = 'Admitted';
+            return;
+        }
+
+        if (($row->lifecycle_status ?? '') === 'closed') {
+            $row->display_status = 'Closed';
+            return;
+        }
+
+        if (! empty($row->is_expired)) {
+            $row->display_status = 'Expired';
+            return;
+        }
+
+        $row->display_status = 'Active';
+    }
+
+    protected function createSystemAssignmentFollowup(int $tenantId, int $enquiryId, int $branchId, int $ownerUserId, string $comment): void
+    {
+        $this->followupModel->insertWithActor([
+            'tenant_id' => $tenantId,
+            'enquiry_id' => $enquiryId,
+            'branch_id' => $branchId,
+            'owner_user_id' => $ownerUserId,
+            'communication_type_id' => null,
+            'followup_outcome_id' => null,
+            'remarks' => $comment,
+            'next_followup_at' => null,
+            'is_system_generated' => 1,
+        ]);
+
+        $this->recordActivityEvent($tenantId, $enquiryId, 'assignment.changed', $comment);
+        $this->refreshEnquiryFollowupSnapshot($enquiryId);
+    }
+
+    protected function recordActivityEvent(int $tenantId, int $enquiryId, string $eventType, string $reason): void
+    {
+        $this->statusLogModel->insertWithActor([
+            'tenant_id' => $tenantId,
+            'enquiry_id' => $enquiryId,
+            'from_status' => $eventType,
+            'to_status' => $eventType,
+            'reason' => $reason,
+            'changed_by' => session()->get('user_id') ?: null,
+        ]);
     }
 }

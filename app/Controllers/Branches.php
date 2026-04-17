@@ -65,11 +65,9 @@ class Branches extends BaseController
             'state_code'     => $data['state_code'],
             'city'           => $data['city'],
             'address_line_1' => $data['address_line_1'],
-            'address_line_2' => $data['address_line_2'],
-            'postal_code'    => $data['postal_code'],
             'timezone'       => $data['timezone'],
             'currency_code'  => $data['currency_code'],
-            'status'         => 'active',
+            'status'         => $data['status'],
         ]);
 
         return redirect()->to('/branches')->with('message', 'Branch created successfully.');
@@ -116,8 +114,6 @@ class Branches extends BaseController
             'state_code'     => $data['state_code'],
             'city'           => $data['city'],
             'address_line_1' => $data['address_line_1'],
-            'address_line_2' => $data['address_line_2'],
-            'postal_code'    => $data['postal_code'],
             'timezone'       => $data['timezone'],
             'currency_code'  => $data['currency_code'],
             'status'         => $data['status'],
@@ -156,8 +152,6 @@ class Branches extends BaseController
             'state_code'     => strtoupper(trim((string) $this->request->getPost('state_code'))),
             'city'           => trim((string) $this->request->getPost('city')),
             'address_line_1' => trim((string) $this->request->getPost('address_line_1')),
-            'address_line_2' => trim((string) $this->request->getPost('address_line_2')),
-            'postal_code'    => trim((string) $this->request->getPost('postal_code')),
             'timezone'       => trim((string) $this->request->getPost('timezone')) ?: ($tenantDefaults->default_timezone ?? ''),
             'currency_code'  => strtoupper(trim((string) $this->request->getPost('currency_code'))) ?: ($tenantDefaults->default_currency_code ?? ''),
             'status'         => $this->request->getPost('status') === 'inactive' ? 'inactive' : 'active',

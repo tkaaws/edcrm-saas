@@ -2,9 +2,8 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title"><?= esc($enquiry->student_name) ?></h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Work the enquiry from one place: identity, ownership, and follow-ups stay connected.</p>
         </div>
         <div class="table-actions">
@@ -17,7 +16,7 @@
             <section class="detail-card enquiry-profile-card">
                 <div class="enquiry-profile-card__header">
                     <h3><?= esc($enquiry->student_name) ?></h3>
-                    <span class="status-badge status-badge--good"><?= esc($enquiry->queue_status) ?></span>
+                    <span class="status-badge <?= $enquiry->display_status === 'Active' ? 'status-badge--good' : 'status-badge--neutral' ?>"><?= esc($enquiry->display_status) ?></span>
                 </div>
 
                 <div class="enquiry-contact-list">
@@ -57,25 +56,18 @@
                     <?php if ($canEditEnquiry): ?>
                         <button class="shell-button shell-button--primary enquiry-action-stack__button" type="button" data-modal-open="edit-enquiry-modal">Edit enquiry</button>
                     <?php endif; ?>
-
                     <?php if ($canEditContactInfo): ?>
                         <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="contact-info-modal">Change contact info</button>
                     <?php endif; ?>
-
                     <?php if ($canEditCollegeInfo): ?>
                         <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="college-info-modal">Update college info</button>
                     <?php endif; ?>
-
                     <?php if ($canCloseEnquiry): ?>
                         <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="close-modal">Close enquiry</button>
                     <?php endif; ?>
-
                     <?php if ($canAssignFromDetail): ?>
-                        <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="assign-modal">
-                            <?= $enquiry->lifecycle_status === 'closed' ? 'Assign closed enquiry' : 'Assign enquiry' ?>
-                        </button>
+                        <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="assign-modal"><?= $enquiry->lifecycle_status === 'closed' ? 'Assign closed enquiry' : 'Assign enquiry' ?></button>
                     <?php endif; ?>
-
                     <?php if ($canReopenEnquiry): ?>
                         <form method="post" action="<?= site_url('enquiries/' . $enquiry->id . '/reopen') ?>">
                             <?= csrf_field() ?>
@@ -88,37 +80,19 @@
 
         <div class="enquiry-main">
             <section class="detail-card enquiry-summary-strip">
-                <div class="enquiry-summary-strip__item">
-                    <span>Assigned to</span>
-                    <strong><?= esc($enquiry->owner_display) ?></strong>
-                </div>
-                <div class="enquiry-summary-strip__item">
-                    <span>Assigned on</span>
-                    <strong><?= esc($enquiry->assigned_on ? date('d M Y h:i A', strtotime($enquiry->assigned_on)) : '-') ?></strong>
-                </div>
-                <div class="enquiry-summary-strip__item">
-                    <span>Enquiry date</span>
-                    <strong><?= esc($enquiry->created_at ? date('d M Y h:i A', strtotime($enquiry->created_at)) : '-') ?></strong>
-                </div>
-                <div class="enquiry-summary-strip__item">
-                    <span>Branch</span>
-                    <strong><?= esc($enquiry->branch_display) ?></strong>
-                </div>
-                <div class="enquiry-summary-strip__item">
-                    <span>Next follow-up</span>
-                    <strong><?= esc($enquiry->next_followup_at ? date('d M Y h:i A', strtotime($enquiry->next_followup_at)) : '-') ?></strong>
-                </div>
-                <div class="enquiry-summary-strip__item">
-                    <span>Created by</span>
-                    <strong><?= esc($enquiry->created_by_display) ?></strong>
-                </div>
+                <div class="enquiry-summary-strip__item"><span>Assigned to</span><strong><?= esc($enquiry->owner_display) ?></strong></div>
+                <div class="enquiry-summary-strip__item"><span>Assigned on</span><strong><?= esc($enquiry->assigned_on ? date('d M Y h:i A', strtotime($enquiry->assigned_on)) : '-') ?></strong></div>
+                <div class="enquiry-summary-strip__item"><span>Enquiry date</span><strong><?= esc($enquiry->created_at ? date('d M Y h:i A', strtotime($enquiry->created_at)) : '-') ?></strong></div>
+                <div class="enquiry-summary-strip__item"><span>Branch</span><strong><?= esc($enquiry->branch_display) ?></strong></div>
+                <div class="enquiry-summary-strip__item"><span>Next follow-up</span><strong><?= esc($enquiry->next_followup_at ? date('d M Y h:i A', strtotime($enquiry->next_followup_at)) : '-') ?></strong></div>
+                <div class="enquiry-summary-strip__item"><span>Created by</span><strong><?= esc($enquiry->created_by_display) ?></strong></div>
             </section>
 
             <section class="detail-card enquiry-detail-panel">
                 <div class="module-toolbar module-toolbar--panel">
                     <div>
-                        <h3 class="module-title module-title--small">Follow-up timeline</h3>
-                        <p class="module-subtitle">The first note from enquiry capture appears here, and every next touch stays in the same timeline.</p>
+                        <h3 class="module-title module-title--small">Lead activity</h3>
+                        <p class="module-subtitle">Follow-ups stay first. History stays separate when you need to inspect it.</p>
                     </div>
                     <?php if ($canAddFollowup): ?>
                         <div class="table-actions">
@@ -127,57 +101,95 @@
                     <?php endif; ?>
                 </div>
 
-                <?php if ($canViewFollowups): ?>
-                    <?php if ($followupHistory === []): ?>
-                        <div class="empty-state">No follow-ups added yet for this enquiry.</div>
-                    <?php else: ?>
-                        <div class="timeline-list">
-                            <?php foreach ($followupHistory as $row): ?>
-                                <article class="timeline-item">
-                                    <div class="timeline-item__marker"></div>
-                                    <div class="timeline-item__content">
-                                        <div class="timeline-item__stamp"><?= esc($row->created_at ? date('d/m/y h:i a', strtotime($row->created_at)) : '-') ?></div>
-                                        <div class="timeline-item__card">
-                                            <div class="timeline-item__header">
-                                                <div>
-                                                    <h4><?= esc(trim($row->created_by_name) ?: 'System') ?> created a follow-up</h4>
-                                                    <p><?= esc($row->communication_mode_label ?: 'Initial enquiry note') ?></p>
-                                                </div>
-                                                <?php if (! empty($row->is_system_generated)): ?>
-                                                    <span class="status-badge status-badge--neutral">System generated</span>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="timeline-item__meta">
-                                                <?php if (! empty($row->followup_outcome_label)): ?>
-                                                    <span><strong>Outcome:</strong> <?= esc($row->followup_outcome_label) ?></span>
-                                                <?php endif; ?>
-                                                <?php if (! empty($row->next_followup_at)): ?>
-                                                    <span><strong>Next follow-up:</strong> <?= esc(date('d M Y h:i A', strtotime($row->next_followup_at))) ?></span>
-                                                <?php endif; ?>
-                                            </div>
-                                            <?php if (! empty($row->remarks)): ?>
-                                                <div class="timeline-item__body"><?= esc($row->remarks) ?></div>
-                                            <?php endif; ?>
-                                            <?php if ($canEditFollowups || $canDeleteFollowups): ?>
-                                                <div class="table-actions">
-                                                    <?php if ($canEditFollowups): ?>
-                                                        <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $enquiry->id . '/followups/' . $row->id . '/edit') ?>">Edit follow-up</a>
+                <div class="settings-tabs history-tab">
+                    <div class="settings-tabs__nav" role="tablist" aria-label="Enquiry activity tabs">
+                        <button class="settings-tabs__button settings-tabs__button--active" type="button" data-tab-target="followups-panel" role="tab" aria-selected="true">Follow-ups</button>
+                        <?php if ($canViewHistory): ?>
+                            <button class="settings-tabs__button" type="button" data-tab-target="history-panel" role="tab" aria-selected="false">History</button>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="settings-tabs__panel" id="followups-panel">
+                        <?php if ($canViewFollowups): ?>
+                            <?php if ($followupHistory === []): ?>
+                                <div class="empty-state">No follow-ups added yet for this enquiry.</div>
+                            <?php else: ?>
+                                <div class="timeline-list">
+                                    <?php foreach ($followupHistory as $row): ?>
+                                        <article class="timeline-item">
+                                            <div class="timeline-item__marker"></div>
+                                            <div class="timeline-item__content">
+                                                <div class="timeline-item__stamp"><?= esc($row->created_at ? date('d/m/y h:i a', strtotime($row->created_at)) : '-') ?></div>
+                                                <div class="timeline-item__card">
+                                                    <div class="timeline-item__header">
+                                                        <div>
+                                                            <h4><?= esc(trim($row->created_by_name) ?: 'System') ?> created a follow-up</h4>
+                                                            <p><?= esc($row->communication_mode_label ?: 'Initial enquiry note') ?></p>
+                                                        </div>
+                                                        <?php if (! empty($row->is_system_generated)): ?>
+                                                            <span class="status-badge status-badge--neutral">System generated</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <div class="timeline-item__meta">
+                                                        <?php if (! empty($row->followup_outcome_label)): ?>
+                                                            <span><strong>Outcome:</strong> <?= esc($row->followup_outcome_label) ?></span>
+                                                        <?php endif; ?>
+                                                        <?php if (! empty($row->next_followup_at)): ?>
+                                                            <span><strong>Next follow-up:</strong> <?= esc(date('d M Y h:i A', strtotime($row->next_followup_at))) ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                    <?php if (! empty($row->remarks)): ?>
+                                                        <div class="timeline-item__body"><?= esc($row->remarks) ?></div>
                                                     <?php endif; ?>
-                                                    <?php if ($canDeleteFollowups): ?>
-                                                        <form method="post" action="<?= site_url('enquiries/' . $enquiry->id . '/followups/' . $row->id . '/delete') ?>" onsubmit="return confirm('Delete this follow-up?');">
-                                                            <?= csrf_field() ?>
-                                                            <button class="shell-button shell-button--ghost shell-button--sm" type="submit">Delete</button>
-                                                        </form>
+                                                    <?php if ($canEditFollowups || $canDeleteFollowups): ?>
+                                                        <div class="table-actions">
+                                                            <?php if ($canEditFollowups): ?>
+                                                                <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('enquiries/' . $enquiry->id . '/followups/' . $row->id . '/edit') ?>">Edit follow-up</a>
+                                                            <?php endif; ?>
+                                                            <?php if ($canDeleteFollowups): ?>
+                                                                <form method="post" action="<?= site_url('enquiries/' . $enquiry->id . '/followups/' . $row->id . '/delete') ?>" onsubmit="return confirm('Delete this follow-up?');">
+                                                                    <?= csrf_field() ?>
+                                                                    <button class="shell-button shell-button--ghost shell-button--sm" type="submit">Delete</button>
+                                                                </form>
+                                                            <?php endif; ?>
+                                                        </div>
                                                     <?php endif; ?>
                                                 </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                </article>
-                            <?php endforeach; ?>
+                                            </div>
+                                        </article>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ($canViewHistory): ?>
+                        <div class="settings-tabs__panel" id="history-panel" hidden>
+                            <?php if ($historyEvents === []): ?>
+                                <div class="empty-state">No history events for this enquiry yet.</div>
+                            <?php else: ?>
+                                <div class="timeline-list">
+                                    <?php foreach ($historyEvents as $event): ?>
+                                        <article class="timeline-item timeline-item--history">
+                                            <div class="timeline-item__marker"></div>
+                                            <div class="timeline-item__content">
+                                                <div class="timeline-item__stamp"><?= esc($event->created_at ? date('d/m/y h:i a', strtotime($event->created_at)) : '-') ?></div>
+                                                <div class="timeline-item__card">
+                                                    <div class="timeline-item__header">
+                                                        <div>
+                                                            <h4><?= esc($event->reason ?: 'Activity recorded') ?></h4>
+                                                            <p><?= esc(trim($event->changed_by_name ?? '') ?: 'System') ?></p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </article>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
-                <?php endif; ?>
+                </div>
             </section>
         </div>
     </div>
@@ -437,7 +449,7 @@
                 <?= csrf_field() ?>
                 <label class="field">
                     <span>Branch</span>
-                    <select name="branch_id" required>
+                    <select name="branch_id" id="detail-branch-select" required>
                         <option value="">Select branch</option>
                         <?php foreach ($assignableBranches as $branch): ?>
                             <option value="<?= (int) $branch->id ?>" <?= (int) $enquiry->branch_id === (int) $branch->id ? 'selected' : '' ?>><?= esc($branch->name) ?></option>
@@ -446,18 +458,18 @@
                 </label>
                 <label class="field">
                     <span>Assigned to</span>
-                    <select name="owner_user_id" required>
-                        <option value="">Select user</option>
+                    <select name="owner_user_id" id="detail-owner-user-select" required>
+                        <option value="">Choose branch first</option>
                         <?php foreach ($assignableUsers as $user): ?>
-                            <option value="<?= (int) $user->id ?>" <?= (int) $enquiry->owner_user_id === (int) $user->id ? 'selected' : '' ?>>
+                            <option value="<?= (int) $user->id ?>" data-branch-ids="<?= esc(implode(',', $assignableUsersByBranch[(int) $user->id] ?? [])) ?>" <?= (int) $enquiry->owner_user_id === (int) $user->id ? 'selected' : '' ?>>
                                 <?= esc(trim($user->first_name . ' ' . $user->last_name) ?: $user->email) ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </label>
                 <label class="field">
-                    <span>Assignment reason</span>
-                    <textarea name="assignment_reason" rows="4" placeholder="Why is this enquiry being moved?"></textarea>
+                    <span>Comment</span>
+                    <textarea name="assignment_comment" rows="4" placeholder="Add a quick note. This will be saved as a system follow-up."></textarea>
                 </label>
                 <div class="form-actions">
                     <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
@@ -467,4 +479,48 @@
         </div>
     </div>
 <?php endif; ?>
+<script>
+(() => {
+    document.querySelectorAll('[data-tab-target]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-tab-target');
+            document.querySelectorAll('[data-tab-target]').forEach((item) => {
+                item.classList.toggle('settings-tabs__button--active', item === button);
+                item.setAttribute('aria-selected', item === button ? 'true' : 'false');
+            });
+            document.querySelectorAll('.history-tab .settings-tabs__panel').forEach((panel) => {
+                panel.hidden = panel.id !== targetId;
+            });
+        });
+    });
+
+    const branchSelect = document.getElementById('detail-branch-select');
+    const userSelect = document.getElementById('detail-owner-user-select');
+    if (branchSelect && userSelect) {
+        const syncUsers = () => {
+            const selectedBranch = branchSelect.value;
+            const firstOption = userSelect.options[0] || null;
+            userSelect.disabled = selectedBranch === '';
+            if (firstOption) {
+                firstOption.textContent = selectedBranch === '' ? 'Choose branch first' : 'Select user';
+            }
+            Array.from(userSelect.options).forEach((option, index) => {
+                if (index === 0) {
+                    option.hidden = false;
+                    return;
+                }
+                const branchIds = (option.dataset.branchIds || '').split(',').filter(Boolean);
+                const visible = selectedBranch === '' || branchIds.includes(selectedBranch);
+                option.hidden = !visible;
+                if (!visible && option.selected) {
+                    option.selected = false;
+                }
+            });
+        };
+
+        branchSelect.addEventListener('change', syncUsers);
+        syncUsers();
+    }
+})();
+</script>
 <?= $this->endSection() ?>

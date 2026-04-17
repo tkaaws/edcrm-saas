@@ -87,7 +87,7 @@
             </div>
             <form class="form-stack" method="post" action="<?= site_url('branches') ?>">
                 <?= csrf_field() ?>
-                <?php $branch = null; ?>
+                <?php $formBranch = null; ?>
                 <?= $this->include('branches/_form_sections') ?>
                 <div class="form-actions">
                     <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
@@ -112,6 +112,7 @@
                 </div>
                 <form class="form-stack" method="post" action="<?= site_url('branches/' . $branch->id) ?>">
                     <?= csrf_field() ?>
+                    <?php $formBranch = $branch; ?>
                     <?= $this->include('branches/_form_sections') ?>
                     <div class="form-actions">
                         <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>

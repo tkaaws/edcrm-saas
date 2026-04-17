@@ -11,6 +11,7 @@
 
     <form class="form-card form-stack" method="post" action="<?= esc($formAction) ?>">
         <?= csrf_field() ?>
+        <?php $formBranch = $branch ?? null; ?>
         <?= $this->include('branches/_form_sections') ?>
 
         <div class="form-actions">
