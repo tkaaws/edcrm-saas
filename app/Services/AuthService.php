@@ -59,6 +59,8 @@ class AuthService
      */
     public function attempt(string $email, string $password): string
     {
+        $email = strtolower(trim($email));
+
         // Platform-wide lookup — email is unique across all tenants
         $user = $this->db->table('users')
                          ->where('email', $email)

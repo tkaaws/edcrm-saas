@@ -248,7 +248,7 @@ class Users extends BaseController
             'department'          => trim((string) $this->request->getPost('department')),
             'designation'         => trim((string) $this->request->getPost('designation')),
             'manager_user_id'     => (int) $this->request->getPost('manager_user_id'),
-            'password'            => trim((string) $this->request->getPost('password')),
+            'password'            => (string) $this->request->getPost('password'),
             'role_id'             => (int) $this->request->getPost('role_id'),
             'branch_ids'          => array_values(array_unique(array_filter($branchIds))),
             'primary_branch_id'   => (int) $this->request->getPost('primary_branch_id'),

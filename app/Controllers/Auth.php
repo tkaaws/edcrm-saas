@@ -50,8 +50,8 @@ class Auth extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $email    = $this->request->getPost('email');
-        $password = $this->request->getPost('password');
+        $email    = strtolower(trim((string) $this->request->getPost('email')));
+        $password = (string) $this->request->getPost('password');
 
         $result = $this->auth->attempt($email, $password);
 
@@ -97,7 +97,7 @@ class Auth extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $email = $this->request->getPost('email');
+        $email = strtolower(trim((string) $this->request->getPost('email')));
 
         // Always true — prevents user enumeration
         $this->auth->forgotPassword($email);
