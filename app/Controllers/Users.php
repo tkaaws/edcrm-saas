@@ -173,8 +173,12 @@ class Users extends BaseController
             'whatsapp_number'     => $data['whatsapp_number'],
             'department'          => $data['department'],
             'designation'         => $data['designation'],
-            'is_active'           => (int) $data['is_active'],
-            'must_reset_password' => (int) $data['must_reset_password'],
+            'is_active'           => $this->request->getPost('is_active') !== null
+                ? (int) $data['is_active']
+                : (int) ($user->is_active ?? 1),
+            'must_reset_password' => $this->request->getPost('must_reset_password') !== null
+                ? (int) $data['must_reset_password']
+                : (int) ($user->must_reset_password ?? 0),
         ];
 
         if ($data['password'] !== '') {
