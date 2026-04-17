@@ -57,7 +57,23 @@
                                 <div class="table-actions">
                                     <?php if ($canEditBranches): ?>
                                         <a class="shell-button shell-button--ghost shell-button--sm" href="<?= site_url('branches/' . $branch->id . '/settings') ?>">Settings</a>
-                                        <button class="shell-button shell-button--ghost shell-button--sm" type="button" data-modal-open="branch-edit-modal-<?= (int) $branch->id ?>">Edit</button>
+                                        <?php $editBranch = $editableBranchesById[(int) $branch->id] ?? $branch; ?>
+                                        <button
+                                            class="shell-button shell-button--ghost shell-button--sm"
+                                            type="button"
+                                            data-modal-open="branch-edit-modal-<?= (int) $branch->id ?>"
+                                            data-edit-branch
+                                            data-branch-id="<?= (int) $branch->id ?>"
+                                            data-name="<?= esc($editBranch->name ?? '', 'attr') ?>"
+                                            data-code="<?= esc($editBranch->code ?? '', 'attr') ?>"
+                                            data-city="<?= esc($editBranch->city ?? '', 'attr') ?>"
+                                            data-type="<?= esc($editBranch->type ?? '', 'attr') ?>"
+                                            data-status="<?= esc($editBranch->status ?? 'active', 'attr') ?>"
+                                            data-address-line-1="<?= esc($editBranch->address_line_1 ?? '', 'attr') ?>"
+                                            data-state-code="<?= esc($editBranch->state_code ?? '', 'attr') ?>"
+                                            data-timezone="<?= esc($editBranch->timezone ?? '', 'attr') ?>"
+                                            data-currency-code="<?= esc($editBranch->currency_code ?? '', 'attr') ?>"
+                                        >Edit</button>
                                         <form method="post" action="<?= site_url('branches/' . $branch->id . '/status') ?>">
                                             <?= csrf_field() ?>
                                             <button class="shell-button shell-button--soft shell-button--sm" type="submit">
@@ -125,4 +141,36 @@
         </div>
     <?php endif; ?>
 <?php endforeach; ?>
+<script>
+(() => {
+    const fillField = (scope, name, value) => {
+        const field = scope.querySelector(`[name="${name}"]`);
+        if (!field) {
+            return;
+        }
+
+        field.value = value ?? '';
+    };
+
+    document.querySelectorAll('[data-edit-branch]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const branchId = button.getAttribute('data-branch-id');
+            const modal = branchId ? document.getElementById(`branch-edit-modal-${branchId}`) : null;
+            if (!modal) {
+                return;
+            }
+
+            fillField(modal, 'name', button.getAttribute('data-name'));
+            fillField(modal, 'code', button.getAttribute('data-code'));
+            fillField(modal, 'city', button.getAttribute('data-city'));
+            fillField(modal, 'type', button.getAttribute('data-type'));
+            fillField(modal, 'status', button.getAttribute('data-status'));
+            fillField(modal, 'address_line_1', button.getAttribute('data-address-line-1'));
+            fillField(modal, 'state_code', button.getAttribute('data-state-code'));
+            fillField(modal, 'timezone', button.getAttribute('data-timezone'));
+            fillField(modal, 'currency_code', button.getAttribute('data-currency-code'));
+        });
+    });
+})();
+</script>
 <?= $this->endSection() ?>

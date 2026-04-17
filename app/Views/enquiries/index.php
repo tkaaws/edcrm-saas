@@ -153,7 +153,27 @@ $columnCount = match ($currentTab ?? 'enquiries') {
                             <td class="data-table__actions" data-label="Actions">
                                 <div class="table-actions">
                                     <?php if (in_array('enquiries.edit', $codes, true) && in_array($row->lifecycle_status, ['new', 'active'], true)): ?>
-                                        <button class="shell-button shell-button--ghost shell-button--sm" type="button" data-modal-open="edit-enquiry-modal-<?= (int) $row->id ?>">Edit</button>
+                                        <?php $editRow = $editableRowsById[(int) $row->id] ?? $row; ?>
+                                        <button
+                                            class="shell-button shell-button--ghost shell-button--sm"
+                                            type="button"
+                                            data-modal-open="edit-enquiry-modal-<?= (int) $row->id ?>"
+                                            data-edit-enquiry
+                                            data-enquiry-id="<?= (int) $row->id ?>"
+                                            data-student-name="<?= esc($editRow->student_name ?? '', 'attr') ?>"
+                                            data-mobile="<?= esc($editRow->mobile ?? '', 'attr') ?>"
+                                            data-email="<?= esc($editRow->email ?? '', 'attr') ?>"
+                                            data-whatsapp-number="<?= esc($editRow->whatsapp_number ?? '', 'attr') ?>"
+                                            data-source-id="<?= (int) ($editRow->source_id ?? 0) ?>"
+                                            data-course-id="<?= (int) ($editRow->primary_course_id ?? 0) ?>"
+                                            data-college-id="<?= (int) ($editRow->college_id ?? 0) ?>"
+                                            data-qualification-id="<?= (int) ($editRow->qualification_id ?? 0) ?>"
+                                            data-city="<?= esc($editRow->city ?? '', 'attr') ?>"
+                                            data-next-followup-at="<?= esc(! empty($editRow->next_followup_at) ? date('Y-m-d\TH:i', strtotime($editRow->next_followup_at)) : '', 'attr') ?>"
+                                            data-notes="<?= esc($editRow->notes ?? '', 'attr') ?>"
+                                            data-branch-id="<?= (int) ($editRow->branch_id ?? 0) ?>"
+                                            data-owner-user-id="<?= (int) ($editRow->owner_user_id ?? 0) ?>"
+                                        >Edit</button>
                                     <?php endif; ?>
                                 </div>
                             </td>
@@ -221,6 +241,41 @@ $columnCount = match ($currentTab ?? 'enquiries') {
 <?php endforeach; ?>
 <script>
 (() => {
+    const fillField = (scope, name, value) => {
+        const field = scope.querySelector(`[name="${name}"]`);
+        if (!field) {
+            return;
+        }
+
+        if (field.tagName === 'SELECT' || field.tagName === 'INPUT' || field.tagName === 'TEXTAREA') {
+            field.value = value ?? '';
+        }
+    };
+
+    document.querySelectorAll('[data-edit-enquiry]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const enquiryId = button.getAttribute('data-enquiry-id');
+            const modal = enquiryId ? document.getElementById(`edit-enquiry-modal-${enquiryId}`) : null;
+            if (!modal) {
+                return;
+            }
+
+            fillField(modal, 'student_name', button.getAttribute('data-student-name'));
+            fillField(modal, 'mobile', button.getAttribute('data-mobile'));
+            fillField(modal, 'email', button.getAttribute('data-email'));
+            fillField(modal, 'whatsapp_number', button.getAttribute('data-whatsapp-number'));
+            fillField(modal, 'source_id', button.getAttribute('data-source-id'));
+            fillField(modal, 'primary_course_id', button.getAttribute('data-course-id'));
+            fillField(modal, 'college_id', button.getAttribute('data-college-id'));
+            fillField(modal, 'qualification_id', button.getAttribute('data-qualification-id'));
+            fillField(modal, 'city', button.getAttribute('data-city'));
+            fillField(modal, 'next_followup_at', button.getAttribute('data-next-followup-at'));
+            fillField(modal, 'notes', button.getAttribute('data-notes'));
+            fillField(modal, 'branch_id', button.getAttribute('data-branch-id'));
+            fillField(modal, 'owner_user_id', button.getAttribute('data-owner-user-id'));
+        });
+    });
+
     const syncBranchUsers = (scope) => {
         const branchSelects = scope.querySelectorAll('[data-branch-select]');
         branchSelects.forEach((branchSelect) => {
