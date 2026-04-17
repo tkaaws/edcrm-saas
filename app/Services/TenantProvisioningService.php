@@ -179,7 +179,7 @@ class TenantProvisioningService
                 'fees.view', 'fees.create', 'fees.edit', 'fees.receipts',
                 'tickets.view', 'tickets.create', 'tickets.edit', 'tickets.close',
                 'students.view', 'students.edit', 'students.attendance', 'students.export',
-                'batches.view', 'reports.view', 'reports.advanced', 'reports.export',
+                'batches.view', 'reports.view', 'reports.advanced', 'reports.activity_self', 'reports.activity_team', 'reports.export',
                 'whatsapp.view', 'whatsapp.send',
             ],
             'counsellor' => [
@@ -187,20 +187,20 @@ class TenantProvisioningService
                 'enquiries.view_mobile_number', 'enquiries.update_contact_info', 'enquiries.update_college_info',
                 'enquiries.close', 'enquiries.convert_to_admission',
                 'followups.view', 'followups.create', 'followups.edit', 'followups.delete',
-                'admissions.view', 'admissions.create', 'students.view', 'reports.view', 'whatsapp.send',
+                'admissions.view', 'admissions.create', 'students.view', 'reports.view', 'reports.activity_self', 'whatsapp.send',
             ],
             'accounts' => [
                 'admissions.view', 'fees.view', 'fees.create', 'fees.edit', 'fees.receipts',
-                'fees.discount', 'fees.structure', 'students.view', 'reports.view', 'reports.export',
+                'fees.discount', 'fees.structure', 'students.view', 'reports.view', 'reports.activity_self', 'reports.export',
             ],
             'operations' => [
                 'admissions.view', 'students.view', 'students.edit', 'students.attendance', 'students.export',
                 'batches.view', 'batches.create', 'batches.edit',
-                'tickets.view', 'tickets.create', 'tickets.edit', 'reports.view',
+                'tickets.view', 'tickets.create', 'tickets.edit', 'reports.view', 'reports.activity_self',
             ],
             'placement' => [
                 'students.view', 'placement.view', 'placement.manage', 'placement.jobs',
-                'placement.interviews', 'placement.mock', 'placement.college', 'reports.view', 'whatsapp.send',
+                'placement.interviews', 'placement.mock', 'placement.college', 'reports.view', 'reports.activity_self', 'whatsapp.send',
             ],
             'faculty' => [
                 'batches.view', 'students.view', 'students.attendance',

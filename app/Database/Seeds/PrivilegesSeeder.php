@@ -148,6 +148,8 @@ class PrivilegesSeeder extends Seeder
             // -------------------------------------------------------
             ['code' => 'reports.view',     'name' => 'View Basic Reports',    'module' => 'reports'],
             ['code' => 'reports.advanced', 'name' => 'View Advanced Reports', 'module' => 'reports'],
+            ['code' => 'reports.activity_self', 'name' => 'View My Activity Report', 'module' => 'reports'],
+            ['code' => 'reports.activity_team', 'name' => 'View Team Activity Report', 'module' => 'reports'],
             ['code' => 'reports.export',   'name' => 'Export Reports',        'module' => 'reports'],
 
             // -------------------------------------------------------
