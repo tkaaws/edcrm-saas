@@ -179,17 +179,17 @@ a {
 }
 
 .shell-header {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 10px 14px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 2px 2px 0;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 10px 16px;
+    align-items: center;
+    gap: 8px 14px;
     min-height: 0 !important;
     height: auto;
-    box-shadow: 0 1px 2px rgba(24, 27, 52, 0.04);
+    box-shadow: none;
 }
 
 .shell-header__main {
@@ -208,8 +208,8 @@ a {
 
 .shell-header__title {
     margin: 0;
-    font-size: 16px;
-    line-height: 1.1;
+    font-size: 15px;
+    line-height: 1.05;
 }
 
 .shell-header__actions {
@@ -327,7 +327,7 @@ a {
 
 .shell-content {
     display: grid;
-    gap: 10px;
+    gap: 8px;
 }
 
 .toolbar-actions {
@@ -342,9 +342,9 @@ a {
     border-radius: 8px;
     border: 1px solid var(--line);
     background: var(--surface);
-    box-shadow: var(--shadow-sm);
-    font-size: 13px;
-    line-height: 1.4;
+    box-shadow: none;
+    font-size: 12px;
+    line-height: 1.35;
 }
 
 .shell-alert--split {
@@ -502,6 +502,8 @@ a {
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.01em;
+    width: fit-content;
+    max-width: fit-content;
 }
 
 .status-badge--good {
@@ -1183,7 +1185,7 @@ a {
 
 .module-toolbar {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 8px;
 }
@@ -1196,19 +1198,20 @@ a {
 .module-toolbar__copy {
     display: grid;
     gap: 2px;
+    min-width: 0;
 }
 
 .module-title {
-    margin: 0 0 4px;
-    font-size: 19px;
-    line-height: 1.15;
+    margin: 0 0 2px;
+    font-size: 18px;
+    line-height: 1.12;
 }
 
 .module-subtitle {
     margin: 0;
     color: var(--muted);
-    line-height: 1.35;
-    font-size: 13px;
+    line-height: 1.3;
+    font-size: 12px;
 }
 
 .summary-grid {
@@ -1313,7 +1316,7 @@ a {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 10px;
-    padding: 12px;
+    padding: 10px;
     box-shadow: 0 1px 2px rgba(24, 27, 52, 0.04);
 }
 
@@ -2289,6 +2292,7 @@ select.shell-input,
     .shell-header {
         align-items: flex-start;
         flex-direction: column;
+        padding: 0;
     }
 
     .shell-header__main,
@@ -2356,7 +2360,7 @@ select.shell-input,
 
 @media (max-width: 640px) {
     .shell-main {
-        padding: 12px;
+        padding: 10px;
     }
 
     .shell-sidebar {
@@ -2369,9 +2373,9 @@ select.shell-input,
     }
 
     .shell-header {
-        padding: 14px;
-        gap: 12px;
-        border-radius: 10px;
+        padding: 0;
+        gap: 10px;
+        border-radius: 0;
         min-height: 0;
     }
 
@@ -2385,7 +2389,7 @@ select.shell-input,
     .shell-header__actions {
         display: grid;
         grid-template-columns: 1fr auto;
-        gap: 10px;
+        gap: 8px;
         align-items: center;
     }
 
@@ -2395,8 +2399,8 @@ select.shell-input,
     }
 
     .shell-header__title {
-        font-size: 20px;
-        line-height: 1.15;
+        font-size: 18px;
+        line-height: 1.08;
     }
 
     .shell-user__name {
@@ -2415,10 +2419,10 @@ select.shell-input,
     }
 
     .shell-alert {
-        padding: 12px;
+        padding: 10px;
         border-radius: 10px;
-        font-size: 14px;
-        line-height: 1.55;
+        font-size: 13px;
+        line-height: 1.45;
     }
 
     .shell-alert__actions {
@@ -2430,7 +2434,7 @@ select.shell-input,
     }
 
     .module-title {
-        font-size: 22px;
+        font-size: 20px;
     }
 
     .module-subtitle,

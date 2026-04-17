@@ -2,9 +2,8 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Subscription plans for you</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Manage plans, pricing, and limits.</p>
         </div>
         <a class="shell-button shell-button--primary" href="<?= site_url('platform/plans/create') ?>">Create plan</a>

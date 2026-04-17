@@ -5,9 +5,8 @@
     <?php $codes = session()->get('user_privilege_codes') ?? []; ?>
     <?php $canCreateBranches = in_array('branches.create', $codes, true); ?>
     <?php $canEditBranches = in_array('branches.edit', $codes, true); ?>
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Branches</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Manage company locations and regional defaults.</p>
         </div>
         <?php if ($canCreateBranches): ?>

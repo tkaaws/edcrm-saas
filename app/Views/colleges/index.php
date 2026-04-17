@@ -7,9 +7,8 @@
     <?php $canEditColleges = in_array('colleges.edit', $codes, true); ?>
     <?php $canDeleteColleges = in_array('colleges.delete', $codes, true); ?>
 
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Colleges</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Keep the college list ready for enquiry capture and reporting.</p>
         </div>
         <?php if ($canCreateColleges): ?>

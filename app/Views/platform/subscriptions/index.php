@@ -2,9 +2,8 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Subscriptions</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Manage active, trial, and cancelled company subscriptions.</p>
         </div>
     </div>

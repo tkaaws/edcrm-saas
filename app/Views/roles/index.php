@@ -5,9 +5,8 @@
     <?php $codes = session()->get('user_privilege_codes') ?? []; ?>
     <?php $canCreateRoles = in_array('roles.create', $codes, true); ?>
     <?php $canEditRoles = in_array('roles.edit', $codes, true); ?>
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Team access rules</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Manage reusable roles and permission sets.</p>
         </div>
         <?php if ($canCreateRoles): ?>

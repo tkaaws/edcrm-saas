@@ -2,9 +2,8 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Workspace companies</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Manage companies, plans, and lifecycle access.</p>
         </div>
         <a class="shell-button shell-button--primary" href="<?= site_url('platform/tenants/create') ?>">Add company</a>

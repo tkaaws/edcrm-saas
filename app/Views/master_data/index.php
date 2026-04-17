@@ -6,9 +6,8 @@
     $hasSelection = $selectedType !== null;
     $canAddCompanyValue = $hasSelection && (int) $selectedType->allow_tenant_entries === 1;
     ?>
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Business Lookup Data</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Manage shared lists like sources, follow-up status, and courses.</p>
         </div>
     </div>

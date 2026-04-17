@@ -5,9 +5,8 @@
     <?php
     $hasSelection = $selectedType !== null;
     ?>
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Platform Business Lookup Data</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Manage plain-language business lists like Sources, Communication Types, Follow-up Status, and Courses.</p>
         </div>
     </div>

@@ -2,9 +2,8 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Plan and usage</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">See your current plan, included modules, and usage.</p>
         </div>
     </div>

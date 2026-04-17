@@ -6,9 +6,8 @@
     <?php $canCreateUsers = in_array('users.create', $codes, true); ?>
     <?php $canEditUsers = in_array('users.edit', $codes, true); ?>
     <?php $canImpersonateUsers = in_array('users.impersonate', $codes, true) || (($roleCode ?? '') === 'platform_admin'); ?>
-    <div class="module-toolbar">
-        <div>
-            <h2 class="module-title">Team members</h2>
+    <div class="module-toolbar module-toolbar--compact">
+        <div class="module-toolbar__copy">
             <p class="module-subtitle">Manage people, access, and branch ownership.</p>
         </div>
         <?php if ($canCreateUsers): ?>
