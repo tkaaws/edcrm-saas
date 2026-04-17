@@ -780,6 +780,10 @@ a {
     gap: 8px;
 }
 
+.report-person-chip-form {
+    margin: 0;
+}
+
 .report-person-chip {
     display: inline-flex;
     align-items: center;
@@ -794,6 +798,7 @@ a {
     font-weight: 600;
     text-decoration: none;
     transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease;
+    cursor: pointer;
 }
 
 .report-person-chip:hover {

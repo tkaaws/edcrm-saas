@@ -49,20 +49,25 @@
                     <p>Click a team member to see only their activity.</p>
                 </div>
                 <div class="report-people-filter__list">
-                    <a
-                        class="report-person-chip <?= $selectedUserId < 1 ? 'report-person-chip--active' : '' ?>"
-                        href="<?= site_url('reports?scope=team&from=' . urlencode($fromDate) . '&to=' . urlencode($toDate)) ?>"
-                    >
-                        All team members
-                    </a>
+                    <form method="get" action="<?= site_url('reports') ?>" class="report-person-chip-form">
+                        <input type="hidden" name="scope" value="team">
+                        <input type="hidden" name="from" value="<?= esc($fromDate) ?>">
+                        <input type="hidden" name="to" value="<?= esc($toDate) ?>">
+                        <button type="submit" class="report-person-chip <?= $selectedUserId < 1 ? 'report-person-chip--active' : '' ?>">
+                            All team members
+                        </button>
+                    </form>
                     <?php foreach ($userOptions as $user): ?>
                         <?php $label = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')); ?>
-                        <a
-                            class="report-person-chip <?= $selectedUserId === (int) $user->id ? 'report-person-chip--active' : '' ?>"
-                            href="<?= site_url('reports?scope=team&from=' . urlencode($fromDate) . '&to=' . urlencode($toDate) . '&user_id=' . urlencode((string) $user->id)) ?>"
-                        >
-                            <?= esc($label ?: ($user->email ?? 'User #' . $user->id)) ?>
-                        </a>
+                        <form method="get" action="<?= site_url('reports') ?>" class="report-person-chip-form">
+                            <input type="hidden" name="scope" value="team">
+                            <input type="hidden" name="from" value="<?= esc($fromDate) ?>">
+                            <input type="hidden" name="to" value="<?= esc($toDate) ?>">
+                            <input type="hidden" name="user_id" value="<?= esc((string) $user->id) ?>">
+                            <button type="submit" class="report-person-chip <?= $selectedUserId === (int) $user->id ? 'report-person-chip--active' : '' ?>">
+                                <?= esc($label ?: ($user->email ?? 'User #' . $user->id)) ?>
+                            </button>
+                        </form>
                     <?php endforeach; ?>
                 </div>
             </section>
