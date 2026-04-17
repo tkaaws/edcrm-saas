@@ -3,15 +3,15 @@
 <?= $this->section('content') ?>
 <section class="module-layout">
     <header class="module-toolbar">
-        <div>
+        <div class="report-toolbar">
             <h2 class="module-title">Activity Reports</h2>
-            <p class="module-subtitle">Track who worked on what during the selected date range.</p>
+            <p class="module-subtitle">Review daily work clearly across enquiries, follow-ups, people, and settings changes.</p>
         </div>
     </header>
 
-    <section class="detail-card">
-        <div class="settings-tabs">
-            <div class="settings-tabs__nav">
+    <section class="detail-card report-card">
+        <div class="settings-tabs report-scope">
+            <div class="settings-tabs__nav settings-tabs__nav--compact">
                 <?php if ($canViewSelf): ?>
                     <a class="settings-tabs__button <?= $scope === 'self' ? 'settings-tabs__button--active' : '' ?>" href="<?= site_url('reports?scope=self&from=' . urlencode($fromDate) . '&to=' . urlencode($toDate)) ?>">My Activity</a>
                 <?php endif; ?>
@@ -21,7 +21,7 @@
             </div>
         </div>
 
-        <form class="module-form-grid" method="get" action="<?= site_url('reports') ?>" style="margin-top:12px;">
+        <form class="module-form-grid report-filters" method="get" action="<?= site_url('reports') ?>">
             <input type="hidden" name="scope" value="<?= esc($scope) ?>">
             <div>
                 <label>From</label>
@@ -51,26 +51,37 @@
         </form>
     </section>
 
-    <section class="stats-grid">
-        <article class="stat-card">
+    <section class="stats-grid report-stats-grid">
+        <article class="stat-card report-stat-card">
             <span>Total actions</span>
             <strong><?= esc((string) ($summary['total'] ?? 0)) ?></strong>
+            <small>Everything recorded in the selected period.</small>
         </article>
-        <article class="stat-card">
+        <article class="stat-card report-stat-card">
             <span>Enquiry work</span>
             <strong><?= esc((string) ($summary['enquiries'] ?? 0)) ?></strong>
+            <small>Lead updates, closures, assignments, and edits.</small>
         </article>
-        <article class="stat-card">
+        <article class="stat-card report-stat-card">
             <span>Follow-ups</span>
             <strong><?= esc((string) ($summary['followups'] ?? 0)) ?></strong>
+            <small>Follow-up creation, edits, and removals.</small>
         </article>
-        <article class="stat-card">
+        <article class="stat-card report-stat-card">
             <span>People / config</span>
             <strong><?= esc((string) (($summary['people'] ?? 0) + ($summary['settings'] ?? 0))) ?></strong>
+            <small>Users, branches, colleges, and settings changes.</small>
         </article>
     </section>
 
-    <section class="detail-card">
+    <section class="detail-card report-card">
+        <header class="report-section-head">
+            <div>
+                <h3>Activity timeline</h3>
+                <p>Each entry shows what changed, who changed it, and when it happened.</p>
+            </div>
+        </header>
+
         <?php if ($activities === []): ?>
             <div class="empty-state">No activity found for the selected filters.</div>
         <?php else: ?>
@@ -99,7 +110,7 @@
                                         <?php endforeach; ?>
                                     </div>
                                 <?php else: ?>
-                                    <p class="module-subtitle" style="margin-top:6px;"><?= esc($activity->summary ?: 'Activity recorded') ?></p>
+                                    <p class="module-subtitle report-card__summary"><?= esc($activity->summary ?: 'Activity recorded') ?></p>
                                 <?php endif; ?>
                             </div>
                         </div>
