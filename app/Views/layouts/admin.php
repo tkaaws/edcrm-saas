@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title ?? 'EDCRM SaaS') ?></title>
-    <link rel="stylesheet" href="<?= base_url('assets/css/admin.css') ?>">
+    <?php $adminCssVersion = @filemtime(FCPATH . 'assets/css/admin.css') ?: time(); ?>
+    <link rel="stylesheet" href="<?= base_url('assets/css/admin.css?v=' . $adminCssVersion) ?>">
 </head>
 <body class="shell-body">
     <?php

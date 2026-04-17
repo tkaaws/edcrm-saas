@@ -48,16 +48,16 @@ a {
 .shell {
     min-height: 100vh;
     display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-columns: 256px minmax(0, 1fr);
 }
 
 .shell-sidebar {
     background: #ffffff;
     color: var(--sidebar-text);
-    padding: 20px 18px;
+    padding: 16px 14px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 14px;
     border-right: 1px solid var(--line);
     box-shadow: 0 0 0 1px rgba(97, 97, 255, 0.02);
 }
@@ -65,23 +65,23 @@ a {
 .shell-brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
 .shell-brand__mark {
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
     border-radius: 8px;
     display: grid;
     place-items: center;
     background: var(--brand);
     color: #fff;
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 700;
 }
 
 .shell-brand__name {
-    font-size: 22px;
+    font-size: 18px;
     font-weight: 700;
 }
 
@@ -93,13 +93,13 @@ a {
 
 .shell-nav {
     display: grid;
-    gap: 8px;
+    gap: 6px;
 }
 
 .shell-nav__item {
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 8px 10px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -123,7 +123,7 @@ a {
 .shell-sidebar__section {
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 16px;
+    padding: 12px;
     background: var(--surface-soft);
 }
 
@@ -136,7 +136,7 @@ a {
 .context-list {
     margin: 0;
     display: grid;
-    gap: 12px;
+    gap: 8px;
 }
 
 .context-list div {
@@ -173,49 +173,49 @@ a {
 }
 
 .shell-main {
-    padding: 10px 12px 14px;
+    padding: 8px 10px 12px;
     display: grid;
-    gap: 8px;
+    gap: 6px;
 }
 
 .shell-header {
-    background: transparent;
-    border: 0;
+    background: transparent !important;
+    border: 0 !important;
     border-radius: 0;
-    padding: 2px 2px 0;
+    padding: 0;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 8px 14px;
+    gap: 6px 12px;
     min-height: 0 !important;
     height: auto;
-    box-shadow: none;
+    box-shadow: none !important;
 }
 
 .shell-header__main {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
 }
 
 .shell-header__eyebrow {
-    margin: 0 0 2px;
+    margin: 0 0 1px;
     color: var(--muted);
-    font-size: 10px;
+    font-size: 9px;
     line-height: 1.2;
 }
 
 .shell-header__title {
     margin: 0;
-    font-size: 15px;
-    line-height: 1.05;
+    font-size: 13px;
+    line-height: 1;
 }
 
 .shell-header__actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     align-self: center;
 }
 
@@ -226,21 +226,21 @@ a {
 }
 
 .shell-user__name {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
 }
 
 .shell-user__meta {
     color: var(--muted);
-    font-size: 10px;
+    font-size: 9px;
 }
 
 .shell-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 34px;
-    padding: 7px 12px;
+    min-height: 32px;
+    padding: 6px 11px;
     border-radius: 8px;
     border: 1px solid var(--line);
     font-weight: 600;
@@ -304,8 +304,8 @@ a {
 }
 
 .shell-button--sm {
-    min-height: 32px;
-    padding: 6px 10px;
+    min-height: 28px;
+    padding: 4px 8px;
     font-size: .8125rem;
 }
 
@@ -327,7 +327,7 @@ a {
 
 .shell-content {
     display: grid;
-    gap: 8px;
+    gap: 6px;
 }
 
 .toolbar-actions {
@@ -338,28 +338,28 @@ a {
 }
 
 .shell-alert {
-    padding: 8px 10px;
+    padding: 6px 8px;
     border-radius: 8px;
     border: 1px solid var(--line);
     background: var(--surface);
     box-shadow: none;
-    font-size: 12px;
-    line-height: 1.35;
+    font-size: 11px;
+    line-height: 1.3;
 }
 
 .shell-alert--split {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
 }
 
 .shell-alert__body {
     display: flex;
     flex-wrap: wrap;
-    gap: 3px;
+    gap: 2px;
     align-items: baseline;
-    line-height: 1.35;
+    line-height: 1.3;
 }
 
 .shell-alert__actions {
@@ -533,7 +533,7 @@ a {
 
 .module-page {
     display: grid;
-    gap: 8px;
+    gap: 6px;
 }
 
 .settings-tabs {
@@ -589,13 +589,13 @@ a {
 
 .queue-nav {
     display: grid;
-    gap: 6px;
+    gap: 4px;
 }
 
 .queue-nav__group {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
     align-items: center;
 }
 
@@ -607,8 +607,8 @@ a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 32px;
-    padding: 5px 11px;
+    min-height: 30px;
+    padding: 4px 10px;
     border: 1px solid var(--line);
     border-radius: 999px;
     background: var(--surface);
@@ -1187,7 +1187,7 @@ a {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
 }
 
 .module-toolbar--compact {
@@ -1197,21 +1197,21 @@ a {
 
 .module-toolbar__copy {
     display: grid;
-    gap: 2px;
+    gap: 1px;
     min-width: 0;
 }
 
 .module-title {
-    margin: 0 0 2px;
-    font-size: 18px;
+    margin: 0 0 1px;
+    font-size: 16px;
     line-height: 1.12;
 }
 
 .module-subtitle {
     margin: 0;
     color: var(--muted);
-    line-height: 1.3;
-    font-size: 12px;
+    line-height: 1.25;
+    font-size: 11px;
 }
 
 .summary-grid {
@@ -1316,7 +1316,7 @@ a {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 10px;
-    padding: 10px;
+    padding: 8px;
     box-shadow: 0 1px 2px rgba(24, 27, 52, 0.04);
 }
 
@@ -1334,7 +1334,7 @@ a {
 
 .data-table th,
 .data-table td {
-    padding: 7px 9px;
+    padding: 6px 8px;
     border-bottom: 1px solid var(--line);
     text-align: left;
     vertical-align: middle;
@@ -1386,7 +1386,7 @@ a {
 
 .table-actions {
     display: inline-flex;
-    gap: 5px;
+    gap: 4px;
     flex-wrap: nowrap;
     align-items: center;
     justify-content: flex-end;
@@ -1399,9 +1399,9 @@ a {
 }
 
 .table-actions .shell-button {
-    min-height: 30px;
-    padding: 5px 9px;
-    font-size: .79rem;
+    min-height: 28px;
+    padding: 4px 8px;
+    font-size: .76rem;
 }
 
 .table-actions .shell-button--danger {
