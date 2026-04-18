@@ -101,7 +101,13 @@
         <div class="shell-main">
             <header class="shell-header">
                 <div class="shell-header__main">
-                    <button class="shell-button shell-button--ghost shell-menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
+                    <button class="shell-button shell-button--ghost shell-menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Toggle navigation">
+                        <span class="shell-menu-toggle__icon" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </button>
                     <div>
                         <p class="shell-header__eyebrow"><?= $isPlatformAdmin ? 'Platform administration' : 'Operations workspace' ?></p>
                         <h1 class="shell-header__title"><?= esc($pageTitle ?? ($title ?? 'Dashboard')) ?></h1>

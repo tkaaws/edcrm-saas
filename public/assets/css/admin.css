@@ -403,8 +403,21 @@ a {
     appearance: none;
     min-width: 38px;
     min-height: 28px;
-    padding: 4px 10px;
+    padding: 4px 8px;
     font-size: 12px;
+}
+
+.shell-menu-toggle__icon {
+    display: inline-grid;
+    gap: 4px;
+}
+
+.shell-menu-toggle__icon span {
+    display: block;
+    width: 16px;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
 }
 
 .shell-overlay {
@@ -2735,6 +2748,11 @@ select.shell-input,
         min-height: 36px;
         padding: 8px 12px;
         font-size: 14px;
+    }
+
+    .shell-menu-toggle {
+        min-width: 42px;
+        padding: 8px 10px;
     }
 
     .shell-alert {
