@@ -183,6 +183,8 @@ $columnCount = match ($currentTab ?? 'enquiries') {
             </table>
         </div>
     </div>
+
+    <?= $this->include('shared/pagination') ?>
 </section>
 
 <?php if ($canCreateEnquiry): ?>

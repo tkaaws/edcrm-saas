@@ -104,6 +104,8 @@
                     </table>
                 </div>
             </div>
+
+            <?= $this->include('shared/pagination') ?>
         </section>
 
         <?php if (! $canAddCompanyValue): ?>
@@ -154,7 +156,7 @@
                             <span>Parent option</span>
                             <select name="parent_value_id">
                                 <option value="">No parent</option>
-                                <?php foreach (($catalogValues ?? []) as $value): ?>
+                                <?php foreach (($allCatalogValues ?? []) as $value): ?>
                                     <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>>
                                         <?= esc($value->label) ?>
                                     </option>

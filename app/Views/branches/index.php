@@ -88,6 +88,8 @@
             </table>
         </div>
     </div>
+
+    <?= $this->include('shared/pagination') ?>
 </section>
 
 <?php if ($canCreateBranches): ?>

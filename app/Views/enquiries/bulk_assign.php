@@ -186,6 +186,8 @@
                     </tbody>
                 </table>
             </div>
+
+            <?= $this->include('shared/pagination') ?>
         </section>
 
         <section class="form-card">

@@ -75,6 +75,8 @@
                 </tbody>
             </table>
         </div>
+
+        <?= $this->include('shared/pagination') ?>
     </div>
 </section>
 <?= $this->endSection() ?>

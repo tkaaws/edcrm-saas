@@ -31,6 +31,7 @@ class PlatformSubscriptions extends BaseController
             JOIN plans p   ON p.id = s.plan_id
             ORDER BY s.id DESC
         ")->getResult();
+        $paginated = $this->paginateCollection($rows);
 
         $plans   = $this->planModel->getAllActivePlans();
         $tenants = $this->tenantModel->where('status', 'active')
@@ -41,9 +42,10 @@ class PlatformSubscriptions extends BaseController
             'title'         => 'Subscriptions',
             'pageTitle'     => 'Tenant Subscriptions',
             'activeNav'     => 'subscriptions',
-            'subscriptions' => $rows,
+            'subscriptions' => $paginated['items'],
             'plans'         => $plans,
             'tenants'       => $tenants,
+            'pagination'    => $paginated['pagination'],
         ]));
     }
 

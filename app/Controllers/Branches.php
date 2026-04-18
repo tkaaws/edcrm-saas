@@ -27,13 +27,16 @@ class Branches extends BaseController
             $editableBranchesById[(int) $branch->id] = $this->branchModel->findForTenant((int) $branch->id) ?: $branch;
         }
 
+        $paginated = $this->paginateCollection($branches);
+
         return view('branches/index', $this->buildShellViewData([
             'title'     => 'Branches',
             'pageTitle' => 'Branches',
             'activeNav' => 'branches',
-            'branches'  => $branches,
+            'branches'  => $paginated['items'],
             'editableBranchesById' => $editableBranchesById,
             'regionalInputOptions' => $this->regionalInputOptions(),
+            'pagination' => $paginated['pagination'],
         ]));
     }
 

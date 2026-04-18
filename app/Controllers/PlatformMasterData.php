@@ -31,6 +31,7 @@ class PlatformMasterData extends BaseController
                                ->orderBy('label', 'ASC')
                                ->findAll()
             : [];
+        $paginated = $this->paginateCollection($values);
 
         return view('platform/master_data/index', $this->buildShellViewData([
             'title'            => 'Platform Business Lookup Data',
@@ -42,7 +43,9 @@ class PlatformMasterData extends BaseController
             'types'            => $types,
             'selectedType'     => $selectedType,
             'selectedTypeCode' => $selectedTypeCode,
-            'values'           => $values,
+            'allValues'        => $values,
+            'values'           => $paginated['items'],
+            'pagination'       => $paginated['pagination'],
         ]));
     }
 

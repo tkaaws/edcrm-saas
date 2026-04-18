@@ -93,7 +93,7 @@
                                 <td colspan="4" class="empty-state">No values yet for this list.</td>
                             </tr>
                         <?php endif; ?>
-                        <?php $parentLabels = []; foreach ($values as $value): $parentLabels[(int) $value->id] = $value->label; endforeach; ?>
+                        <?php $parentLabels = []; foreach (($allValues ?? []) as $value): $parentLabels[(int) $value->id] = $value->label; endforeach; ?>
                         <?php foreach ($values as $value): ?>
                             <tr>
                                 <td data-label="Name">
@@ -123,6 +123,8 @@
                 </table>
                 </div>
             </div>
+
+            <?= $this->include('shared/pagination') ?>
         </section>
 
     <?php endif; ?>
@@ -168,7 +170,7 @@
                             <span>Parent option</span>
                             <select name="parent_value_id">
                                 <option value="">No parent</option>
-                                <?php foreach ($values as $value): ?>
+                                <?php foreach (($allValues ?? []) as $value): ?>
                                     <option value="<?= esc((string) $value->id) ?>" <?= old('parent_value_id') == $value->id ? 'selected' : '' ?>><?= esc($value->label) ?></option>
                                 <?php endforeach; ?>
                             </select>

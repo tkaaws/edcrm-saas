@@ -40,6 +40,8 @@ class PlatformTenants extends BaseController
             $tenant->tenant_owner_allow_impersonation = $tenantOwner->allow_impersonation ?? 1;
         }
 
+        $paginated = $this->paginateCollection($tenants);
+
         return view('platform/tenants/index', $this->buildShellViewData([
             'title'       => 'Tenants',
             'pageTitle'   => 'Platform Tenants',
@@ -47,8 +49,9 @@ class PlatformTenants extends BaseController
             'tenantLabel' => 'Platform scope',
             'branchLabel' => 'Multi-tenant',
             'roleLabel'   => 'Provisioning',
-            'tenants'     => $tenants,
+            'tenants'     => $paginated['items'],
             'plans'       => $this->planModel->getAllActivePlans(),
+            'pagination'  => $paginated['pagination'],
         ]));
     }
 

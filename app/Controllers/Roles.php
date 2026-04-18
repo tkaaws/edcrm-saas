@@ -22,12 +22,14 @@ class Roles extends BaseController
     public function index(): string
     {
         $tenantId = (int) session()->get('tenant_id');
+        $paginated = $this->paginateCollection($this->roleModel->getAdminGrid($tenantId));
 
         return view('roles/index', $this->buildShellViewData([
             'title'     => 'Roles',
             'pageTitle' => 'Roles',
             'activeNav' => 'roles',
-            'roles'     => $this->roleModel->getAdminGrid($tenantId),
+            'roles'     => $paginated['items'],
+            'pagination' => $paginated['pagination'],
         ]));
     }
 

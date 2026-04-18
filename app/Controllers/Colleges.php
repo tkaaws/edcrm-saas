@@ -17,12 +17,14 @@ class Colleges extends BaseController
     {
         $tenantId = (int) session()->get('tenant_id');
         service('collegeService')->ensureDefaultCollegeExists($tenantId);
+        $paginated = $this->paginateCollection($this->collegeModel->getAdminGrid($tenantId));
 
         return view('colleges/index', $this->buildShellViewData([
             'title'     => 'Colleges',
             'pageTitle' => 'Colleges',
             'activeNav' => 'colleges',
-            'colleges'  => $this->collegeModel->getAdminGrid($tenantId),
+            'colleges'  => $paginated['items'],
+            'pagination' => $paginated['pagination'],
         ]));
     }
 

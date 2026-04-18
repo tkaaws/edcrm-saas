@@ -70,6 +70,8 @@
         </div>
     </div>
 
+    <?= $this->include('shared/pagination') ?>
+
     <?php if ($canCreateColleges): ?>
         <div class="action-modal" id="college-create-modal" hidden>
             <div class="action-modal__backdrop" data-modal-close></div>

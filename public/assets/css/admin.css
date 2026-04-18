@@ -2827,9 +2827,55 @@ select.shell-input,
         border-radius: 12px;
     }
 
-    .table-card {
-        padding: 10px;
-    }
+.table-card {
+    padding: 10px;
+}
+
+.pagination-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 2px 0;
+}
+
+.pagination-bar__summary {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.pagination-bar__per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-bar__per-page label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.pagination-bar__per-page select {
+    min-height: 30px;
+    padding: 4px 28px 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+}
+
+.pagination-bar__links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
 
     .module-title.module-title--small {
         font-size: 16px;

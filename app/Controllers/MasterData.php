@@ -68,6 +68,8 @@ class MasterData extends BaseController
             return strcmp((string) $left->label, (string) $right->label);
         });
 
+        $paginated = $this->paginateCollection($catalogValues);
+
         return view('master_data/index', $this->buildShellViewData([
             'title'            => 'Business Lookup Data',
             'pageTitle'        => 'Business Lookup Data',
@@ -79,7 +81,9 @@ class MasterData extends BaseController
             'platformValues'   => $platformValues,
             'tenantValues'     => $tenantValues,
             'overrideMap'      => $overrideMap,
-            'catalogValues'    => $catalogValues,
+            'allCatalogValues' => $catalogValues,
+            'catalogValues'    => $paginated['items'],
+            'pagination'       => $paginated['pagination'],
         ]));
     }
 

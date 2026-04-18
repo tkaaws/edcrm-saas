@@ -77,5 +77,7 @@
             </table>
         </div>
     </div>
+
+    <?= $this->include('shared/pagination') ?>
 </section>
 <?= $this->endSection() ?>

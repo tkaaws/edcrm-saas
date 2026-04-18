@@ -43,11 +43,14 @@ class Users extends BaseController
             $user->can_manage_target = $this->userAccessScope->canManageTargetUser($user);
         }
 
+        $paginated = $this->paginateCollection($users);
+
         return view('users/index', $this->buildShellViewData([
             'title'      => 'Users',
             'pageTitle'  => 'Users',
             'activeNav'  => 'users',
-            'users'      => $users,
+            'users'      => $paginated['items'],
+            'pagination' => $paginated['pagination'],
         ]));
     }
 

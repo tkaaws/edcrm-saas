@@ -20,12 +20,14 @@ class PlatformPlans extends BaseController
     public function index(): string
     {
         $plans = $this->planModel->orderBy('sort_order', 'ASC')->findAll();
+        $paginated = $this->paginateCollection($plans);
 
         return view('platform/plans/index', $this->buildShellViewData([
             'title'     => 'Plans',
             'pageTitle' => 'Billing Plans',
             'activeNav' => 'plans',
-            'plans'     => $plans,
+            'plans'     => $paginated['items'],
+            'pagination' => $paginated['pagination'],
         ]));
     }
 
