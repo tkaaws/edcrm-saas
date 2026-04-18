@@ -282,10 +282,12 @@ class Enquiries extends BaseController
         ];
 
         if ($this->canReassignInEdit($enquiry)) {
-            $newBranchId = $data['branch_id'] ?: null;
-            $newOwnerId = $data['owner_user_id'] ?: null;
+            $currentBranchId = (int) ($enquiry->branch_id ?? 0);
+            $currentOwnerId = (int) ($enquiry->owner_user_id ?? 0);
+            $newBranchId = $data['branch_id'] > 0 ? $data['branch_id'] : $currentBranchId;
+            $newOwnerId = $data['owner_user_id'] > 0 ? $data['owner_user_id'] : $currentOwnerId;
 
-            if ($newBranchId !== (int) ($enquiry->branch_id ?? 0) || $newOwnerId !== (int) ($enquiry->owner_user_id ?? 0)) {
+            if ($newBranchId !== $currentBranchId || $newOwnerId !== $currentOwnerId) {
                 $update['branch_id'] = $newBranchId;
                 $update['owner_user_id'] = $newOwnerId;
                 $update['assigned_on'] = date('Y-m-d H:i:s');
@@ -293,9 +295,9 @@ class Enquiries extends BaseController
                 $this->assignmentHistoryModel->insertWithActor([
                     'tenant_id'       => $tenantId,
                     'enquiry_id'      => (int) $enquiry->id,
-                    'from_branch_id'  => $enquiry->branch_id ?: null,
+                    'from_branch_id'  => $currentBranchId ?: null,
                     'to_branch_id'    => $newBranchId,
-                    'from_user_id'    => $enquiry->owner_user_id ?: null,
+                    'from_user_id'    => $currentOwnerId ?: null,
                     'to_user_id'      => $newOwnerId,
                     'assigned_by'     => session()->get('user_id') ?: null,
                     'assignment_type' => 'manual',
@@ -306,8 +308,8 @@ class Enquiries extends BaseController
                 $this->createSystemAssignmentFollowup(
                     $tenantId,
                     (int) $enquiry->id,
-                    $newBranchId ?: (int) ($enquiry->branch_id ?? 0),
-                    $newOwnerId ?: (int) ($enquiry->owner_user_id ?? 0),
+                    $newBranchId,
+                    $newOwnerId,
                     'Enquiry reassigned from edit enquiry.'
                 );
             }

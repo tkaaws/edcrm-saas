@@ -12,6 +12,25 @@ $useOldInput = (bool) ($useOldInput ?? true);
 $fieldValue = static function (string $key, mixed $default = '') use ($useOldInput) {
     return $useOldInput ? old($key, $default) : $default;
 };
+
+$selectedBranchId = (int) $fieldValue('branch_id', $formEnquiry->branch_id ?? 0);
+$selectedOwnerId = (int) $fieldValue('owner_user_id', $formEnquiry->owner_user_id ?? 0);
+
+$hasSelectedBranchOption = false;
+foreach ($assignableBranches as $branch) {
+    if ((int) $branch->id === $selectedBranchId) {
+        $hasSelectedBranchOption = true;
+        break;
+    }
+}
+
+$hasSelectedOwnerOption = false;
+foreach ($assignableUsers as $user) {
+    if ((int) $user->id === $selectedOwnerId) {
+        $hasSelectedOwnerOption = true;
+        break;
+    }
+}
 ?>
 <section class="form-card form-card--nested">
     <div class="form-section-header">
@@ -103,9 +122,13 @@ $fieldValue = static function (string $key, mixed $default = '') use ($useOldInp
         <div class="form-grid">
             <label class="field">
                 <span>Branch</span>
-                <?php $selectedBranchId = (int) $fieldValue('branch_id', $formEnquiry->branch_id ?? 0); ?>
                 <select name="branch_id" data-branch-select data-user-target="owner_user_id_<?= esc((string) ($formEnquiry->id ?? 'create')) ?>">
                     <option value="">Keep current branch</option>
+                    <?php if ($selectedBranchId > 0 && ! $hasSelectedBranchOption): ?>
+                        <option value="<?= esc((string) $selectedBranchId) ?>" selected>
+                            <?= esc($formEnquiry->branch_name ?? $formEnquiry->branch_display ?? ('Current branch #' . $selectedBranchId)) ?>
+                        </option>
+                    <?php endif; ?>
                     <?php foreach ($assignableBranches as $branch): ?>
                         <option value="<?= (int) $branch->id ?>" <?= $selectedBranchId === (int) $branch->id ? 'selected' : '' ?>><?= esc($branch->name) ?></option>
                     <?php endforeach; ?>
@@ -113,10 +136,14 @@ $fieldValue = static function (string $key, mixed $default = '') use ($useOldInp
             </label>
             <label class="field">
                 <span>Assigned to</span>
-                <?php $selectedOwnerId = (int) $fieldValue('owner_user_id', $formEnquiry->owner_user_id ?? 0); ?>
                 <?php $selectedBranchText = $selectedBranchId > 0 ? 'Keep current owner' : 'Choose branch first'; ?>
                 <select name="owner_user_id" id="owner_user_id_<?= esc((string) ($formEnquiry->id ?? 'create')) ?>" data-branch-user-select data-selected-user="<?= esc((string) $selectedOwnerId) ?>" <?= $selectedBranchId > 0 ? '' : 'disabled' ?>>
                     <option value=""><?= esc($selectedBranchText) ?></option>
+                    <?php if ($selectedOwnerId > 0 && ! $hasSelectedOwnerOption): ?>
+                        <option value="<?= esc((string) $selectedOwnerId) ?>" selected>
+                            <?= esc($formEnquiry->owner_name ?? $formEnquiry->owner_display ?? ('Current owner #' . $selectedOwnerId)) ?>
+                        </option>
+                    <?php endif; ?>
                     <?php foreach ($assignableUsers as $user): ?>
                         <option value="<?= (int) $user->id ?>" data-branch-ids="<?= esc(implode(',', $assignableUsersByBranch[(int) $user->id] ?? [])) ?>" <?= $selectedOwnerId === (int) $user->id ? 'selected' : '' ?>>
                             <?= esc(trim($user->first_name . ' ' . $user->last_name) ?: $user->email) ?>
