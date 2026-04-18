@@ -221,52 +221,12 @@
 
             <form class="form-stack" method="post" action="<?= site_url('enquiries/' . $enquiry->id) ?>">
                 <?= csrf_field() ?>
-                <input type="hidden" name="branch_id" value="<?= esc((string) ($enquiry->branch_id ?? '')) ?>">
-                <input type="hidden" name="owner_user_id" value="<?= esc((string) ($enquiry->owner_user_id ?? '')) ?>">
-                <div class="form-grid">
-                    <label class="field">
-                        <span>Student name</span>
-                        <input type="text" name="student_name" value="<?= esc($enquiry->student_name ?? '') ?>" required>
-                    </label>
-                    <label class="field">
-                        <span>Enquiry source</span>
-                        <select name="source_id" required>
-                            <option value="">Select source</option>
-                            <?php $selectedSourceId = (int) ($enquiry->source_id ?? 0); ?>
-                            <?php foreach ($sources as $row): ?>
-                                <option value="<?= (int) $row->id ?>" <?= $selectedSourceId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>Course</span>
-                        <select name="primary_course_id" required>
-                            <option value="">Select course</option>
-                            <?php $selectedCourseId = (int) ($enquiry->primary_course_id ?? 0); ?>
-                            <?php foreach ($courses as $row): ?>
-                                <option value="<?= (int) $row->id ?>" <?= $selectedCourseId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>Lead stage</span>
-                        <select name="qualification_id">
-                            <option value="">Select stage</option>
-                            <?php $selectedQualificationId = (int) ($enquiry->qualification_id ?? 0); ?>
-                            <?php foreach ($qualifications as $row): ?>
-                                <option value="<?= (int) $row->id ?>" <?= $selectedQualificationId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </label>
-                    <label class="field">
-                        <span>Next follow-up</span>
-                        <input type="datetime-local" name="next_followup_at" value="<?= esc($enquiry->next_followup_at ? date('Y-m-d\TH:i', strtotime($enquiry->next_followup_at)) : '') ?>">
-                    </label>
-                    <label class="field field--full">
-                        <span>Remarks</span>
-                        <textarea name="notes" rows="4"><?= esc($enquiry->notes ?? '') ?></textarea>
-                    </label>
-                </div>
+                <?php
+                $formEnquiry = $enquiry;
+                $showAssignmentSection = $canEditEnquiry && service('permissions')->has('enquiries.reassign_in_edit') && in_array($enquiry->lifecycle_status, ['new', 'active'], true);
+                $useOldInput = false;
+                ?>
+                <?= $this->include('enquiries/_form_sections') ?>
                 <div class="form-actions">
                     <button class="shell-button shell-button--ghost" type="button" data-modal-close>Cancel</button>
                     <button class="shell-button shell-button--primary" type="submit">Save enquiry</button>
