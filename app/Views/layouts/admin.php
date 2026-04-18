@@ -98,8 +98,8 @@
             </section>
         </aside>
 
-        <div class="shell-main" style="display:grid;grid-auto-rows:min-content;align-content:start;padding:4px 10px 10px;gap:3px;">
-            <header class="shell-header" style="padding:0 2px;min-height:0;height:auto;display:flex;justify-content:space-between;align-items:center;gap:8px 12px;">
+        <div class="shell-main">
+            <header class="shell-header">
                 <div class="shell-header__main">
                     <button class="shell-button shell-button--ghost shell-menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">Menu</button>
                     <div>
@@ -187,7 +187,7 @@
                 </div>
             <?php endif; ?>
 
-            <main class="shell-content" style="display:grid;grid-auto-rows:min-content;align-content:start;gap:4px;">
+            <main class="shell-content">
                 <?= $this->renderSection('content') ?>
             </main>
         </div>

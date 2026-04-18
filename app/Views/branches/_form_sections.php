@@ -43,10 +43,6 @@ $fieldValue = static function (string $key, mixed $default = '') use ($useOldInp
             </select>
         </label>
 
-        <label class="field field--full">
-            <span>Address line 1</span>
-            <input type="text" name="address_line_1" value="<?= esc($fieldValue('address_line_1', $formBranch->address_line_1 ?? '')) ?>">
-        </label>
     </div>
 </section>
 

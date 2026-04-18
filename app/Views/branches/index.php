@@ -69,7 +69,6 @@
                                             data-city="<?= esc($editBranch->city ?? '', 'attr') ?>"
                                             data-type="<?= esc($editBranch->type ?? '', 'attr') ?>"
                                             data-status="<?= esc($editBranch->status ?? 'active', 'attr') ?>"
-                                            data-address-line-1="<?= esc($editBranch->address_line_1 ?? '', 'attr') ?>"
                                             data-state-code="<?= esc($editBranch->state_code ?? '', 'attr') ?>"
                                             data-timezone="<?= esc($editBranch->timezone ?? '', 'attr') ?>"
                                             data-currency-code="<?= esc($editBranch->currency_code ?? '', 'attr') ?>"
@@ -165,7 +164,6 @@
             fillField(modal, 'city', button.getAttribute('data-city'));
             fillField(modal, 'type', button.getAttribute('data-type'));
             fillField(modal, 'status', button.getAttribute('data-status'));
-            fillField(modal, 'address_line_1', button.getAttribute('data-address-line-1'));
             fillField(modal, 'state_code', button.getAttribute('data-state-code'));
             fillField(modal, 'timezone', button.getAttribute('data-timezone'));
             fillField(modal, 'currency_code', button.getAttribute('data-currency-code'));
