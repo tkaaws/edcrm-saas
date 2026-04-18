@@ -108,8 +108,18 @@ class Enquiries extends BaseController
             return redirect()->back()->withInput()->with('error', implode(' ', $errors));
         }
 
-        $branchId = $data['branch_id'] ?: ((int) session()->get('branch_id') ?: null);
-        $ownerUserId = $data['owner_user_id'] ?: ((int) session()->get('user_id') ?: null);
+        $branchId = $data['branch_id'] ?: $this->resolveDefaultCreateBranchId();
+        $ownerUserId = $data['owner_user_id'] ?: $this->currentActorUserId();
+
+        if ($ownerUserId && ! $branchId) {
+            $ownerBranches = $this->userModel->getBranches($ownerUserId);
+            $branchId = isset($ownerBranches[0]['id']) ? (int) $ownerBranches[0]['id'] : null;
+        }
+
+        if (! $ownerUserId || ! $branchId) {
+            return redirect()->back()->withInput()->with('error', 'We could not determine the default owner and branch for this enquiry. Please refresh and try again.');
+        }
+
         $hasInitialFollowup = $this->hasInitialFollowup($data);
         $initialFollowupAt = $hasInitialFollowup ? date('Y-m-d H:i:s') : null;
 
@@ -990,6 +1000,23 @@ class Enquiries extends BaseController
     {
         $branchId = session()->get('branch_id');
         return $branchId ? (int) $branchId : null;
+    }
+
+    protected function currentActorUserId(): ?int
+    {
+        $userId = session()->get('user_id');
+        return $userId ? (int) $userId : null;
+    }
+
+    protected function resolveDefaultCreateBranchId(): ?int
+    {
+        $branchId = $this->currentBranchContextId();
+        if ($branchId) {
+            return $branchId;
+        }
+
+        $branchIds = $this->userAccessScope->getAssignedBranchIdsForActor();
+        return $branchIds[0] ?? null;
     }
 
     protected function formatMobile(string $mobile): string
