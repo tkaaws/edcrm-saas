@@ -22,8 +22,8 @@
                     <tr>
                         <th>Branch</th>
                         <th>Branch code</th>
-                        <th>City</th>
                         <th>Timezone</th>
+                        <th>City</th>
                         <th>Currency</th>
                         <th>Status</th>
                         <th class="data-table__actions">Quick actions</th>
@@ -45,8 +45,8 @@
                                 </div>
                             </td>
                             <td data-label="Branch code"><?= esc($branch->code) ?></td>
-                            <td data-label="City"><?= esc($branch->city ?: 'Not set') ?></td>
                             <td data-label="Timezone"><?= esc($branch->timezone ?: 'Company default') ?></td>
+                            <td data-label="City"><?= esc($branch->city ?: 'Not set') ?></td>
                             <td data-label="Currency"><?= esc($branch->currency_code ?: 'Company default') ?></td>
                             <td data-label="Status">
                                 <span class="status-badge <?= $branch->status === 'active' ? 'status-badge--good' : 'status-badge--neutral' ?>">
