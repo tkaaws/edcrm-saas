@@ -12,7 +12,7 @@ use App\Models\UserModel;
 use App\Services\DelegationGuardService;
 use App\Services\EnquiryQueueService;
 use App\Services\UserAccessScopeService;
-use CodeIgniter\Exceptions\PageNotFoundException;
+use CodeIgniter\HTTP\RedirectResponse;
 
 class Enquiries extends BaseController
 {
@@ -70,17 +70,20 @@ class Enquiries extends BaseController
             $row->mobile_display = $this->formatMobile((string) $row->mobile);
         }
 
+        $paginated = $this->paginateCollection($rows);
+
         return view('enquiries/bulk_assign', $this->buildShellViewData([
             'title' => 'Bulk Assign Enquiries',
             'pageTitle' => 'Bulk Assign Enquiries',
             'activeNav' => 'enquiries',
-            'rows' => $rows,
+            'rows' => $paginated['items'],
             'filters' => $filters,
             'sources' => service('masterData')->getEffectiveValues('enquiry_source', $tenantId),
             'courses' => service('masterData')->getEffectiveValues('course', $tenantId),
             'assignableBranches' => $this->getAssignableBranches(),
             'assignableUsers' => $this->getAssignableUsers($tenantId),
             'assignableUsersByBranch' => $this->getAssignableUsersByBranch($tenantId),
+            'pagination' => $paginated['pagination'],
         ]));
     }
 
@@ -171,12 +174,12 @@ class Enquiries extends BaseController
         return redirect()->to('/enquiries/' . (int) $enquiryId)->with('message', 'Enquiry created successfully.');
     }
 
-    public function show(int $id): string
+    public function show(int $id): string|RedirectResponse
     {
         $tenantId = (int) session()->get('tenant_id');
         $enquiry = $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId());
         if (! $enquiry) {
-            throw PageNotFoundException::forPageNotFound();
+            return redirect()->to('/enquiries')->with('error', 'That enquiry is no longer available in your current view.');
         }
 
         $this->decorateEnquiryRow($enquiry);
@@ -217,12 +220,12 @@ class Enquiries extends BaseController
         ]));
     }
 
-    public function edit(int $id): string
+    public function edit(int $id): string|RedirectResponse
     {
         $tenantId = (int) session()->get('tenant_id');
         $enquiry = $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId());
         if (! $enquiry) {
-            throw PageNotFoundException::forPageNotFound();
+            return redirect()->to('/enquiries')->with('error', 'That enquiry is no longer available in your current view.');
         }
 
         return view('enquiries/form', $this->buildFormViewData([
@@ -757,11 +760,13 @@ class Enquiries extends BaseController
             }
         }
 
+        $paginated = $this->paginateCollection($rows);
+
         return view('enquiries/index', $this->buildShellViewData([
             'title' => 'Enquiries',
             'pageTitle' => $tab === 'expired' ? 'Expired Enquiries' : ($tab === 'closed' ? 'Closed Enquiries' : 'Enquiries'),
             'activeNav' => 'enquiries',
-            'rows' => $rows,
+            'rows' => $paginated['items'],
             'currentTab' => $tab,
             'sources' => service('masterData')->getEffectiveValues('enquiry_source', $tenantId),
             'qualifications' => service('masterData')->getEffectiveValues('lead_qualification', $tenantId),
@@ -771,6 +776,7 @@ class Enquiries extends BaseController
             'assignableUsers' => $this->getAssignableUsers($tenantId),
             'assignableUsersByBranch' => $this->getAssignableUsersByBranch($tenantId),
             'editableRowsById' => $editableRowsById,
+            'pagination' => $paginated['pagination'],
         ]));
     }
 
