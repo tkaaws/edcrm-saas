@@ -230,6 +230,10 @@ class Enquiries extends BaseController
             'canDeleteFollowups' => $canDeleteFollowups,
             'canViewHistory' => service('permissions')->has('enquiries.activity_view'),
             'historyEvents' => service('permissions')->has('enquiries.activity_view') ? $this->getAuditHistory((int) $enquiry->id) : [],
+            'canConvertToAdmission' => service('featureGate')->isEnabled($tenantId, 'admissions')
+                && service('permissions')->has('enquiries.convert_to_admission')
+                && service('permissions')->has('admissions.create')
+                && in_array($enquiry->lifecycle_status, ['new', 'active'], true),
         ]));
     }
 

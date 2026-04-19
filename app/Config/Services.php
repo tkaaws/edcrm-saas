@@ -20,6 +20,8 @@ use App\Services\ImpersonationService;
 use App\Services\MasterDataService;
 use App\Services\CollegeService;
 use App\Services\EnquiryQueueService;
+use App\Services\AdmissionQueueService;
+use App\Services\AdmissionService;
 
 /**
  * Services Configuration
@@ -205,5 +207,21 @@ class Services extends BaseService
             return static::getSharedInstance('enquiryQueue');
         }
         return new EnquiryQueueService();
+    }
+
+    public static function admissionQueue(bool $getShared = true): AdmissionQueueService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('admissionQueue');
+        }
+        return new AdmissionQueueService();
+    }
+
+    public static function admissionService(bool $getShared = true): AdmissionService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('admissionService');
+        }
+        return new AdmissionService();
     }
 }

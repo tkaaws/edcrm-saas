@@ -56,6 +56,9 @@
                     <?php if ($canEditEnquiry): ?>
                         <button class="shell-button shell-button--primary enquiry-action-stack__button" type="button" data-modal-open="edit-enquiry-modal">Edit enquiry</button>
                     <?php endif; ?>
+                    <?php if (! empty($canConvertToAdmission)): ?>
+                        <a class="shell-button shell-button--ghost enquiry-action-stack__button" href="<?= site_url('admissions/create?enquiry_id=' . $enquiry->id) ?>">Convert to admission</a>
+                    <?php endif; ?>
                     <?php if ($canEditContactInfo): ?>
                         <button class="shell-button shell-button--ghost enquiry-action-stack__button" type="button" data-modal-open="contact-info-modal">Change contact info</button>
                     <?php endif; ?>

@@ -102,7 +102,10 @@ $routes->group('enquiries', ['filter' => ['auth', 'tenant', 'suspension', 'featu
 });
 
 $routes->group('admissions', ['filter' => ['auth', 'tenant', 'suspension', 'feature:admissions']], static function (RouteCollection $routes): void {
-    $routes->get('/', 'Admissions::index');
+    $routes->get('/', 'Admissions::index', ['filter' => 'privilege:admissions.view,fees.view']);
+    $routes->get('create', 'Admissions::create', ['filter' => 'privilege:admissions.create']);
+    $routes->post('/', 'Admissions::store', ['filter' => 'privilege:admissions.create']);
+    $routes->get('(:num)', 'Admissions::show/$1', ['filter' => 'privilege:admissions.view,fees.view']);
 });
 
 $routes->group('batches', ['filter' => ['auth', 'tenant', 'suspension', 'feature:batch_management']], static function (RouteCollection $routes): void {
