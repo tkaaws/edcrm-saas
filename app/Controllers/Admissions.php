@@ -62,6 +62,10 @@ class Admissions extends BaseController
 
     public function index(): string
     {
+        if ($response = $this->ensureAdmissionsSchemaReady()) {
+            return $response;
+        }
+
         $tenantId = (int) session()->get('tenant_id');
         $queue = (string) ($this->request->getGet('queue') ?: 'admissions');
         $rows = $this->queueService->getRows($tenantId, $queue, $this->currentBranchContextId());
@@ -80,6 +84,10 @@ class Admissions extends BaseController
 
     public function create(): string|RedirectResponse
     {
+        if ($response = $this->ensureAdmissionsSchemaReady('/enquiries')) {
+            return $response;
+        }
+
         $tenantId = (int) session()->get('tenant_id');
         $sourceEnquiry = $this->resolveSourceEnquiry($tenantId);
 
@@ -101,6 +109,10 @@ class Admissions extends BaseController
 
     public function store(): RedirectResponse
     {
+        if ($response = $this->ensureAdmissionsSchemaReady('/enquiries')) {
+            return $response;
+        }
+
         $tenantId = (int) session()->get('tenant_id');
         $sourceEnquiry = $this->resolveSourceEnquiry($tenantId);
         $payload = $this->collectPayload($sourceEnquiry);
@@ -116,6 +128,10 @@ class Admissions extends BaseController
 
     public function show(int $id): string|RedirectResponse
     {
+        if ($response = $this->ensureAdmissionsSchemaReady()) {
+            return $response;
+        }
+
         $tenantId = (int) session()->get('tenant_id');
         $admission = $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId());
         if (! $admission) {
@@ -361,5 +377,26 @@ class Admissions extends BaseController
 
         $branchIds = $this->userAccessScope->getAssignedBranchIdsForActor();
         return $branchIds[0] ?? null;
+    }
+
+    protected function ensureAdmissionsSchemaReady(string $fallbackPath = '/admissions'): ?RedirectResponse
+    {
+        $requiredTables = [
+            'admissions',
+            'admission_fee_snapshots',
+            'admission_installments',
+            'admission_payments',
+        ];
+
+        foreach ($requiredTables as $table) {
+            if (! db_connect()->tableExists($table)) {
+                return redirect()->to($fallbackPath)->with(
+                    'error',
+                    'Admissions setup is not finished on this server yet. Please run the latest database migrations first.'
+                );
+            }
+        }
+
+        return null;
     }
 }
