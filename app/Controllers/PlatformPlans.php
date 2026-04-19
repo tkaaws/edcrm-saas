@@ -2,10 +2,13 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\PlanModel;
 
 class PlatformPlans extends BaseController
 {
+    use PaginatesCollections;
+
     protected PlanModel $planModel;
 
     public function __construct()

@@ -2,12 +2,15 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\PrivilegeModel;
 use App\Models\RoleModel;
 use App\Services\DelegationGuardService;
 
 class Roles extends BaseController
 {
+    use PaginatesCollections;
+
     protected RoleModel $roleModel;
     protected PrivilegeModel $privilegeModel;
     protected DelegationGuardService $delegationGuard;

@@ -2,12 +2,15 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\MasterDataTypeModel;
 use App\Models\MasterDataValueModel;
 use App\Models\TenantMasterDataOverrideModel;
 
 class MasterData extends BaseController
 {
+    use PaginatesCollections;
+
     protected MasterDataTypeModel $typeModel;
     protected MasterDataValueModel $valueModel;
     protected TenantMasterDataOverrideModel $overrideModel;

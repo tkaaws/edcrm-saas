@@ -2,12 +2,15 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\PlanModel;
 use App\Models\SubscriptionModel;
 use App\Models\TenantModel;
 
 class PlatformSubscriptions extends BaseController
 {
+    use PaginatesCollections;
+
     protected SubscriptionModel $subscriptionModel;
     protected TenantModel $tenantModel;
     protected PlanModel $planModel;

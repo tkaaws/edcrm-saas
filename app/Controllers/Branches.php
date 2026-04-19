@@ -2,12 +2,15 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\BranchModel;
 use App\Models\TenantModel;
 use App\Support\RegionalOptions;
 
 class Branches extends BaseController
 {
+    use PaginatesCollections;
+
     protected BranchModel $branchModel;
     protected TenantModel $tenantModel;
 

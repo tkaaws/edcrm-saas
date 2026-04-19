@@ -2,10 +2,13 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\CollegeModel;
 
 class Colleges extends BaseController
 {
+    use PaginatesCollections;
+
     protected CollegeModel $collegeModel;
 
     public function __construct()

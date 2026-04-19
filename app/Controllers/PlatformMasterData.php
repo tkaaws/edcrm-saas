@@ -2,11 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\MasterDataTypeModel;
 use App\Models\MasterDataValueModel;
 
 class PlatformMasterData extends BaseController
 {
+    use PaginatesCollections;
+
     protected MasterDataTypeModel $typeModel;
     protected MasterDataValueModel $valueModel;
 

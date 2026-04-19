@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\BranchModel;
 use App\Models\CollegeModel;
 use App\Models\EnquiryAssignmentHistoryModel;
@@ -16,6 +17,8 @@ use CodeIgniter\HTTP\RedirectResponse;
 
 class Enquiries extends BaseController
 {
+    use PaginatesCollections;
+
     protected EnquiryModel $enquiryModel;
     protected BranchModel $branchModel;
     protected UserModel $userModel;

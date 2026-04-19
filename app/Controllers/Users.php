@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\BranchModel;
 use App\Models\RoleModel;
 use App\Models\UserModel;
@@ -12,6 +13,8 @@ use App\Services\UserAccessScopeService;
 
 class Users extends BaseController
 {
+    use PaginatesCollections;
+
     protected UserModel $userModel;
     protected RoleModel $roleModel;
     protected BranchModel $branchModel;

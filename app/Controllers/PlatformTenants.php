@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Controllers\Concerns\PaginatesCollections;
 use App\Models\PlanModel;
 use App\Models\TenantModel;
 use App\Models\UserModel;
@@ -9,6 +10,8 @@ use App\Support\RegionalOptions;
 
 class PlatformTenants extends BaseController
 {
+    use PaginatesCollections;
+
     protected TenantModel $tenantModel;
     protected UserModel $userModel;
     protected PlanModel $planModel;
