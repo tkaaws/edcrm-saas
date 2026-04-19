@@ -2,6 +2,8 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
+    <?= $this->include('admissions/_subnav') ?>
+
     <div class="module-toolbar">
         <div>
             <p class="module-subtitle">Convert an enquiry into an admission, capture the first payment, and generate the remaining schedule in one clean flow.</p>

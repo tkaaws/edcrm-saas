@@ -11,6 +11,8 @@ use App\Models\AdmissionPaymentModel;
 use App\Models\AdmissionStatusLogModel;
 use App\Models\EnquiryModel;
 use App\Models\EnquiryStatusLogModel;
+use App\Models\FeeStructureItemModel;
+use App\Models\FeeStructureModel;
 use RuntimeException;
 
 class AdmissionService
@@ -24,6 +26,8 @@ class AdmissionService
     protected AdmissionInstallmentModel $installmentModel;
     protected EnquiryModel $enquiryModel;
     protected EnquiryStatusLogModel $enquiryStatusLogModel;
+    protected FeeStructureModel $feeStructureModel;
+    protected FeeStructureItemModel $feeStructureItemModel;
     protected \CodeIgniter\Database\BaseConnection $db;
 
     public function __construct()
@@ -37,6 +41,8 @@ class AdmissionService
         $this->installmentModel = new AdmissionInstallmentModel();
         $this->enquiryModel = new EnquiryModel();
         $this->enquiryStatusLogModel = new EnquiryStatusLogModel();
+        $this->feeStructureModel = new FeeStructureModel();
+        $this->feeStructureItemModel = new FeeStructureItemModel();
         $this->db = db_connect();
     }
 
@@ -51,7 +57,22 @@ class AdmissionService
             throw new RuntimeException('This enquiry has already been converted into an admission.');
         }
 
-        $netAmount = $this->normalizeMoney((float) $payload['gross_amount'] - (float) $payload['discount_amount']);
+        $feeStructure = $this->feeStructureModel->findForTenant($tenantId, (int) $payload['fee_structure_id']);
+        if (! $feeStructure || $feeStructure->status !== 'active') {
+            throw new RuntimeException('Choose an active fee structure for the selected course.');
+        }
+
+        if ((int) $feeStructure->course_id !== (int) $payload['course_id']) {
+            throw new RuntimeException('Fee structure must match the selected course.');
+        }
+
+        $feeItems = $this->feeStructureItemModel->getForStructure((int) $feeStructure->id);
+        if ($feeItems === []) {
+            throw new RuntimeException('The selected fee structure does not have any fee heads yet.');
+        }
+
+        $grossAmount = $this->normalizeMoney((float) $feeStructure->total_amount);
+        $netAmount = $this->normalizeMoney($grossAmount - (float) $payload['discount_amount']);
         $initialPaymentAmount = min($this->normalizeMoney((float) $payload['initial_payment_amount']), $netAmount);
         $balanceAmount = $this->normalizeMoney($netAmount - $initialPaymentAmount);
 
@@ -88,24 +109,27 @@ class AdmissionService
         $snapshotId = (int) $this->feeSnapshotModel->insertWithActor([
             'tenant_id'       => $tenantId,
             'admission_id'    => $admissionId,
-            'fee_plan_label'  => (string) $payload['fee_plan_label'],
-            'gross_amount'    => $this->normalizeMoney((float) $payload['gross_amount']),
+            'fee_structure_id'=> (int) $feeStructure->id,
+            'fee_plan_label'  => (string) $feeStructure->name,
+            'gross_amount'    => $grossAmount,
             'discount_amount' => $this->normalizeMoney((float) $payload['discount_amount']),
             'net_amount'      => $netAmount,
             'paid_amount'     => $initialPaymentAmount,
             'balance_amount'  => $balanceAmount,
         ]);
 
-        $this->feeSnapshotItemModel->insertWithActor([
-            'tenant_id'        => $tenantId,
-            'admission_id'     => $admissionId,
-            'snapshot_id'      => $snapshotId,
-            'fee_head_name'    => $payload['fee_item_label'] ?: 'Course Fees',
-            'fee_head_code'    => 'course_fees',
-            'amount'           => $netAmount,
-            'allow_discount'   => 1,
-            'display_order'    => 1,
-        ]);
+        foreach ($feeItems as $item) {
+            $this->feeSnapshotItemModel->insertWithActor([
+                'tenant_id'        => $tenantId,
+                'admission_id'     => $admissionId,
+                'snapshot_id'      => $snapshotId,
+                'fee_head_name'    => $item->fee_head_name,
+                'fee_head_code'    => $item->fee_head_code,
+                'amount'           => (float) $item->amount,
+                'allow_discount'   => (int) ($item->allow_discount ?? 0),
+                'display_order'    => (int) ($item->display_order ?? 0),
+            ]);
+        }
 
         $installmentIds = [];
         if ($balanceAmount > 0) {

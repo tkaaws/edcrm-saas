@@ -2,6 +2,8 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
+    <?= $this->include('admissions/_subnav') ?>
+
     <div class="module-toolbar module-toolbar--compact">
         <div class="module-toolbar__copy">
             <p class="module-subtitle">Keep student identity, payments, installments, and batch readiness connected in one admissions desk.</p>
@@ -56,6 +58,10 @@
                 <div class="summary-card">
                     <span>Total fees</span>
                     <strong><?= esc(number_format((float) $admission->net_amount, 2)) ?></strong>
+                </div>
+                <div class="summary-card">
+                    <span>Fee plan</span>
+                    <strong><?= esc($admission->fee_plan_label ?: '-') ?></strong>
                 </div>
                 <div class="summary-card">
                     <span>Paid</span>

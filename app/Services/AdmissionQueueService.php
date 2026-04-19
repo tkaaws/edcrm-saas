@@ -81,6 +81,8 @@ class AdmissionQueueService
             "TRIM(CONCAT(COALESCE(assigned_user.first_name, ''), ' ', COALESCE(assigned_user.last_name, ''))) AS assigned_user_name",
             "TRIM(CONCAT(COALESCE(created_user.first_name, ''), ' ', COALESCE(created_user.last_name, ''))) AS created_by_name",
             "TRIM(CONCAT(COALESCE(updated_user.first_name, ''), ' ', COALESCE(updated_user.last_name, ''))) AS updated_by_name",
+            'snapshot.fee_plan_label',
+            'snapshot.fee_structure_id',
             'snapshot.gross_amount',
             'snapshot.discount_amount',
             'snapshot.net_amount',

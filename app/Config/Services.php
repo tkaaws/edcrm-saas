@@ -22,6 +22,7 @@ use App\Services\CollegeService;
 use App\Services\EnquiryQueueService;
 use App\Services\AdmissionQueueService;
 use App\Services\AdmissionService;
+use App\Services\FeeStructureService;
 
 /**
  * Services Configuration
@@ -223,5 +224,13 @@ class Services extends BaseService
             return static::getSharedInstance('admissionService');
         }
         return new AdmissionService();
+    }
+
+    public static function feeStructure(bool $getShared = true): FeeStructureService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('feeStructure');
+        }
+        return new FeeStructureService();
     }
 }

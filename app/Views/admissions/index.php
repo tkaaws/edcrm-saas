@@ -14,6 +14,8 @@ $queues = [
 ];
 ?>
 <section class="module-page">
+    <?= $this->include('admissions/_subnav') ?>
+
     <div class="module-toolbar module-toolbar--compact">
         <div class="module-toolbar__copy">
             <p class="module-subtitle">Work admissions, fee balances, and batch readiness from one compact workspace.</p>

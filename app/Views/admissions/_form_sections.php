@@ -8,6 +8,7 @@ $assignableUsers = $assignableUsers ?? [];
 $assignableUsersByBranch = $assignableUsersByBranch ?? [];
 $modeOfClassOptions = $modeOfClassOptions ?? [];
 $paymentModeOptions = $paymentModeOptions ?? [];
+$feeStructureOptionsUrl = $feeStructureOptionsUrl ?? site_url('admissions/fee-structures/options');
 $useOldInput = (bool) ($useOldInput ?? true);
 $fieldValue = static function (string $key, mixed $default = '') use ($useOldInput) {
     return $useOldInput ? old($key, $default) : $default;
@@ -15,6 +16,8 @@ $fieldValue = static function (string $key, mixed $default = '') use ($useOldInp
 
 $selectedBranchId = (int) $fieldValue('branch_id', $formAdmission->branch_id ?? ($sourceEnquiry->branch_id ?? 0));
 $selectedAssigneeId = (int) $fieldValue('assigned_user_id', $formAdmission->assigned_user_id ?? ($sourceEnquiry->owner_user_id ?? 0));
+$selectedCourseId = (int) $fieldValue('course_id', $formAdmission->course_id ?? ($sourceEnquiry->primary_course_id ?? 0));
+$selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
 ?>
 
 <?php if ($sourceEnquiry): ?>
@@ -33,7 +36,7 @@ $selectedAssigneeId = (int) $fieldValue('assigned_user_id', $formAdmission->assi
             <div class="summary-card">
                 <span>Lead status</span>
                 <strong><?= esc($sourceEnquiry->display_status ?? ucfirst((string) ($sourceEnquiry->lifecycle_status ?? 'active'))) ?></strong>
-                <small>We’ll mark this enquiry as admitted once the admission is created.</small>
+                <small>We'll mark this enquiry as admitted once the admission is created.</small>
             </div>
         </div>
         <input type="hidden" name="enquiry_id" value="<?= (int) $sourceEnquiry->id ?>">
@@ -77,9 +80,8 @@ $selectedAssigneeId = (int) $fieldValue('assigned_user_id', $formAdmission->assi
         </label>
         <label class="field">
             <span>Course</span>
-            <select name="course_id" required>
+            <select name="course_id" data-fee-course-select data-fee-source-url="<?= esc($feeStructureOptionsUrl) ?>" required>
                 <option value="">Select course</option>
-                <?php $selectedCourseId = (int) $fieldValue('course_id', $formAdmission->course_id ?? ($sourceEnquiry->primary_course_id ?? 0)); ?>
                 <?php foreach ($courses as $row): ?>
                     <option value="<?= (int) $row->id ?>" <?= $selectedCourseId === (int) $row->id ? 'selected' : '' ?>><?= esc($row->label) ?></option>
                 <?php endforeach; ?>
@@ -133,26 +135,49 @@ $selectedAssigneeId = (int) $fieldValue('assigned_user_id', $formAdmission->assi
 <section class="form-card form-card--nested">
     <div class="form-section-header">
         <h3 class="module-title module-title--small">Fee snapshot</h3>
-        <p class="module-subtitle">Freeze the commercial plan that applies to this student today.</p>
+        <p class="module-subtitle">Choose the course-wise fee structure and let admissions load the plan details automatically.</p>
     </div>
 
     <div class="form-grid">
         <label class="field">
-            <span>Fee plan label</span>
-            <input type="text" name="fee_plan_label" value="<?= esc($fieldValue('fee_plan_label', 'Standard admission plan')) ?>" required>
-        </label>
-        <label class="field">
-            <span>Fee head label</span>
-            <input type="text" name="fee_item_label" value="<?= esc($fieldValue('fee_item_label', 'Course Fees')) ?>">
+            <span>Fee structure</span>
+            <select name="fee_structure_id" data-fee-structure-select data-selected-structure="<?= esc((string) $selectedFeeStructureId) ?>" <?= $selectedCourseId > 0 ? '' : 'disabled' ?> required>
+                <option value=""><?= $selectedCourseId > 0 ? 'Select fee structure' : 'Choose course first' ?></option>
+            </select>
         </label>
         <label class="field">
             <span>Gross fees</span>
-            <input type="number" step="0.01" min="0" name="gross_amount" value="<?= esc($fieldValue('gross_amount', '0')) ?>" required>
+            <input type="text" data-fee-gross-display value="0.00" readonly>
         </label>
         <label class="field">
             <span>Discount</span>
             <input type="number" step="0.01" min="0" name="discount_amount" value="<?= esc($fieldValue('discount_amount', '0')) ?>">
         </label>
+        <label class="field">
+            <span>Recommended installments</span>
+            <input type="text" data-fee-installment-display value="-" readonly>
+        </label>
+        <div class="field field--full">
+            <span>Fee heads in this structure</span>
+            <div class="table-card table-card--plain">
+                <div class="table-wrap">
+                    <table class="data-table" data-fee-items-preview>
+                        <thead>
+                            <tr>
+                                <th>Fee head</th>
+                                <th>Amount</th>
+                                <th>Discount allowed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-fee-preview-empty>
+                                <td colspan="3" class="empty-state">Choose a course and fee structure to preview the fee heads.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -208,48 +233,147 @@ $selectedAssigneeId = (int) $fieldValue('assigned_user_id', $formAdmission->assi
 (() => {
     const branchSelect = document.querySelector('[data-branch-select]');
     const userSelect = document.querySelector('[data-branch-user-select]');
-    if (!branchSelect || !userSelect) {
-        return;
+    if (branchSelect && userSelect) {
+        const updateOptions = () => {
+            const selectedBranch = branchSelect.value;
+            const selectedUser = userSelect.getAttribute('data-selected-user') || userSelect.value;
+            const firstOption = userSelect.options[0] || null;
+            let hasSelectedUser = false;
+
+            userSelect.disabled = selectedBranch === '';
+            if (firstOption) {
+                firstOption.textContent = selectedBranch === '' ? 'Choose branch first' : 'Select team member';
+            }
+
+            Array.from(userSelect.options).forEach((option, index) => {
+                if (index === 0) {
+                    option.hidden = false;
+                    return;
+                }
+
+                const branchIds = (option.dataset.branchIds || '').split(',').filter(Boolean);
+                const visible = selectedBranch !== '' && branchIds.includes(selectedBranch);
+                option.hidden = !visible;
+
+                if (visible && option.value === selectedUser) {
+                    hasSelectedUser = true;
+                }
+
+                if (!visible && option.selected) {
+                    option.selected = false;
+                }
+            });
+
+            if (selectedBranch !== '' && hasSelectedUser) {
+                userSelect.value = selectedUser;
+            } else if (selectedBranch === '') {
+                userSelect.value = '';
+            }
+        };
+
+        branchSelect.addEventListener('change', updateOptions);
+        updateOptions();
     }
 
-    const updateOptions = () => {
-        const selectedBranch = branchSelect.value;
-        const selectedUser = userSelect.getAttribute('data-selected-user') || userSelect.value;
-        const firstOption = userSelect.options[0] || null;
-        let hasSelectedUser = false;
+    const courseSelect = document.querySelector('[data-fee-course-select]');
+    const structureSelect = document.querySelector('[data-fee-structure-select]');
+    const grossDisplay = document.querySelector('[data-fee-gross-display]');
+    const installmentDisplay = document.querySelector('[data-fee-installment-display]');
+    const previewTable = document.querySelector('[data-fee-items-preview] tbody');
+    let structuresById = {};
 
-        userSelect.disabled = selectedBranch === '';
-        if (firstOption) {
-            firstOption.textContent = selectedBranch === '' ? 'Choose branch first' : 'Select team member';
+    const renderPreview = (structureId, preserveSchedule) => {
+        if (!structureSelect || !grossDisplay || !installmentDisplay || !previewTable) {
+            return;
         }
 
-        Array.from(userSelect.options).forEach((option, index) => {
-            if (index === 0) {
-                option.hidden = false;
-                return;
-            }
+        const structure = structuresById[structureId] || null;
+        if (!structure) {
+            grossDisplay.value = '0.00';
+            installmentDisplay.value = '-';
+            previewTable.innerHTML = '<tr data-fee-preview-empty><td colspan="3" class="empty-state">Choose a course and fee structure to preview the fee heads.</td></tr>';
+            return;
+        }
 
-            const branchIds = (option.dataset.branchIds || '').split(',').filter(Boolean);
-            const visible = selectedBranch !== '' && branchIds.includes(selectedBranch);
-            option.hidden = !visible;
+        grossDisplay.value = Number(structure.total_amount || 0).toFixed(2);
+        installmentDisplay.value = `${structure.default_installment_count} installments every ${structure.default_installment_gap_days} days`;
+        previewTable.innerHTML = '';
 
-            if (visible && option.value === selectedUser) {
-                hasSelectedUser = true;
-            }
-
-            if (!visible && option.selected) {
-                option.selected = false;
-            }
+        (structure.items || []).forEach((item) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.fee_head_name}</td>
+                <td>${Number(item.amount || 0).toFixed(2)}</td>
+                <td>${item.allow_discount ? 'Yes' : 'No'}</td>
+            `;
+            previewTable.appendChild(row);
         });
 
-        if (selectedBranch !== '' && hasSelectedUser) {
-            userSelect.value = selectedUser;
-        } else if (selectedBranch === '') {
-            userSelect.value = '';
+        const installmentCountField = document.querySelector('input[name="installment_count"]');
+        const installmentGapField = document.querySelector('input[name="installment_gap_days"]');
+        if (!preserveSchedule) {
+            if (installmentCountField) {
+                installmentCountField.value = structure.default_installment_count;
+            }
+            if (installmentGapField) {
+                installmentGapField.value = structure.default_installment_gap_days;
+            }
         }
     };
 
-    branchSelect.addEventListener('change', updateOptions);
-    updateOptions();
+    const loadStructures = (courseId, preserveSchedule) => {
+        if (!courseSelect || !structureSelect) {
+            return;
+        }
+
+        structureSelect.innerHTML = `<option value="">${courseId ? 'Select fee structure' : 'Choose course first'}</option>`;
+        structureSelect.disabled = !courseId;
+        structuresById = {};
+        renderPreview('', preserveSchedule);
+
+        if (!courseId) {
+            return;
+        }
+
+        fetch(`${courseSelect.dataset.feeSourceUrl}?course_id=${encodeURIComponent(courseId)}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+            .then((response) => response.ok ? response.json() : Promise.reject(response))
+            .then((payload) => {
+                (payload.structures || []).forEach((structure) => {
+                    structuresById[String(structure.id)] = structure;
+                    const option = document.createElement('option');
+                    option.value = structure.id;
+                    option.textContent = `${structure.name} (${Number(structure.total_amount || 0).toFixed(2)})`;
+                    if (String(structure.id) === (structureSelect.dataset.selectedStructure || '')) {
+                        option.selected = true;
+                    }
+                    structureSelect.appendChild(option);
+                });
+
+                if (structureSelect.value) {
+                    renderPreview(structureSelect.value, preserveSchedule);
+                }
+            })
+            .catch(() => {
+                previewTable.innerHTML = '<tr><td colspan="3" class="empty-state">Fee structures could not be loaded right now.</td></tr>';
+            });
+    };
+
+    if (courseSelect && structureSelect) {
+        courseSelect.addEventListener('change', () => {
+            structureSelect.dataset.selectedStructure = '';
+            loadStructures(courseSelect.value, false);
+        });
+
+        structureSelect.addEventListener('change', () => {
+            renderPreview(structureSelect.value, false);
+        });
+
+        loadStructures(courseSelect.value, true);
+    }
 })();
 </script>

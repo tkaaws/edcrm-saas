@@ -11,6 +11,7 @@ class AdmissionFeeSnapshotModel extends BaseModel
     protected $allowedFields = [
         'tenant_id',
         'admission_id',
+        'fee_structure_id',
         'fee_plan_label',
         'gross_amount',
         'discount_amount',

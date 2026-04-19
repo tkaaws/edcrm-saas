@@ -103,6 +103,11 @@ $routes->group('enquiries', ['filter' => ['auth', 'tenant', 'suspension', 'featu
 
 $routes->group('admissions', ['filter' => ['auth', 'tenant', 'suspension', 'feature:admissions']], static function (RouteCollection $routes): void {
     $routes->get('/', 'Admissions::index', ['filter' => 'privilege:admissions.view,fees.view']);
+    $routes->get('fee-structures', 'AdmissionFeeStructures::index', ['filter' => 'privilege:fees.view']);
+    $routes->get('fee-structures/options', 'AdmissionFeeStructures::options', ['filter' => 'privilege:admissions.create']);
+    $routes->post('fee-structures', 'AdmissionFeeStructures::store', ['filter' => 'privilege:fees.structure']);
+    $routes->post('fee-structures/(:num)', 'AdmissionFeeStructures::update/$1', ['filter' => 'privilege:fees.structure']);
+    $routes->post('fee-structures/(:num)/delete', 'AdmissionFeeStructures::delete/$1', ['filter' => 'privilege:fees.structure']);
     $routes->get('create', 'Admissions::create', ['filter' => 'privilege:admissions.create']);
     $routes->post('/', 'Admissions::store', ['filter' => 'privilege:admissions.create']);
     $routes->get('(:num)', 'Admissions::show/$1', ['filter' => 'privilege:admissions.view,fees.view']);

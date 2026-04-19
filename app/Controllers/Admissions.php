@@ -17,6 +17,7 @@ use App\Services\AdmissionQueueService;
 use App\Services\AdmissionService;
 use App\Services\DelegationGuardService;
 use App\Services\EnquiryQueueService;
+use App\Services\FeeStructureService;
 use App\Services\UserAccessScopeService;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\Exceptions\PageNotFoundException;
@@ -37,6 +38,7 @@ class Admissions extends BaseController
     protected CollegeModel $collegeModel;
     protected AdmissionQueueService $queueService;
     protected AdmissionService $admissionService;
+    protected FeeStructureService $feeStructureService;
     protected EnquiryQueueService $enquiryQueueService;
     protected UserAccessScopeService $userAccessScope;
     protected DelegationGuardService $delegationGuard;
@@ -55,6 +57,7 @@ class Admissions extends BaseController
         $this->collegeModel = new CollegeModel();
         $this->queueService = service('admissionQueue');
         $this->admissionService = service('admissionService');
+        $this->feeStructureService = service('feeStructure');
         $this->enquiryQueueService = service('enquiryQueue');
         $this->userAccessScope = service('userAccessScope');
         $this->delegationGuard = service('delegationGuard');
@@ -75,6 +78,7 @@ class Admissions extends BaseController
             'title' => 'Admissions',
             'pageTitle' => 'Admissions',
             'activeNav' => 'admissions',
+            'admissionsSubnav' => 'admissions',
             'rows' => $paginated['items'],
             'pagination' => $paginated['pagination'],
             'currentQueue' => $queue,
@@ -100,6 +104,7 @@ class Admissions extends BaseController
         return view('admissions/form', $this->buildFormViewData([
             'title' => 'Create Admission',
             'pageTitle' => 'Create Admission',
+            'admissionsSubnav' => 'admissions',
             'formAction' => site_url('admissions'),
             'submitText' => 'Create admission',
             'sourceEnquiry' => $sourceEnquiry,
@@ -142,6 +147,7 @@ class Admissions extends BaseController
             'title' => $admission->student_name,
             'pageTitle' => $admission->student_name,
             'activeNav' => 'admissions',
+            'admissionsSubnav' => 'admissions',
             'admission' => $admission,
             'payments' => $this->paymentModel->getForAdmission((int) $admission->id),
             'installments' => $this->installmentModel->getForAdmission((int) $admission->id),
@@ -158,8 +164,10 @@ class Admissions extends BaseController
 
         return $this->buildShellViewData(array_merge([
             'activeNav' => 'admissions',
+            'admissionsSubnav' => 'admissions',
             'courses' => service('masterData')->getEffectiveValues('course', $tenantId),
             'colleges' => $this->collegeModel->getActiveOptions($tenantId, '', 500),
+            'feeStructureOptionsUrl' => site_url('admissions/fee-structures/options'),
             'assignableBranches' => $this->getAssignableBranches(),
             'assignableUsers' => $this->getAssignableUsers($tenantId),
             'assignableUsersByBranch' => $this->getAssignableUsersByBranch($tenantId),
@@ -217,9 +225,7 @@ class Admissions extends BaseController
             'mode_of_class'           => trim((string) $this->request->getPost('mode_of_class')),
             'admission_date'          => trim((string) $this->request->getPost('admission_date')) ?: date('Y-m-d\TH:i'),
             'remarks'                 => trim((string) $this->request->getPost('remarks')),
-            'fee_plan_label'          => trim((string) $this->request->getPost('fee_plan_label')),
-            'fee_item_label'          => trim((string) $this->request->getPost('fee_item_label')),
-            'gross_amount'            => (float) $this->request->getPost('gross_amount'),
+            'fee_structure_id'        => (int) $this->request->getPost('fee_structure_id'),
             'discount_amount'         => (float) $this->request->getPost('discount_amount'),
             'initial_payment_amount'  => (float) $this->request->getPost('initial_payment_amount'),
             'payment_date'            => trim((string) $this->request->getPost('payment_date')) ?: date('Y-m-d\TH:i'),
@@ -256,6 +262,10 @@ class Admissions extends BaseController
             $errors[] = 'Choose course.';
         }
 
+        if ((int) $payload['fee_structure_id'] < 1) {
+            $errors[] = 'Choose a fee structure.';
+        }
+
         if ((int) $payload['branch_id'] < 1) {
             $errors[] = 'Choose branch.';
         }
@@ -280,7 +290,17 @@ class Admissions extends BaseController
             $errors[] = 'Choose an employee from the selected branch.';
         }
 
-        $gross = (float) $payload['gross_amount'];
+        $feeStructure = $this->feeStructureService->findForTenant($tenantId, (int) $payload['fee_structure_id']);
+        if (! $feeStructure || $feeStructure->status !== 'active') {
+            $errors[] = 'Choose an active fee structure.';
+            $gross = 0;
+        } elseif ((int) $feeStructure->course_id !== (int) $payload['course_id']) {
+            $errors[] = 'Fee structure must match the selected course.';
+            $gross = 0;
+        } else {
+            $gross = (float) $feeStructure->total_amount;
+        }
+
         $discount = (float) $payload['discount_amount'];
         $initialPayment = (float) $payload['initial_payment_amount'];
         $net = $gross - $discount;
@@ -295,10 +315,6 @@ class Admissions extends BaseController
 
         if ($initialPayment < 0 || $initialPayment > $net) {
             $errors[] = 'Initial payment cannot exceed the net fees.';
-        }
-
-        if ($payload['fee_plan_label'] === '') {
-            $errors[] = 'Fee plan label is required.';
         }
 
         $remaining = $net - $initialPayment;
@@ -386,6 +402,8 @@ class Admissions extends BaseController
             'admission_fee_snapshots',
             'admission_installments',
             'admission_payments',
+            'fee_structures',
+            'fee_structure_items',
         ];
 
         foreach ($requiredTables as $table) {
