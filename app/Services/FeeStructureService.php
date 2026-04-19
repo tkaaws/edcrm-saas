@@ -44,7 +44,7 @@ class FeeStructureService
 
     public function findForTenant(int $tenantId, int $id): ?object
     {
-        $structure = $this->structureModel->findForTenant($tenantId, $id);
+        $structure = $this->structureModel->findForTenantRecord($tenantId, $id);
         if (! $structure) {
             return null;
         }

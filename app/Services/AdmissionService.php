@@ -69,7 +69,7 @@ class AdmissionService
             throw new RuntimeException('This enquiry has already been converted into an admission.');
         }
 
-        $feeStructure = $this->feeStructureModel->findForTenant($tenantId, (int) $payload['fee_structure_id']);
+        $feeStructure = $this->feeStructureModel->findForTenantRecord($tenantId, (int) $payload['fee_structure_id']);
         if (! $feeStructure || $feeStructure->status !== 'active') {
             throw new RuntimeException('Choose an active fee structure for the selected course.');
         }

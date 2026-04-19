@@ -32,7 +32,7 @@ class FeeStructureModel extends BaseModel
             ->findAll();
     }
 
-    public function findForTenant(int $tenantId, int $id): ?object
+    public function findForTenantRecord(int $tenantId, int $id): ?object
     {
         return $this->withoutTenantScope()
             ->select('fee_structures.*, course.label AS course_label')
