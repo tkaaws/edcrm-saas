@@ -6,6 +6,8 @@ use CodeIgniter\Database\Migration;
 
 class AddTransactionalAuditTriggers extends Migration
 {
+    protected bool $skipTriggerStatements = false;
+
     public function up()
     {
         $this->dropTriggers();
@@ -31,7 +33,7 @@ class AddTransactionalAuditTriggers extends Migration
             'trg_audit_enquiry_assignment_history_insert',
             'trg_audit_enquiry_status_logs_insert',
         ] as $trigger) {
-            $this->db->query("DROP TRIGGER IF EXISTS `{$trigger}`");
+            $this->runTriggerStatement("DROP TRIGGER IF EXISTS `{$trigger}`");
         }
     }
 
@@ -65,7 +67,7 @@ class AddTransactionalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_enquiries_insert`
             AFTER INSERT ON `enquiries`
             FOR EACH ROW
@@ -75,7 +77,7 @@ class AddTransactionalAuditTriggers extends Migration
                 (NEW.tenant_id, NEW.created_by, 'enquiry', NEW.id, 'created', 'Enquiry created', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_enquiries_update`
             AFTER UPDATE ON `enquiries`
             FOR EACH ROW
@@ -112,7 +114,7 @@ class AddTransactionalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_enquiry_followups_insert`
             AFTER INSERT ON `enquiry_followups`
             FOR EACH ROW
@@ -122,7 +124,7 @@ class AddTransactionalAuditTriggers extends Migration
                 (NEW.tenant_id, NEW.created_by, 'enquiry_followup', NEW.enquiry_id, 'created', 'Follow-up added', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_enquiry_followups_update`
             AFTER UPDATE ON `enquiry_followups`
             FOR EACH ROW
@@ -142,7 +144,7 @@ class AddTransactionalAuditTriggers extends Migration
             WHERE NOT ({$changedCondition})"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_enquiry_followups_delete`
             AFTER DELETE ON `enquiry_followups`
             FOR EACH ROW
@@ -168,7 +170,7 @@ class AddTransactionalAuditTriggers extends Migration
 
         $newJson = $this->buildJsonObject('NEW', $fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_enquiry_assignment_history_insert`
             AFTER INSERT ON `enquiry_assignment_history`
             FOR EACH ROW
@@ -189,7 +191,7 @@ class AddTransactionalAuditTriggers extends Migration
 
         $newJson = $this->buildJsonObject('NEW', $fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_enquiry_status_logs_insert`
             AFTER INSERT ON `enquiry_status_logs`
             FOR EACH ROW
@@ -226,5 +228,37 @@ class AddTransactionalAuditTriggers extends Migration
         );
 
         return implode(' AND ', $comparisons);
+    }
+
+    protected function runTriggerStatement(string $sql): void
+    {
+        if ($this->skipTriggerStatements) {
+            return;
+        }
+
+        try {
+            $this->db->query($sql);
+        } catch (\Throwable $exception) {
+            if (! $this->shouldSkipTriggers($exception)) {
+                throw $exception;
+            }
+
+            $this->skipTriggerStatements = true;
+            log_message(
+                'warning',
+                'Skipping transactional audit trigger migration because trigger creation is not allowed on this database server: {message}',
+                ['message' => $exception->getMessage()]
+            );
+        }
+    }
+
+    protected function shouldSkipTriggers(\Throwable $exception): bool
+    {
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, 'super privilege')
+            || str_contains($message, 'log_bin_trust_function_creators')
+            || str_contains($message, 'trigger command denied')
+            || str_contains($message, 'access denied');
     }
 }

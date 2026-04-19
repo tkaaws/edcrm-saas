@@ -6,6 +6,8 @@ use CodeIgniter\Database\Migration;
 
 class AddOperationalAuditTriggers extends Migration
 {
+    protected bool $skipTriggerStatements = false;
+
     public function up()
     {
         $this->dropTriggers();
@@ -50,7 +52,7 @@ class AddOperationalAuditTriggers extends Migration
             'trg_audit_tenant_master_data_overrides_insert',
             'trg_audit_tenant_master_data_overrides_update',
         ] as $trigger) {
-            $this->db->query("DROP TRIGGER IF EXISTS `{$trigger}`");
+            $this->runTriggerStatement("DROP TRIGGER IF EXISTS `{$trigger}`");
         }
     }
 
@@ -75,7 +77,7 @@ class AddOperationalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_users_insert`
             AFTER INSERT ON `users`
             FOR EACH ROW
@@ -85,7 +87,7 @@ class AddOperationalAuditTriggers extends Migration
                 (NEW.tenant_id, NEW.created_by, 'user', NEW.id, 'created', 'User created', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_users_update`
             AFTER UPDATE ON `users`
             FOR EACH ROW
@@ -123,7 +125,7 @@ class AddOperationalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_tenant_branches_insert`
             AFTER INSERT ON `tenant_branches`
             FOR EACH ROW
@@ -133,7 +135,7 @@ class AddOperationalAuditTriggers extends Migration
                 (NEW.tenant_id, NEW.created_by, 'tenant_branch', NEW.id, 'created', 'Branch created', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_tenant_branches_update`
             AFTER UPDATE ON `tenant_branches`
             FOR EACH ROW
@@ -167,7 +169,7 @@ class AddOperationalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_colleges_insert`
             AFTER INSERT ON `colleges`
             FOR EACH ROW
@@ -177,7 +179,7 @@ class AddOperationalAuditTriggers extends Migration
                 (NEW.tenant_id, NEW.created_by, 'college', NEW.id, 'created', 'College created', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_colleges_update`
             AFTER UPDATE ON `colleges`
             FOR EACH ROW
@@ -197,7 +199,7 @@ class AddOperationalAuditTriggers extends Migration
             WHERE NOT ({$changedCondition})"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_colleges_delete`
             AFTER DELETE ON `colleges`
             FOR EACH ROW
@@ -223,7 +225,7 @@ class AddOperationalAuditTriggers extends Migration
         $tenantExprNew = '(SELECT tenant_id FROM users WHERE id = NEW.user_id LIMIT 1)';
         $tenantExprOld = '(SELECT tenant_id FROM users WHERE id = OLD.user_id LIMIT 1)';
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_user_branches_insert`
             AFTER INSERT ON `user_branches`
             FOR EACH ROW
@@ -233,7 +235,7 @@ class AddOperationalAuditTriggers extends Migration
                 ({$tenantExprNew}, NEW.created_by, 'user_branch', NEW.user_id, 'created', 'User branch assigned', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_user_branches_update`
             AFTER UPDATE ON `user_branches`
             FOR EACH ROW
@@ -253,7 +255,7 @@ class AddOperationalAuditTriggers extends Migration
             WHERE NOT ({$changedCondition})"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_user_branches_delete`
             AFTER DELETE ON `user_branches`
             FOR EACH ROW
@@ -276,7 +278,7 @@ class AddOperationalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_user_hierarchy_insert`
             AFTER INSERT ON `user_hierarchy`
             FOR EACH ROW
@@ -286,7 +288,7 @@ class AddOperationalAuditTriggers extends Migration
                 (NEW.tenant_id, NEW.created_by, 'user_hierarchy', NEW.user_id, 'created', 'Reporting line created', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_user_hierarchy_update`
             AFTER UPDATE ON `user_hierarchy`
             FOR EACH ROW
@@ -306,7 +308,7 @@ class AddOperationalAuditTriggers extends Migration
             WHERE NOT ({$changedCondition})"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_user_hierarchy_delete`
             AFTER DELETE ON `user_hierarchy`
             FOR EACH ROW
@@ -329,7 +331,7 @@ class AddOperationalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_tenant_setting_values_insert`
             AFTER INSERT ON `tenant_setting_values`
             FOR EACH ROW
@@ -339,7 +341,7 @@ class AddOperationalAuditTriggers extends Migration
                 (NEW.tenant_id, NULL, 'tenant_setting', NEW.id, 'created', 'Company setting created', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_tenant_setting_values_update`
             AFTER UPDATE ON `tenant_setting_values`
             FOR EACH ROW
@@ -373,7 +375,7 @@ class AddOperationalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_branch_setting_values_insert`
             AFTER INSERT ON `branch_setting_values`
             FOR EACH ROW
@@ -383,7 +385,7 @@ class AddOperationalAuditTriggers extends Migration
                 (NEW.tenant_id, NEW.created_by, 'branch_setting', NEW.branch_id, 'created', 'Branch setting created', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_branch_setting_values_update`
             AFTER UPDATE ON `branch_setting_values`
             FOR EACH ROW
@@ -418,7 +420,7 @@ class AddOperationalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_tenant_policy_overrides_insert`
             AFTER INSERT ON `tenant_policy_overrides`
             FOR EACH ROW
@@ -428,7 +430,7 @@ class AddOperationalAuditTriggers extends Migration
                 (NEW.tenant_id, NEW.created_by, 'tenant_policy', NEW.id, 'created', 'Policy override created', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_tenant_policy_overrides_update`
             AFTER UPDATE ON `tenant_policy_overrides`
             FOR EACH ROW
@@ -462,7 +464,7 @@ class AddOperationalAuditTriggers extends Migration
         $oldJson = $this->buildJsonObject('OLD', $fields);
         $changedCondition = $this->buildChangedCondition($fields);
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_tenant_master_data_overrides_insert`
             AFTER INSERT ON `tenant_master_data_overrides`
             FOR EACH ROW
@@ -472,7 +474,7 @@ class AddOperationalAuditTriggers extends Migration
                 (NEW.tenant_id, NEW.updated_by, 'tenant_master_data', NEW.id, 'created', 'Business lookup override created', NULL, {$newJson}, NOW())"
         );
 
-        $this->db->query(
+        $this->runTriggerStatement(
             "CREATE TRIGGER `trg_audit_tenant_master_data_overrides_update`
             AFTER UPDATE ON `tenant_master_data_overrides`
             FOR EACH ROW
@@ -513,5 +515,37 @@ class AddOperationalAuditTriggers extends Migration
         );
 
         return implode(' AND ', $comparisons);
+    }
+
+    protected function runTriggerStatement(string $sql): void
+    {
+        if ($this->skipTriggerStatements) {
+            return;
+        }
+
+        try {
+            $this->db->query($sql);
+        } catch (\Throwable $exception) {
+            if (! $this->shouldSkipTriggers($exception)) {
+                throw $exception;
+            }
+
+            $this->skipTriggerStatements = true;
+            log_message(
+                'warning',
+                'Skipping operational audit trigger migration because trigger creation is not allowed on this database server: {message}',
+                ['message' => $exception->getMessage()]
+            );
+        }
+    }
+
+    protected function shouldSkipTriggers(\Throwable $exception): bool
+    {
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, 'super privilege')
+            || str_contains($message, 'log_bin_trust_function_creators')
+            || str_contains($message, 'trigger command denied')
+            || str_contains($message, 'access denied');
     }
 }
