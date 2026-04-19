@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Controllers\Concerns\PaginatesCollections;
+use App\Models\AdmissionBatchAssignmentHistoryModel;
+use App\Models\AdmissionBatchAssignmentModel;
 use App\Models\AdmissionFeeSnapshotItemModel;
 use App\Models\AdmissionFeeSnapshotModel;
 use App\Models\AdmissionFollowupModel;
@@ -10,6 +12,7 @@ use App\Models\AdmissionInstallmentModel;
 use App\Models\AdmissionModel;
 use App\Models\AdmissionPaymentModel;
 use App\Models\AdmissionStatusLogModel;
+use App\Models\BatchModel;
 use App\Models\BranchModel;
 use App\Models\CollegeModel;
 use App\Models\UserModel;
@@ -19,8 +22,8 @@ use App\Services\DelegationGuardService;
 use App\Services\EnquiryQueueService;
 use App\Services\FeeStructureService;
 use App\Services\UserAccessScopeService;
-use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\Exceptions\PageNotFoundException;
+use CodeIgniter\HTTP\RedirectResponse;
 
 class Admissions extends BaseController
 {
@@ -33,6 +36,9 @@ class Admissions extends BaseController
     protected AdmissionInstallmentModel $installmentModel;
     protected AdmissionFollowupModel $followupModel;
     protected AdmissionStatusLogModel $statusLogModel;
+    protected AdmissionBatchAssignmentModel $batchAssignmentModel;
+    protected AdmissionBatchAssignmentHistoryModel $batchAssignmentHistoryModel;
+    protected BatchModel $batchModel;
     protected BranchModel $branchModel;
     protected UserModel $userModel;
     protected CollegeModel $collegeModel;
@@ -52,6 +58,9 @@ class Admissions extends BaseController
         $this->installmentModel = new AdmissionInstallmentModel();
         $this->followupModel = new AdmissionFollowupModel();
         $this->statusLogModel = new AdmissionStatusLogModel();
+        $this->batchAssignmentModel = new AdmissionBatchAssignmentModel();
+        $this->batchAssignmentHistoryModel = new AdmissionBatchAssignmentHistoryModel();
+        $this->batchModel = new BatchModel();
         $this->branchModel = new BranchModel();
         $this->userModel = new UserModel();
         $this->collegeModel = new CollegeModel();
@@ -63,7 +72,7 @@ class Admissions extends BaseController
         $this->delegationGuard = service('delegationGuard');
     }
 
-    public function index(): string
+    public function index(): string|RedirectResponse
     {
         if ($response = $this->ensureAdmissionsSchemaReady()) {
             return $response;
@@ -143,18 +152,168 @@ class Admissions extends BaseController
             return redirect()->to('/admissions')->with('error', 'That admission is no longer available in your current view.');
         }
 
+        $hasBatchTable = db_connect()->tableExists('tenant_batches');
+        $activeTab = (string) ($this->request->getGet('tab') ?: 'overview');
+        if (! in_array($activeTab, ['overview', 'payments', 'installments', 'batch', 'followups', 'history'], true)) {
+            $activeTab = 'overview';
+        }
+
         return view('admissions/show', $this->buildShellViewData([
             'title' => $admission->student_name,
             'pageTitle' => $admission->student_name,
             'activeNav' => 'admissions',
             'admissionsSubnav' => 'admissions',
+            'activeTab' => $activeTab,
             'admission' => $admission,
-            'payments' => $this->paymentModel->getForAdmission((int) $admission->id),
+            'payments' => $this->getPaymentHistory($tenantId, (int) $admission->id),
             'installments' => $this->installmentModel->getForAdmission((int) $admission->id),
             'feeItems' => $this->feeSnapshotItemModel->getForAdmission((int) $admission->id),
-            'followups' => $this->followupModel->where('admission_id', (int) $admission->id)->orderBy('created_at', 'DESC')->findAll(),
-            'statusHistory' => $this->statusLogModel->where('admission_id', (int) $admission->id)->orderBy('created_at', 'DESC')->findAll(),
+            'followups' => $this->getFollowupHistory($tenantId, (int) $admission->id),
+            'statusHistory' => $this->getStatusHistory($tenantId, (int) $admission->id),
+            'currentBatchAssignment' => $hasBatchTable ? $this->getCurrentBatchAssignment($tenantId, (int) $admission->id) : null,
+            'batchHistory' => $hasBatchTable ? $this->getBatchHistory($tenantId, (int) $admission->id) : [],
+            'batchOptions' => $hasBatchTable ? $this->batchModel->getActiveOptions($tenantId, (int) ($admission->branch_id ?? 0)) : [],
+            'hasBatchTable' => $hasBatchTable,
+            'paymentModeOptions' => $this->getPaymentModeOptions(),
+            'communicationModes' => service('masterData')->getEffectiveValues('mode_of_communication', $tenantId),
+            'followupStatuses' => service('masterData')->getEffectiveValues('followup_status', $tenantId),
+            'canCollectPayment' => service('permissions')->has('fees.create') && $admission->status !== 'cancelled',
+            'canManageAdmission' => service('permissions')->has('admissions.edit'),
+            'canManageBatch' => service('permissions')->has('admissions.edit') && $hasBatchTable,
+            'canManageFollowups' => service('permissions')->has('admissions.edit') && $admission->status !== 'cancelled',
+            'canDeleteFollowups' => service('permissions')->has('admissions.edit'),
+            'canViewHistory' => service('permissions')->has('admissions.edit') || service('permissions')->has('admissions.cancel'),
+            'canCancelAdmission' => service('permissions')->has('admissions.cancel') && $admission->status !== 'cancelled',
         ]));
+    }
+
+    public function collectPayment(int $id): RedirectResponse
+    {
+        if ($response = $this->ensureAdmissionsSchemaReady('/admissions')) {
+            return $response;
+        }
+
+        $tenantId = (int) session()->get('tenant_id');
+        if (! $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId())) {
+            return redirect()->to('/admissions')->with('error', 'That admission is no longer available in your current view.');
+        }
+
+        try {
+            $this->admissionService->collectPayment($tenantId, $id, [
+                'amount' => $this->request->getPost('amount'),
+                'payment_date' => (string) $this->request->getPost('payment_date'),
+                'payment_mode' => (string) $this->request->getPost('payment_mode'),
+                'transaction_reference' => (string) $this->request->getPost('transaction_reference'),
+                'remarks' => (string) $this->request->getPost('remarks'),
+            ]);
+        } catch (\RuntimeException $exception) {
+            return redirect()->to('/admissions/' . $id . '?tab=payments')->with('error', $exception->getMessage());
+        }
+
+        return redirect()->to('/admissions/' . $id . '?tab=payments')->with('message', 'Payment collected successfully.');
+    }
+
+    public function addFollowup(int $id): RedirectResponse
+    {
+        if ($response = $this->ensureAdmissionsSchemaReady('/admissions')) {
+            return $response;
+        }
+
+        $tenantId = (int) session()->get('tenant_id');
+        if (! $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId())) {
+            return redirect()->to('/admissions')->with('error', 'That admission is no longer available in your current view.');
+        }
+
+        try {
+            $this->admissionService->addFollowup($tenantId, $id, [
+                'followup_status_id' => $this->request->getPost('followup_status_id'),
+                'communication_mode_id' => $this->request->getPost('communication_mode_id'),
+                'remarks' => (string) $this->request->getPost('remarks'),
+                'next_followup_at' => (string) $this->request->getPost('next_followup_at'),
+            ]);
+        } catch (\RuntimeException $exception) {
+            return redirect()->to('/admissions/' . $id . '?tab=followups')->with('error', $exception->getMessage());
+        }
+
+        return redirect()->to('/admissions/' . $id . '?tab=followups')->with('message', 'Admission follow-up added successfully.');
+    }
+
+    public function updateFollowup(int $id, int $followupId): RedirectResponse
+    {
+        if ($response = $this->ensureAdmissionsSchemaReady('/admissions')) {
+            return $response;
+        }
+
+        $tenantId = (int) session()->get('tenant_id');
+        if (! $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId())) {
+            return redirect()->to('/admissions')->with('error', 'That admission is no longer available in your current view.');
+        }
+
+        try {
+            $this->admissionService->updateFollowup($tenantId, $id, $followupId, [
+                'followup_status_id' => $this->request->getPost('followup_status_id'),
+                'communication_mode_id' => $this->request->getPost('communication_mode_id'),
+                'remarks' => (string) $this->request->getPost('remarks'),
+                'next_followup_at' => (string) $this->request->getPost('next_followup_at'),
+            ]);
+        } catch (\RuntimeException $exception) {
+            return redirect()->to('/admissions/' . $id . '?tab=followups')->with('error', $exception->getMessage());
+        }
+
+        return redirect()->to('/admissions/' . $id . '?tab=followups')->with('message', 'Admission follow-up updated successfully.');
+    }
+
+    public function deleteFollowup(int $id, int $followupId): RedirectResponse
+    {
+        if ($response = $this->ensureAdmissionsSchemaReady('/admissions')) {
+            return $response;
+        }
+
+        $tenantId = (int) session()->get('tenant_id');
+        if (! $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId())) {
+            return redirect()->to('/admissions')->with('error', 'That admission is no longer available in your current view.');
+        }
+
+        try {
+            $this->admissionService->deleteFollowup($tenantId, $id, $followupId);
+        } catch (\RuntimeException $exception) {
+            return redirect()->to('/admissions/' . $id . '?tab=followups')->with('error', $exception->getMessage());
+        }
+
+        return redirect()->to('/admissions/' . $id . '?tab=followups')->with('message', 'Admission follow-up deleted successfully.');
+    }
+
+    public function assignBatch(int $id): RedirectResponse
+    {
+        if ($response = $this->ensureAdmissionsSchemaReady('/admissions')) {
+            return $response;
+        }
+
+        $tenantId = (int) session()->get('tenant_id');
+        if (! $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId())) {
+            return redirect()->to('/admissions')->with('error', 'That admission is no longer available in your current view.');
+        }
+
+        try {
+            $this->admissionService->assignBatch($tenantId, $id, [
+                'batch_id' => $this->request->getPost('batch_id'),
+                'remarks' => (string) $this->request->getPost('remarks'),
+            ]);
+        } catch (\RuntimeException $exception) {
+            return redirect()->to('/admissions/' . $id . '?tab=batch')->with('error', $exception->getMessage());
+        }
+
+        return redirect()->to('/admissions/' . $id . '?tab=batch')->with('message', 'Batch updated successfully.');
+    }
+
+    public function hold(int $id): RedirectResponse
+    {
+        return $this->changeAdmissionStatus($id, 'on_hold', 'Admission moved to hold.');
+    }
+
+    public function cancel(int $id): RedirectResponse
+    {
+        return $this->changeAdmissionStatus($id, 'cancelled', 'Admission cancelled successfully.');
     }
 
     protected function buildFormViewData(array $data): array
@@ -176,13 +335,7 @@ class Admissions extends BaseController
                 'online' => 'Online',
                 'hybrid' => 'Hybrid',
             ],
-            'paymentModeOptions' => [
-                'cash' => 'Cash',
-                'upi' => 'UPI',
-                'card' => 'Card',
-                'bank_transfer' => 'Bank Transfer',
-                'cheque' => 'Cheque',
-            ],
+            'paymentModeOptions' => $this->getPaymentModeOptions(),
         ], $data));
     }
 
@@ -211,30 +364,30 @@ class Admissions extends BaseController
         $defaultAssignedUserId = $sourceEnquiry ? (int) ($sourceEnquiry->owner_user_id ?? 0) : $this->currentActorUserId();
 
         return [
-            'enquiry_id'              => $sourceEnquiry ? (int) $sourceEnquiry->id : (int) $this->request->getPost('enquiry_id'),
-            'student_name'            => trim((string) $this->request->getPost('student_name')),
-            'email'                   => strtolower(trim((string) $this->request->getPost('email'))),
-            'mobile'                  => trim((string) $this->request->getPost('mobile')),
-            'whatsapp_number'         => trim((string) $this->request->getPost('whatsapp_number')),
-            'gender'                  => trim((string) $this->request->getPost('gender')),
-            'city'                    => trim((string) $this->request->getPost('city')),
-            'college_id'              => (int) $this->request->getPost('college_id'),
-            'course_id'               => (int) $this->request->getPost('course_id'),
-            'branch_id'               => (int) ($this->request->getPost('branch_id') ?: $defaultBranchId),
-            'assigned_user_id'        => (int) ($this->request->getPost('assigned_user_id') ?: $defaultAssignedUserId),
-            'mode_of_class'           => trim((string) $this->request->getPost('mode_of_class')),
-            'admission_date'          => trim((string) $this->request->getPost('admission_date')) ?: date('Y-m-d\TH:i'),
-            'remarks'                 => trim((string) $this->request->getPost('remarks')),
-            'fee_structure_id'        => (int) $this->request->getPost('fee_structure_id'),
-            'discount_amount'         => (float) $this->request->getPost('discount_amount'),
-            'initial_payment_amount'  => (float) $this->request->getPost('initial_payment_amount'),
-            'payment_date'            => trim((string) $this->request->getPost('payment_date')) ?: date('Y-m-d\TH:i'),
-            'payment_mode'            => trim((string) $this->request->getPost('payment_mode')),
-            'transaction_reference'   => trim((string) $this->request->getPost('transaction_reference')),
-            'payment_remarks'         => trim((string) $this->request->getPost('payment_remarks')),
-            'installment_count'       => (int) $this->request->getPost('installment_count'),
-            'first_due_date'          => trim((string) $this->request->getPost('first_due_date')),
-            'installment_gap_days'    => (int) $this->request->getPost('installment_gap_days'),
+            'enquiry_id' => $sourceEnquiry ? (int) $sourceEnquiry->id : (int) $this->request->getPost('enquiry_id'),
+            'student_name' => trim((string) $this->request->getPost('student_name')),
+            'email' => strtolower(trim((string) $this->request->getPost('email'))),
+            'mobile' => trim((string) $this->request->getPost('mobile')),
+            'whatsapp_number' => trim((string) $this->request->getPost('whatsapp_number')),
+            'gender' => trim((string) $this->request->getPost('gender')),
+            'city' => trim((string) $this->request->getPost('city')),
+            'college_id' => (int) $this->request->getPost('college_id'),
+            'course_id' => (int) $this->request->getPost('course_id'),
+            'branch_id' => (int) ($this->request->getPost('branch_id') ?: $defaultBranchId),
+            'assigned_user_id' => (int) ($this->request->getPost('assigned_user_id') ?: $defaultAssignedUserId),
+            'mode_of_class' => trim((string) $this->request->getPost('mode_of_class')),
+            'admission_date' => trim((string) $this->request->getPost('admission_date')) ?: date('Y-m-d\TH:i'),
+            'remarks' => trim((string) $this->request->getPost('remarks')),
+            'fee_structure_id' => (int) $this->request->getPost('fee_structure_id'),
+            'discount_amount' => (float) $this->request->getPost('discount_amount'),
+            'initial_payment_amount' => (float) $this->request->getPost('initial_payment_amount'),
+            'payment_date' => trim((string) $this->request->getPost('payment_date')) ?: date('Y-m-d\TH:i'),
+            'payment_mode' => trim((string) $this->request->getPost('payment_mode')),
+            'transaction_reference' => trim((string) $this->request->getPost('transaction_reference')),
+            'payment_remarks' => trim((string) $this->request->getPost('payment_remarks')),
+            'installment_count' => (int) $this->request->getPost('installment_count'),
+            'first_due_date' => trim((string) $this->request->getPost('first_due_date')),
+            'installment_gap_days' => (int) $this->request->getPost('installment_gap_days'),
         ];
     }
 
@@ -416,5 +569,114 @@ class Admissions extends BaseController
         }
 
         return null;
+    }
+
+    protected function getPaymentModeOptions(): array
+    {
+        return [
+            'cash' => 'Cash',
+            'upi' => 'UPI',
+            'card' => 'Card',
+            'bank_transfer' => 'Bank Transfer',
+            'cheque' => 'Cheque',
+        ];
+    }
+
+    protected function getPaymentHistory(int $tenantId, int $admissionId): array
+    {
+        return db_connect()->table('admission_payments p')
+            ->select("p.*, TRIM(CONCAT(COALESCE(received_user.first_name, ''), ' ', COALESCE(received_user.last_name, ''))) AS received_by_name")
+            ->join('users received_user', 'received_user.id = p.received_by', 'left')
+            ->where('p.tenant_id', $tenantId)
+            ->where('p.admission_id', $admissionId)
+            ->orderBy('p.payment_date', 'DESC')
+            ->orderBy('p.id', 'DESC')
+            ->get()
+            ->getResult();
+    }
+
+    protected function getFollowupHistory(int $tenantId, int $admissionId): array
+    {
+        return db_connect()->table('admission_followups f')
+            ->select("f.*, status.label AS followup_status_label, mode.label AS communication_mode_label, TRIM(CONCAT(COALESCE(created_user.first_name, ''), ' ', COALESCE(created_user.last_name, ''))) AS created_by_name")
+            ->join('master_data_values status', 'status.id = f.followup_status_id', 'left')
+            ->join('master_data_values mode', 'mode.id = f.communication_mode_id', 'left')
+            ->join('users created_user', 'created_user.id = f.created_by', 'left')
+            ->where('f.tenant_id', $tenantId)
+            ->where('f.admission_id', $admissionId)
+            ->orderBy('f.created_at', 'DESC')
+            ->orderBy('f.id', 'DESC')
+            ->get()
+            ->getResult();
+    }
+
+    protected function getStatusHistory(int $tenantId, int $admissionId): array
+    {
+        return db_connect()->table('admission_status_logs l')
+            ->select("l.*, TRIM(CONCAT(COALESCE(changed_user.first_name, ''), ' ', COALESCE(changed_user.last_name, ''))) AS changed_by_name")
+            ->join('users changed_user', 'changed_user.id = l.changed_by', 'left')
+            ->where('l.tenant_id', $tenantId)
+            ->where('l.admission_id', $admissionId)
+            ->orderBy('l.created_at', 'DESC')
+            ->orderBy('l.id', 'DESC')
+            ->get()
+            ->getResult();
+    }
+
+    protected function getCurrentBatchAssignment(int $tenantId, int $admissionId): ?object
+    {
+        return db_connect()->table('admission_batch_assignments a')
+            ->select('a.*, batch.name AS batch_name, batch.code AS batch_code, batch.starts_on, batch.ends_on')
+            ->join('tenant_batches batch', 'batch.id = a.batch_id', 'left')
+            ->where('a.tenant_id', $tenantId)
+            ->where('a.admission_id', $admissionId)
+            ->where('a.status', 'active')
+            ->orderBy('a.assigned_on', 'DESC')
+            ->get()
+            ->getRow();
+    }
+
+    protected function getBatchHistory(int $tenantId, int $admissionId): array
+    {
+        return db_connect()->table('admission_batch_assignment_history h')
+            ->select("h.*, from_batch.name AS from_batch_name, to_batch.name AS to_batch_name, TRIM(CONCAT(COALESCE(moved_user.first_name, ''), ' ', COALESCE(moved_user.last_name, ''))) AS moved_by_name")
+            ->join('tenant_batches from_batch', 'from_batch.id = h.from_batch_id', 'left')
+            ->join('tenant_batches to_batch', 'to_batch.id = h.to_batch_id', 'left')
+            ->join('users moved_user', 'moved_user.id = h.moved_by', 'left')
+            ->where('h.tenant_id', $tenantId)
+            ->where('h.admission_id', $admissionId)
+            ->orderBy('h.moved_at', 'DESC')
+            ->orderBy('h.id', 'DESC')
+            ->get()
+            ->getResult();
+    }
+
+    protected function changeAdmissionStatus(int $id, string $status, string $successMessage): RedirectResponse
+    {
+        if ($response = $this->ensureAdmissionsSchemaReady('/admissions')) {
+            return $response;
+        }
+
+        $tenantId = (int) session()->get('tenant_id');
+        if (! $this->queueService->findVisibleById($tenantId, $id, $this->currentBranchContextId())) {
+            return redirect()->to('/admissions')->with('error', 'That admission is no longer available in your current view.');
+        }
+
+        $reason = trim((string) $this->request->getPost('reason'));
+        $remarks = trim((string) $this->request->getPost('remarks'));
+        if ($reason === '') {
+            return redirect()->to('/admissions/' . $id . '?tab=history')->with('error', 'Reason is required.');
+        }
+
+        try {
+            $this->admissionService->changeStatus($tenantId, $id, $status, [
+                'reason' => $reason,
+                'remarks' => $remarks,
+            ]);
+        } catch (\RuntimeException $exception) {
+            return redirect()->to('/admissions/' . $id . '?tab=history')->with('error', $exception->getMessage());
+        }
+
+        return redirect()->to('/admissions/' . $id . '?tab=history')->with('message', $successMessage);
     }
 }

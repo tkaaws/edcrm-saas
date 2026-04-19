@@ -19,4 +19,12 @@ class AdmissionBatchAssignmentHistoryModel extends BaseModel
         'created_by',
         'updated_by',
     ];
+
+    public function getForAdmission(int $admissionId): array
+    {
+        return $this->where('admission_id', $admissionId)
+            ->orderBy('moved_at', 'DESC')
+            ->orderBy('id', 'DESC')
+            ->findAll();
+    }
 }

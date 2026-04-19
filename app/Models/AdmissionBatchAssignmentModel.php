@@ -18,4 +18,18 @@ class AdmissionBatchAssignmentModel extends BaseModel
         'created_by',
         'updated_by',
     ];
+
+    public function findActiveForAdmission(int $admissionId): ?object
+    {
+        return $this->where('admission_id', $admissionId)
+            ->where('status', 'active')
+            ->first();
+    }
+
+    public function getForAdmission(int $admissionId): array
+    {
+        return $this->where('admission_id', $admissionId)
+            ->orderBy('assigned_on', 'DESC')
+            ->findAll();
+    }
 }

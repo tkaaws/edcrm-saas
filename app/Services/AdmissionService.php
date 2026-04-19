@@ -4,11 +4,15 @@ namespace App\Services;
 
 use App\Models\AdmissionFeeSnapshotItemModel;
 use App\Models\AdmissionFeeSnapshotModel;
+use App\Models\AdmissionFollowupModel;
 use App\Models\AdmissionInstallmentModel;
 use App\Models\AdmissionModel;
+use App\Models\AdmissionBatchAssignmentHistoryModel;
+use App\Models\AdmissionBatchAssignmentModel;
 use App\Models\AdmissionPaymentAllocationModel;
 use App\Models\AdmissionPaymentModel;
 use App\Models\AdmissionStatusLogModel;
+use App\Models\BatchModel;
 use App\Models\EnquiryModel;
 use App\Models\EnquiryStatusLogModel;
 use App\Models\FeeStructureItemModel;
@@ -24,6 +28,10 @@ class AdmissionService
     protected AdmissionPaymentModel $paymentModel;
     protected AdmissionPaymentAllocationModel $paymentAllocationModel;
     protected AdmissionInstallmentModel $installmentModel;
+    protected AdmissionFollowupModel $followupModel;
+    protected AdmissionBatchAssignmentModel $batchAssignmentModel;
+    protected AdmissionBatchAssignmentHistoryModel $batchAssignmentHistoryModel;
+    protected BatchModel $batchModel;
     protected EnquiryModel $enquiryModel;
     protected EnquiryStatusLogModel $enquiryStatusLogModel;
     protected FeeStructureModel $feeStructureModel;
@@ -39,6 +47,10 @@ class AdmissionService
         $this->paymentModel = new AdmissionPaymentModel();
         $this->paymentAllocationModel = new AdmissionPaymentAllocationModel();
         $this->installmentModel = new AdmissionInstallmentModel();
+        $this->followupModel = new AdmissionFollowupModel();
+        $this->batchAssignmentModel = new AdmissionBatchAssignmentModel();
+        $this->batchAssignmentHistoryModel = new AdmissionBatchAssignmentHistoryModel();
+        $this->batchModel = new BatchModel();
         $this->enquiryModel = new EnquiryModel();
         $this->enquiryStatusLogModel = new EnquiryStatusLogModel();
         $this->feeStructureModel = new FeeStructureModel();
@@ -176,6 +188,214 @@ class AdmissionService
 
     /**
      * @param array<string, mixed> $payload
+     */
+    public function collectPayment(int $tenantId, int $admissionId, array $payload): int
+    {
+        $admission = $this->admissionModel->withoutTenantScope()
+            ->where('tenant_id', $tenantId)
+            ->find($admissionId);
+
+        if (! $admission) {
+            throw new RuntimeException('Admission not found.');
+        }
+
+        if ($admission->status === 'cancelled') {
+            throw new RuntimeException('Cancelled admissions cannot receive new payments.');
+        }
+
+        $snapshot = $this->feeSnapshotModel->withoutTenantScope()
+            ->where('tenant_id', $tenantId)
+            ->where('admission_id', $admissionId)
+            ->first();
+
+        if (! $snapshot) {
+            throw new RuntimeException('Fee snapshot is missing for this admission.');
+        }
+
+        $amount = $this->normalizeMoney((float) ($payload['amount'] ?? 0));
+        if ($amount <= 0) {
+            throw new RuntimeException('Payment amount must be greater than zero.');
+        }
+
+        $balanceAmount = $this->normalizeMoney((float) ($snapshot->balance_amount ?? 0));
+        if ($balanceAmount <= 0) {
+            throw new RuntimeException('This admission does not have any outstanding balance.');
+        }
+
+        if ($amount > $balanceAmount) {
+            throw new RuntimeException('Payment amount cannot be greater than the current balance.');
+        }
+
+        $paymentDate = trim((string) ($payload['payment_date'] ?? ''));
+        $paymentMode = trim((string) ($payload['payment_mode'] ?? ''));
+        if ($paymentDate === '' || $paymentMode === '') {
+            throw new RuntimeException('Payment date and payment mode are required.');
+        }
+
+        $this->db->transException(true)->transStart();
+
+        $paymentId = (int) $this->paymentModel->insertWithActor([
+            'tenant_id' => $tenantId,
+            'admission_id' => $admissionId,
+            'receipt_number' => $this->nextReceiptNumber($tenantId),
+            'payment_kind' => 'installment',
+            'amount' => $amount,
+            'payment_date' => $paymentDate,
+            'payment_mode' => $paymentMode,
+            'transaction_reference' => ($payload['transaction_reference'] ?? '') !== '' ? (string) $payload['transaction_reference'] : null,
+            'remarks' => ($payload['remarks'] ?? '') !== '' ? (string) $payload['remarks'] : null,
+            'received_by' => session()->get('user_id') ?: null,
+        ]);
+
+        $this->allocatePayment($tenantId, $admissionId, $paymentId, $amount, []);
+        $this->refreshFeeSnapshotTotals($tenantId, $admissionId);
+
+        $this->db->transComplete();
+
+        return $paymentId;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public function addFollowup(int $tenantId, int $admissionId, array $payload): int
+    {
+        $admission = $this->requireAdmission($tenantId, $admissionId);
+
+        $followupId = (int) $this->followupModel->insertWithActor([
+            'tenant_id' => $tenantId,
+            'admission_id' => $admissionId,
+            'followup_status_id' => (int) ($payload['followup_status_id'] ?? 0) ?: null,
+            'communication_mode_id' => (int) ($payload['communication_mode_id'] ?? 0) ?: null,
+            'remarks' => ($payload['remarks'] ?? '') !== '' ? (string) $payload['remarks'] : null,
+            'next_followup_at' => ($payload['next_followup_at'] ?? '') !== '' ? (string) $payload['next_followup_at'] : null,
+            'is_system_generated' => 0,
+        ]);
+
+        $this->refreshFollowupSnapshot($admission);
+
+        return $followupId;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public function updateFollowup(int $tenantId, int $admissionId, int $followupId, array $payload): void
+    {
+        $admission = $this->requireAdmission($tenantId, $admissionId);
+        $followup = $this->requireFollowup($tenantId, $admissionId, $followupId);
+
+        $this->followupModel->updateWithActor((int) $followup->id, [
+            'followup_status_id' => (int) ($payload['followup_status_id'] ?? 0) ?: null,
+            'communication_mode_id' => (int) ($payload['communication_mode_id'] ?? 0) ?: null,
+            'remarks' => ($payload['remarks'] ?? '') !== '' ? (string) $payload['remarks'] : null,
+            'next_followup_at' => ($payload['next_followup_at'] ?? '') !== '' ? (string) $payload['next_followup_at'] : null,
+        ]);
+
+        $this->refreshFollowupSnapshot($admission);
+    }
+
+    public function deleteFollowup(int $tenantId, int $admissionId, int $followupId): void
+    {
+        $admission = $this->requireAdmission($tenantId, $admissionId);
+        $followup = $this->requireFollowup($tenantId, $admissionId, $followupId);
+
+        $this->followupModel->delete((int) $followup->id);
+        $this->refreshFollowupSnapshot($admission);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public function assignBatch(int $tenantId, int $admissionId, array $payload): void
+    {
+        $admission = $this->requireAdmission($tenantId, $admissionId);
+        $batchId = (int) ($payload['batch_id'] ?? 0);
+        if ($batchId < 1) {
+            throw new RuntimeException('Choose batch.');
+        }
+
+        $batch = $this->batchModel->withoutTenantScope()
+            ->where('tenant_id', $tenantId)
+            ->find($batchId);
+        if (! $batch) {
+            throw new RuntimeException('Selected batch is not available.');
+        }
+
+        if ((int) ($batch->branch_id ?? 0) !== (int) ($admission->branch_id ?? 0)) {
+            throw new RuntimeException('Choose a batch from the same branch as the admission.');
+        }
+
+        $currentAssignment = $this->batchAssignmentModel->findActiveForAdmission($admissionId);
+        $fromBatchId = (int) ($currentAssignment->batch_id ?? $admission->current_batch_id ?? 0);
+        if ($fromBatchId === $batchId) {
+            throw new RuntimeException('This admission is already assigned to that batch.');
+        }
+
+        $reason = trim((string) ($payload['remarks'] ?? ''));
+
+        $this->db->transException(true)->transStart();
+
+        if ($currentAssignment) {
+            $this->batchAssignmentModel->updateWithActor((int) $currentAssignment->id, [
+                'status' => 'removed',
+            ]);
+        }
+
+        $this->batchAssignmentModel->insertWithActor([
+            'tenant_id' => $tenantId,
+            'admission_id' => $admissionId,
+            'batch_id' => $batchId,
+            'status' => 'active',
+            'assigned_on' => date('Y-m-d H:i:s'),
+            'assigned_by' => session()->get('user_id') ?: null,
+        ]);
+
+        $this->batchAssignmentHistoryModel->insertWithActor([
+            'tenant_id' => $tenantId,
+            'admission_id' => $admissionId,
+            'from_batch_id' => $fromBatchId > 0 ? $fromBatchId : null,
+            'to_batch_id' => $batchId,
+            'reason' => $reason !== '' ? $reason : ($fromBatchId > 0 ? 'Batch changed' : 'Batch assigned'),
+            'moved_by' => session()->get('user_id') ?: null,
+            'moved_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        $this->admissionModel->updateWithActor($admissionId, [
+            'current_batch_id' => $batchId,
+        ]);
+
+        $this->db->transComplete();
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    public function changeStatus(int $tenantId, int $admissionId, string $newStatus, array $payload = []): void
+    {
+        $admission = $this->requireAdmission($tenantId, $admissionId);
+        $oldStatus = (string) $admission->status;
+        if ($oldStatus === $newStatus) {
+            return;
+        }
+
+        $this->admissionModel->updateWithActor($admissionId, [
+            'status' => $newStatus,
+        ]);
+
+        $this->statusLogModel->insertWithActor([
+            'tenant_id' => $tenantId,
+            'admission_id' => $admissionId,
+            'old_status' => $oldStatus,
+            'new_status' => $newStatus,
+            'reason' => ($payload['reason'] ?? '') !== '' ? (string) $payload['reason'] : ucfirst(str_replace('_', ' ', $newStatus)),
+            'remarks' => ($payload['remarks'] ?? '') !== '' ? (string) $payload['remarks'] : null,
+            'changed_by' => session()->get('user_id') ?: null,
+        ]);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
      * @return array<int, int>
      */
     protected function generateInstallments(int $tenantId, int $admissionId, float $balanceAmount, array $payload): array
@@ -255,6 +475,75 @@ class AdmissionService
 
             $remaining = $this->normalizeMoney($remaining - $allocatable);
         }
+    }
+
+    protected function refreshFeeSnapshotTotals(int $tenantId, int $admissionId): void
+    {
+        $snapshot = $this->feeSnapshotModel->withoutTenantScope()
+            ->where('tenant_id', $tenantId)
+            ->where('admission_id', $admissionId)
+            ->first();
+
+        if (! $snapshot) {
+            return;
+        }
+
+        $paid = (float) $this->paymentModel->withoutTenantScope()
+            ->selectSum('amount')
+            ->where('tenant_id', $tenantId)
+            ->where('admission_id', $admissionId)
+            ->where('is_cancelled', 0)
+            ->get()
+            ->getRow()
+            ->amount ?? 0;
+
+        $net = (float) ($snapshot->net_amount ?? 0);
+        $this->feeSnapshotModel->updateWithActor((int) $snapshot->id, [
+            'paid_amount' => $this->normalizeMoney($paid),
+            'balance_amount' => $this->normalizeMoney(max(0, $net - $paid)),
+        ]);
+    }
+
+    protected function refreshFollowupSnapshot(object $admission): void
+    {
+        $lastFollowup = $this->followupModel->withoutTenantScope()
+            ->where('tenant_id', (int) $admission->tenant_id)
+            ->where('admission_id', (int) $admission->id)
+            ->orderBy('created_at', 'DESC')
+            ->orderBy('id', 'DESC')
+            ->first();
+
+        $this->admissionModel->updateWithActor((int) $admission->id, [
+            'last_followup_at' => $lastFollowup?->created_at ?: null,
+            'next_followup_at' => $lastFollowup?->next_followup_at ?: null,
+        ]);
+    }
+
+    protected function requireAdmission(int $tenantId, int $admissionId): object
+    {
+        $admission = $this->admissionModel->withoutTenantScope()
+            ->where('tenant_id', $tenantId)
+            ->find($admissionId);
+
+        if (! $admission) {
+            throw new RuntimeException('Admission not found.');
+        }
+
+        return $admission;
+    }
+
+    protected function requireFollowup(int $tenantId, int $admissionId, int $followupId): object
+    {
+        $followup = $this->followupModel->withoutTenantScope()
+            ->where('tenant_id', $tenantId)
+            ->where('admission_id', $admissionId)
+            ->find($followupId);
+
+        if (! $followup) {
+            throw new RuntimeException('Follow-up not found.');
+        }
+
+        return $followup;
     }
 
     protected function nextAdmissionNumber(int $tenantId): string

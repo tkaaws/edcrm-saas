@@ -101,21 +101,31 @@ $routes->group('enquiries', ['filter' => ['auth', 'tenant', 'suspension', 'featu
     $routes->post('(:num)/assign', 'Enquiries::assign/$1', ['filter' => 'privilege:enquiries.reassign_in_edit,enquiries.expired_assign,enquiries.closed_assign']);
 });
 
-$routes->group('admissions', ['filter' => ['auth', 'tenant', 'suspension', 'feature:admissions']], static function (RouteCollection $routes): void {
-    $routes->get('/', 'Admissions::index', ['filter' => 'privilege:admissions.view,fees.view']);
-    $routes->get('fee-structures', 'AdmissionFeeStructures::index', ['filter' => 'privilege:fees.view']);
-    $routes->get('fee-structures/options', 'AdmissionFeeStructures::options', ['filter' => 'privilege:admissions.create']);
-    $routes->post('fee-structures', 'AdmissionFeeStructures::store', ['filter' => 'privilege:fees.structure']);
-    $routes->post('fee-structures/(:num)', 'AdmissionFeeStructures::update/$1', ['filter' => 'privilege:fees.structure']);
-    $routes->post('fee-structures/(:num)/delete', 'AdmissionFeeStructures::delete/$1', ['filter' => 'privilege:fees.structure']);
-    $routes->get('create', 'Admissions::create', ['filter' => 'privilege:admissions.create']);
-    $routes->post('/', 'Admissions::store', ['filter' => 'privilege:admissions.create']);
-    $routes->get('(:num)', 'Admissions::show/$1', ['filter' => 'privilege:admissions.view,fees.view']);
-});
-
-$routes->group('batches', ['filter' => ['auth', 'tenant', 'suspension', 'feature:batch_management']], static function (RouteCollection $routes): void {
-    $routes->get('/', 'Batches::index');
-});
+  $routes->group('admissions', ['filter' => ['auth', 'tenant', 'suspension', 'feature:admissions']], static function (RouteCollection $routes): void {
+      $routes->get('/', 'Admissions::index', ['filter' => 'privilege:admissions.view,fees.view']);
+      $routes->get('fee-structures', 'AdmissionFeeStructures::index', ['filter' => 'privilege:fees.view']);
+      $routes->get('fee-structures/options', 'AdmissionFeeStructures::options', ['filter' => 'privilege:admissions.create']);
+      $routes->post('fee-structures', 'AdmissionFeeStructures::store', ['filter' => 'privilege:fees.structure']);
+      $routes->post('fee-structures/(:num)', 'AdmissionFeeStructures::update/$1', ['filter' => 'privilege:fees.structure']);
+      $routes->post('fee-structures/(:num)/delete', 'AdmissionFeeStructures::delete/$1', ['filter' => 'privilege:fees.structure']);
+      $routes->get('create', 'Admissions::create', ['filter' => 'privilege:admissions.create']);
+      $routes->post('/', 'Admissions::store', ['filter' => 'privilege:admissions.create']);
+      $routes->get('(:num)', 'Admissions::show/$1', ['filter' => 'privilege:admissions.view,fees.view']);
+      $routes->post('(:num)/payments', 'Admissions::collectPayment/$1', ['filter' => 'privilege:fees.create']);
+      $routes->post('(:num)/followups', 'Admissions::addFollowup/$1', ['filter' => 'privilege:admissions.edit']);
+      $routes->post('(:num)/followups/(:num)', 'Admissions::updateFollowup/$1/$2', ['filter' => 'privilege:admissions.edit']);
+      $routes->post('(:num)/followups/(:num)/delete', 'Admissions::deleteFollowup/$1/$2', ['filter' => 'privilege:admissions.edit']);
+      $routes->post('(:num)/batch', 'Admissions::assignBatch/$1', ['filter' => 'privilege:admissions.edit']);
+      $routes->post('(:num)/hold', 'Admissions::hold/$1', ['filter' => 'privilege:admissions.edit']);
+      $routes->post('(:num)/cancel', 'Admissions::cancel/$1', ['filter' => 'privilege:admissions.cancel']);
+  });
+  
+  $routes->group('batches', ['filter' => ['auth', 'tenant', 'suspension', 'feature:batch_management']], static function (RouteCollection $routes): void {
+      $routes->get('/', 'Batches::index', ['filter' => 'privilege:batches.view']);
+      $routes->post('/', 'Batches::store', ['filter' => 'privilege:batches.create']);
+      $routes->post('(:num)', 'Batches::update/$1', ['filter' => 'privilege:batches.edit']);
+      $routes->post('(:num)/delete', 'Batches::delete/$1', ['filter' => 'privilege:batches.delete']);
+  });
 
 $routes->group('service', ['filter' => ['auth', 'tenant', 'suspension', 'feature:service_tickets']], static function (RouteCollection $routes): void {
     $routes->get('/', 'Service::index');

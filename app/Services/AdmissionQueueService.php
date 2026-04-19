@@ -8,11 +8,13 @@ class AdmissionQueueService
 {
     protected \CodeIgniter\Database\BaseConnection $db;
     protected UserAccessScopeService $userAccessScope;
+    protected bool $hasBatchTable;
 
     public function __construct()
     {
         $this->db = db_connect();
         $this->userAccessScope = service('userAccessScope');
+        $this->hasBatchTable = $this->db->tableExists('tenant_batches');
     }
 
     public function getRows(int $tenantId, string $queue, ?int $branchContextId = null): array
@@ -40,8 +42,13 @@ class AdmissionQueueService
             ->join('admission_fee_snapshots snapshot', 'snapshot.admission_id = a.id', 'left')
             ->where('a.tenant_id', $tenantId)
             ->where('a.id', $admissionId)
-            ->get()
-            ->getRow();
+            ;
+
+        if ($this->hasBatchTable) {
+            $row = $row->join('tenant_batches current_batch', 'current_batch.id = a.current_batch_id', 'left');
+        }
+
+        $row = $row->get()->getRow();
 
         if (! $row || ! $this->canViewRow($tenantId, $row, $branchContextId)) {
             return null;
@@ -56,7 +63,7 @@ class AdmissionQueueService
      */
     protected function getBaseRows(int $tenantId): array
     {
-        return $this->db->table('admissions a')
+        $builder = $this->db->table('admissions a')
             ->select($this->baseSelect())
             ->join('tenant_branches b', 'b.id = a.branch_id', 'left')
             ->join('users assigned_user', 'assigned_user.id = a.assigned_user_id', 'left')
@@ -66,14 +73,18 @@ class AdmissionQueueService
             ->join('colleges college', 'college.id = a.college_id', 'left')
             ->join('admission_fee_snapshots snapshot', 'snapshot.admission_id = a.id', 'left')
             ->where('a.tenant_id', $tenantId)
-            ->orderBy('a.created_at', 'DESC')
-            ->get()
-            ->getResult();
+            ->orderBy('a.created_at', 'DESC');
+
+        if ($this->hasBatchTable) {
+            $builder->join('tenant_batches current_batch', 'current_batch.id = a.current_batch_id', 'left');
+        }
+
+        return $builder->get()->getResult();
     }
 
     protected function baseSelect(): string
     {
-        return implode(', ', [
+        $select = [
             'a.*',
             'b.name AS branch_name',
             'course.label AS course_label',
@@ -88,7 +99,13 @@ class AdmissionQueueService
             'snapshot.net_amount',
             'snapshot.paid_amount',
             'snapshot.balance_amount',
-        ]);
+        ];
+
+        if ($this->hasBatchTable) {
+            $select[] = 'current_batch.name AS current_batch_name';
+        }
+
+        return implode(', ', $select);
     }
 
     protected function canViewRow(int $tenantId, object $row, ?int $branchContextId = null): bool
@@ -120,6 +137,7 @@ class AdmissionQueueService
         $row->assigned_user_display = trim((string) ($row->assigned_user_name ?? '')) ?: 'Unassigned';
         $row->created_by_display = trim((string) ($row->created_by_name ?? '')) ?: '-';
         $row->updated_by_display = trim((string) ($row->updated_by_name ?? '')) ?: '-';
+        $row->current_batch_display = trim((string) ($row->current_batch_name ?? '')) ?: '-';
         $row->net_amount = (float) ($row->net_amount ?? 0);
         $row->paid_amount = (float) ($row->paid_amount ?? 0);
         $row->balance_amount = (float) ($row->balance_amount ?? 0);
