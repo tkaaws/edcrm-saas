@@ -256,7 +256,7 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
 </section>
 
 <script>
-(() => {
+const initializeAdmissionWizard = () => {
     const branchSelect = document.querySelector('[data-branch-select]');
     const userSelect = document.querySelector('[data-branch-user-select]');
     if (branchSelect && userSelect) {
@@ -532,5 +532,11 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
 
         showStep('admission-student-panel');
     }
-})();
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAdmissionWizard, { once: true });
+} else {
+    initializeAdmissionWizard();
+}
 </script>
