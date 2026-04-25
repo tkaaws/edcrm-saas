@@ -442,11 +442,12 @@ const initializeAdmissionWizard = () => {
     const stepPanels = Array.from(document.querySelectorAll('.admission-create-flow .settings-tabs__panel'));
     if (stepButtons.length && stepPanels.length) {
         let currentStepIndex = 0;
-        const previousButton = document.querySelector('[data-admission-prev]');
-        const nextButton = document.querySelector('[data-admission-next]');
-        const submitButton = document.querySelector('[data-admission-submit]');
 
         const updateWizardActions = () => {
+            const previousButton = document.querySelector('[data-admission-prev]');
+            const nextButton = document.querySelector('[data-admission-next]');
+            const submitButton = document.querySelector('[data-admission-submit]');
+
             if (previousButton) {
                 previousButton.hidden = currentStepIndex === 0;
             }
@@ -477,27 +478,38 @@ const initializeAdmissionWizard = () => {
             updateWizardActions();
         };
 
-        stepButtons.forEach((button) => {
-            button.addEventListener('click', () => showStep(button.getAttribute('data-admission-step-target')));
-        });
+        document.addEventListener('click', (event) => {
+            const target = event.target;
+            if (!(target instanceof Element)) {
+                return;
+            }
 
-        if (previousButton) {
-            previousButton.addEventListener('click', () => {
+            const stepButton = target.closest('[data-admission-step-target]');
+            if (stepButton instanceof HTMLElement) {
+                const targetId = stepButton.getAttribute('data-admission-step-target');
+                if (targetId) {
+                    showStep(targetId);
+                }
+                return;
+            }
+
+            const previousButton = target.closest('[data-admission-prev]');
+            if (previousButton instanceof HTMLElement) {
                 const previousPanel = stepPanels[currentStepIndex - 1] || null;
                 if (previousPanel?.id) {
                     showStep(previousPanel.id);
                 }
-            });
-        }
+                return;
+            }
 
-        if (nextButton) {
-            nextButton.addEventListener('click', () => {
+            const nextButton = target.closest('[data-admission-next]');
+            if (nextButton instanceof HTMLElement) {
                 const nextPanel = stepPanels[currentStepIndex + 1] || null;
                 if (nextPanel?.id) {
                     showStep(nextPanel.id);
                 }
-            });
-        }
+            }
+        });
 
         const admissionForm = document.querySelector('.module-page form');
         if (admissionForm) {
