@@ -14,6 +14,30 @@ $useOldInput = (bool) ($useOldInput ?? true);
 $fieldValue = static function (string $key, mixed $default = '') use ($useOldInput) {
     return $useOldInput ? old($key, $default) : $default;
 };
+$formatDateTimeLocal = static function (mixed $value, ?string $fallback = null): string {
+    $raw = trim((string) ($value ?? ''));
+    if ($raw === '') {
+        return $fallback ?? '';
+    }
+
+    try {
+        return date('Y-m-d\TH:i', strtotime($raw));
+    } catch (\Throwable) {
+        return $fallback ?? '';
+    }
+};
+$formatDateInput = static function (mixed $value, ?string $fallback = null): string {
+    $raw = trim((string) ($value ?? ''));
+    if ($raw === '') {
+        return $fallback ?? '';
+    }
+
+    try {
+        return date('Y-m-d', strtotime($raw));
+    } catch (\Throwable) {
+        return $fallback ?? '';
+    }
+};
 
 $selectedBranchId = (int) $fieldValue('branch_id', $formAdmission->branch_id ?? ($sourceEnquiry->branch_id ?? 0));
 $selectedAssigneeId = (int) $fieldValue('assigned_user_id', $formAdmission->assigned_user_id ?? ($sourceEnquiry->owner_user_id ?? 0));
@@ -112,7 +136,7 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                 </label>
                 <label class="field">
                     <span>Admission date</span>
-                    <input type="datetime-local" name="admission_date" value="<?= esc($fieldValue('admission_date', isset($formAdmission->admission_date) && $formAdmission->admission_date ? date('Y-m-d\TH:i', strtotime($formAdmission->admission_date)) : date('Y-m-d\TH:i'))) ?>">
+                    <input type="datetime-local" name="admission_date" value="<?= esc($formatDateTimeLocal($fieldValue('admission_date', $formAdmission->admission_date ?? null), date('Y-m-d\TH:i'))) ?>">
                 </label>
                 <label class="field">
                     <span>Branch</span>
@@ -194,7 +218,7 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                 </label>
                 <label class="field">
                     <span>Payment date</span>
-                    <input type="datetime-local" name="payment_date" value="<?= esc($fieldValue('payment_date', date('Y-m-d\TH:i'))) ?>">
+                    <input type="datetime-local" name="payment_date" value="<?= esc($formatDateTimeLocal($fieldValue('payment_date', null), date('Y-m-d\TH:i'))) ?>">
                 </label>
                 <label class="field">
                     <span>Payment mode</span>
@@ -216,7 +240,7 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                 </label>
                 <label class="field">
                     <span>First due date</span>
-                    <input type="date" name="first_due_date" value="<?= esc($fieldValue('first_due_date', date('Y-m-d', strtotime('+30 days')))) ?>">
+                    <input type="date" name="first_due_date" value="<?= esc($formatDateInput($fieldValue('first_due_date', null), date('Y-m-d', strtotime('+30 days')))) ?>">
                 </label>
                 <label class="field">
                     <span>Gap between installments (days)</span>
