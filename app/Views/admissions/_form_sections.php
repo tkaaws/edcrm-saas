@@ -284,6 +284,7 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
     const installmentDisplay = document.querySelector('[data-fee-installment-display]');
     const previewTable = document.querySelector('[data-fee-items-preview] tbody');
     let structuresById = {};
+    let hasFeeStructures = false;
 
     const renderPreview = (structureId, preserveSchedule) => {
         if (!structureSelect || !grossDisplay || !installmentDisplay || !previewTable) {
@@ -333,6 +334,7 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
         structureSelect.disabled = !courseId;
         structureSelect.setCustomValidity('');
         structuresById = {};
+        hasFeeStructures = false;
         renderPreview('', preserveSchedule);
 
         if (structureNote) {
@@ -365,12 +367,18 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                 });
 
                 if ((payload.structures || []).length === 0) {
+                    hasFeeStructures = false;
+                    const emptyOption = document.createElement('option');
+                    emptyOption.value = '';
+                    emptyOption.textContent = 'No fee structure available for this course';
+                    structureSelect.appendChild(emptyOption);
                     structureSelect.setCustomValidity('Create a fee structure for this course first.');
                     if (structureNote) {
                         const manageUrl = structureNote.getAttribute('data-manage-url') || '#';
                         structureNote.innerHTML = `No active fee structure is available for this course yet. <a href="${manageUrl}">Manage fee structures</a>.`;
                     }
                 } else {
+                    hasFeeStructures = true;
                     structureSelect.setCustomValidity('');
                     if (structureNote) {
                         structureNote.innerHTML = 'Choose the course-wise fee plan before moving to payment.';
@@ -455,6 +463,12 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                 .filter((field) => field instanceof HTMLElement && 'willValidate' in field && field.willValidate && !field.disabled);
 
             for (const field of controls) {
+                if (field === structureSelect && !hasFeeStructures) {
+                    structureSelect.setCustomValidity('Create a fee structure for this course first.');
+                    structureSelect.reportValidity();
+                    structureSelect.focus();
+                    return false;
+                }
                 if (field instanceof HTMLElement && typeof field.reportValidity === 'function' && !field.reportValidity()) {
                     field.focus();
                     return false;
