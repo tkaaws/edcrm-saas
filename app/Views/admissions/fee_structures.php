@@ -2,6 +2,8 @@
 
 <?= $this->section('content') ?>
 <section class="module-page">
+    <?php $selectedCourseId = (int) ($selectedCourseId ?? 0); ?>
+    <?php $openCreateModal = (bool) ($openCreateModal ?? false); ?>
     <?= $this->include('admissions/_subnav') ?>
 
     <div class="module-toolbar module-toolbar--compact">
@@ -94,6 +96,7 @@
                     $formRow = null;
                     $formItems = [];
                     $fieldPrefix = 'items';
+                    $selectedCourseId = $selectedCourseId;
                     ?>
                     <?= $this->include('admissions/_fee_structure_form_fields') ?>
                     <div class="form-actions">
@@ -136,6 +139,13 @@
 
 <script>
 (() => {
+    <?php if ($canManageFeeStructures && $openCreateModal): ?>
+    const autoOpenCreateButton = document.querySelector('[data-modal-open="fee-structure-create-modal"]');
+    if (autoOpenCreateButton instanceof HTMLElement) {
+        autoOpenCreateButton.click();
+    }
+    <?php endif; ?>
+
     document.querySelectorAll('[data-fee-items-builder]').forEach((builder) => {
         const list = builder.querySelector('[data-fee-items-list]');
         const template = builder.querySelector('[data-fee-item-template]');

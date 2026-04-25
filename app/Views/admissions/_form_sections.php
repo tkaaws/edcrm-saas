@@ -10,6 +10,7 @@ $modeOfClassOptions = $modeOfClassOptions ?? [];
 $paymentModeOptions = $paymentModeOptions ?? [];
 $feeStructureOptionsUrl = $feeStructureOptionsUrl ?? site_url('admissions/fee-structures/options');
 $feeStructureManageUrl = $feeStructureManageUrl ?? site_url('admissions/fee-structures');
+$feeStructureCreateBaseUrl = $feeStructureManageUrl . '?open=create';
 $useOldInput = (bool) ($useOldInput ?? true);
 $fieldValue = static function (string $key, mixed $default = '') use ($useOldInput) {
     return $useOldInput ? old($key, $default) : $default;
@@ -172,7 +173,7 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                     <select name="fee_structure_id" data-fee-structure-select data-selected-structure="<?= esc((string) $selectedFeeStructureId) ?>" <?= $selectedCourseId > 0 ? '' : 'disabled' ?> required>
                         <option value=""><?= $selectedCourseId > 0 ? 'Select fee structure' : 'Choose course first' ?></option>
                     </select>
-                    <small class="form-note" data-fee-structure-note data-manage-url="<?= esc($feeStructureManageUrl) ?>">Choose the course-wise fee plan before moving to payment.</small>
+                    <small class="form-note" data-fee-structure-note data-manage-url="<?= esc($feeStructureManageUrl) ?>" data-create-url-base="<?= esc($feeStructureCreateBaseUrl) ?>">Choose the course-wise fee plan before moving to payment.</small>
                 </label>
                 <label class="field">
                     <span>Gross fees</span>
@@ -398,8 +399,9 @@ const initializeAdmissionWizard = () => {
                     structureSelect.appendChild(emptyOption);
                     structureSelect.setCustomValidity('Create a fee structure for this course first.');
                     if (structureNote) {
-                        const manageUrl = structureNote.getAttribute('data-manage-url') || '#';
-                        structureNote.innerHTML = `No active fee structure is available for this course yet. <a href="${manageUrl}">Manage fee structures</a>.`;
+                        const baseUrl = structureNote.getAttribute('data-create-url-base') || '#';
+                        const createUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}course_id=${encodeURIComponent(courseId)}`;
+                        structureNote.innerHTML = `No active fee structure is available for this course yet. <a href="${createUrl}" class="shell-button shell-button--ghost shell-button--sm">Create fee structure for this course</a>.`;
                     }
                 } else {
                     hasFeeStructures = true;

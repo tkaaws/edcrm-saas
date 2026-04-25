@@ -37,6 +37,8 @@ class AdmissionFeeStructures extends BaseController
             'pagination' => $paginated['pagination'],
             'courses' => service('masterData')->getEffectiveValues('course', $tenantId),
             'canManageFeeStructures' => service('permissions')->has('fees.structure'),
+            'selectedCourseId' => (int) $this->request->getGet('course_id'),
+            'openCreateModal' => $this->request->getGet('open') === 'create',
         ]));
     }
 

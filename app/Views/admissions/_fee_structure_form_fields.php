@@ -2,6 +2,7 @@
 $formRow = $formRow ?? null;
 $courses = $courses ?? [];
 $formItems = $formItems ?? [];
+$selectedCourseId = (int) ($selectedCourseId ?? 0);
 if ($formItems === []) {
     $formItems = [[
         'fee_head_name' => '',
@@ -12,7 +13,7 @@ if ($formItems === []) {
     ]];
 }
 $fieldPrefix = $fieldPrefix ?? 'items';
-$selectedCourseId = (int) ($formRow->course_id ?? old('course_id', 0));
+$selectedCourseId = (int) ($formRow->course_id ?? old('course_id', $selectedCourseId));
 ?>
 <div class="form-grid">
     <label class="field">
