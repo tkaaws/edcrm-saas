@@ -9,6 +9,7 @@ $assignableUsersByBranch = $assignableUsersByBranch ?? [];
 $modeOfClassOptions = $modeOfClassOptions ?? [];
 $paymentModeOptions = $paymentModeOptions ?? [];
 $feeStructureOptionsUrl = $feeStructureOptionsUrl ?? site_url('admissions/fee-structures/options');
+$feeStructureManageUrl = $feeStructureManageUrl ?? site_url('admissions/fee-structures');
 $useOldInput = (bool) ($useOldInput ?? true);
 $fieldValue = static function (string $key, mixed $default = '') use ($useOldInput) {
     return $useOldInput ? old($key, $default) : $default;
@@ -147,6 +148,7 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                     <select name="fee_structure_id" data-fee-structure-select data-selected-structure="<?= esc((string) $selectedFeeStructureId) ?>" <?= $selectedCourseId > 0 ? '' : 'disabled' ?> required>
                         <option value=""><?= $selectedCourseId > 0 ? 'Select fee structure' : 'Choose course first' ?></option>
                     </select>
+                    <small class="form-note" data-fee-structure-note data-manage-url="<?= esc($feeStructureManageUrl) ?>">Choose the course-wise fee plan before moving to payment.</small>
                 </label>
                 <label class="field">
                     <span>Gross fees</span>
@@ -277,6 +279,7 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
 
     const courseSelect = document.querySelector('[data-fee-course-select]');
     const structureSelect = document.querySelector('[data-fee-structure-select]');
+    const structureNote = document.querySelector('[data-fee-structure-note]');
     const grossDisplay = document.querySelector('[data-fee-gross-display]');
     const installmentDisplay = document.querySelector('[data-fee-installment-display]');
     const previewTable = document.querySelector('[data-fee-items-preview] tbody');
@@ -328,8 +331,15 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
 
         structureSelect.innerHTML = `<option value="">${courseId ? 'Select fee structure' : 'Choose course first'}</option>`;
         structureSelect.disabled = !courseId;
+        structureSelect.setCustomValidity('');
         structuresById = {};
         renderPreview('', preserveSchedule);
+
+        if (structureNote) {
+            structureNote.innerHTML = courseId
+                ? 'Choose the course-wise fee plan before moving to payment.'
+                : 'Choose a course first to load its fee structures.';
+        }
 
         if (!courseId) {
             return;
@@ -354,11 +364,28 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                     structureSelect.appendChild(option);
                 });
 
+                if ((payload.structures || []).length === 0) {
+                    structureSelect.setCustomValidity('Create a fee structure for this course first.');
+                    if (structureNote) {
+                        const manageUrl = structureNote.getAttribute('data-manage-url') || '#';
+                        structureNote.innerHTML = `No active fee structure is available for this course yet. <a href="${manageUrl}">Manage fee structures</a>.`;
+                    }
+                } else {
+                    structureSelect.setCustomValidity('');
+                    if (structureNote) {
+                        structureNote.innerHTML = 'Choose the course-wise fee plan before moving to payment.';
+                    }
+                }
+
                 if (structureSelect.value) {
                     renderPreview(structureSelect.value, preserveSchedule);
                 }
             })
             .catch(() => {
+                structureSelect.setCustomValidity('Fee structures could not be loaded right now.');
+                if (structureNote) {
+                    structureNote.textContent = 'Fee structures could not be loaded right now.';
+                }
                 previewTable.innerHTML = '<tr><td colspan="3" class="empty-state">Fee structures could not be loaded right now.</td></tr>';
             });
     };
@@ -370,6 +397,9 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
         });
 
         structureSelect.addEventListener('change', () => {
+            if (structureSelect.value) {
+                structureSelect.setCustomValidity('');
+            }
             renderPreview(structureSelect.value, false);
         });
 
