@@ -11,13 +11,15 @@
         <a class="shell-button shell-button--ghost" href="<?= site_url('admissions') ?>">Back to admissions</a>
     </div>
 
-    <form class="form-card form-stack" method="post" action="<?= esc($formAction) ?>">
+    <form class="form-card form-stack admission-create-form" method="post" action="<?= esc($formAction) ?>">
         <?= csrf_field() ?>
         <?= $this->include('admissions/_form_sections') ?>
 
-        <div class="form-actions">
+        <div class="form-actions form-actions--wizard">
             <a class="shell-button shell-button--ghost" href="<?= site_url('admissions') ?>">Cancel</a>
-            <button class="shell-button shell-button--primary" type="submit"><?= esc($submitText) ?></button>
+            <button class="shell-button shell-button--ghost" type="button" data-admission-prev hidden>Back</button>
+            <button class="shell-button shell-button--primary" type="button" data-admission-next>Next</button>
+            <button class="shell-button shell-button--primary" type="submit" data-admission-submit hidden><?= esc($submitText) ?></button>
         </div>
     </form>
 </section>

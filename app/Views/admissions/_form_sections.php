@@ -379,6 +379,25 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
     const stepButtons = Array.from(document.querySelectorAll('[data-admission-step-target]'));
     const stepPanels = Array.from(document.querySelectorAll('.admission-create-flow .settings-tabs__panel'));
     if (stepButtons.length && stepPanels.length) {
+        let currentStepIndex = 0;
+        const previousButton = document.querySelector('[data-admission-prev]');
+        const nextButton = document.querySelector('[data-admission-next]');
+        const submitButton = document.querySelector('[data-admission-submit]');
+
+        const updateWizardActions = () => {
+            if (previousButton) {
+                previousButton.hidden = currentStepIndex === 0;
+            }
+
+            const onLastStep = currentStepIndex === stepPanels.length - 1;
+            if (nextButton) {
+                nextButton.hidden = onLastStep;
+            }
+            if (submitButton) {
+                submitButton.hidden = !onLastStep;
+            }
+        };
+
         const showStep = (targetId) => {
             stepButtons.forEach((button) => {
                 const isActive = button.getAttribute('data-admission-step-target') === targetId;
@@ -386,14 +405,85 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                 button.setAttribute('aria-selected', isActive ? 'true' : 'false');
             });
 
-            stepPanels.forEach((panel) => {
+            stepPanels.forEach((panel, index) => {
                 panel.hidden = panel.id !== targetId;
+                if (panel.id === targetId) {
+                    currentStepIndex = index;
+                }
             });
+
+            updateWizardActions();
+        };
+
+        const validateCurrentStep = () => {
+            const panel = stepPanels[currentStepIndex] || null;
+            if (!panel) {
+                return true;
+            }
+
+            const controls = Array.from(panel.querySelectorAll('input, select, textarea'))
+                .filter((field) => field instanceof HTMLElement && 'willValidate' in field && field.willValidate && !field.disabled);
+
+            for (const field of controls) {
+                if (field instanceof HTMLElement && typeof field.reportValidity === 'function' && !field.reportValidity()) {
+                    field.focus();
+                    return false;
+                }
+            }
+
+            return true;
         };
 
         stepButtons.forEach((button) => {
             button.addEventListener('click', () => showStep(button.getAttribute('data-admission-step-target')));
         });
+
+        if (previousButton) {
+            previousButton.addEventListener('click', () => {
+                const previousPanel = stepPanels[currentStepIndex - 1] || null;
+                if (previousPanel?.id) {
+                    showStep(previousPanel.id);
+                }
+            });
+        }
+
+        if (nextButton) {
+            nextButton.addEventListener('click', () => {
+                if (!validateCurrentStep()) {
+                    return;
+                }
+
+                const nextPanel = stepPanels[currentStepIndex + 1] || null;
+                if (nextPanel?.id) {
+                    showStep(nextPanel.id);
+                }
+            });
+        }
+
+        const admissionForm = document.querySelector('.module-page form');
+        if (admissionForm) {
+            admissionForm.addEventListener('invalid', (event) => {
+                const field = event.target;
+                if (!(field instanceof HTMLElement)) {
+                    return;
+                }
+
+                const panel = field.closest('.settings-tabs__panel');
+                if (panel && panel.id) {
+                    showStep(panel.id);
+                }
+            }, true);
+
+            admissionForm.addEventListener('submit', () => {
+                const firstInvalid = admissionForm.querySelector(':invalid');
+                if (firstInvalid instanceof HTMLElement) {
+                    const panel = firstInvalid.closest('.settings-tabs__panel');
+                    if (panel && panel.id) {
+                        showStep(panel.id);
+                    }
+                }
+            });
+        }
 
         showStep('admission-student-panel');
     }

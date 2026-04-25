@@ -2163,6 +2163,26 @@ select.shell-input,
     gap: 10px;
 }
 
+.form-actions--wizard {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    margin: 18px -20px -20px;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid var(--line);
+    backdrop-filter: blur(10px);
+}
+
+.admission-create-form {
+    max-width: 1180px;
+    margin-inline: auto;
+}
+
+.admission-create-flow .settings-tabs__panel {
+    padding-top: 16px;
+}
+
 .form-section-header {
     display: grid;
     gap: 4px;
@@ -2787,6 +2807,12 @@ select.shell-input,
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
+    }
+
+    .form-actions--wizard {
+        margin-inline: -14px;
+        margin-bottom: -14px;
+        padding: 12px 14px;
     }
 
     .module-toolbar .status-badge {
