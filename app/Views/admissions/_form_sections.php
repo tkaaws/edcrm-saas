@@ -477,31 +477,6 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
             updateWizardActions();
         };
 
-        const validateCurrentStep = () => {
-            const panel = stepPanels[currentStepIndex] || null;
-            if (!panel) {
-                return true;
-            }
-
-            const controls = Array.from(panel.querySelectorAll('input, select, textarea'))
-                .filter((field) => field instanceof HTMLElement && 'willValidate' in field && field.willValidate && !field.disabled);
-
-            for (const field of controls) {
-                if (field === structureSelect && !hasFeeStructures) {
-                    structureSelect.setCustomValidity('Create a fee structure for this course first.');
-                    structureSelect.reportValidity();
-                    structureSelect.focus();
-                    return false;
-                }
-                if (field instanceof HTMLElement && typeof field.reportValidity === 'function' && !field.reportValidity()) {
-                    field.focus();
-                    return false;
-                }
-            }
-
-            return true;
-        };
-
         stepButtons.forEach((button) => {
             button.addEventListener('click', () => showStep(button.getAttribute('data-admission-step-target')));
         });
@@ -517,10 +492,6 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
 
         if (nextButton) {
             nextButton.addEventListener('click', () => {
-                if (!validateCurrentStep()) {
-                    return;
-                }
-
                 const nextPanel = stepPanels[currentStepIndex + 1] || null;
                 if (nextPanel?.id) {
                     showStep(nextPanel.id);
@@ -542,14 +513,20 @@ $selectedFeeStructureId = (int) $fieldValue('fee_structure_id', 0);
                 }
             }, true);
 
-            admissionForm.addEventListener('submit', () => {
+            admissionForm.addEventListener('submit', (event) => {
                 const firstInvalid = admissionForm.querySelector(':invalid');
-                if (firstInvalid instanceof HTMLElement) {
-                    const panel = firstInvalid.closest('.settings-tabs__panel');
-                    if (panel && panel.id) {
-                        showStep(panel.id);
-                    }
+                if (!(firstInvalid instanceof HTMLElement)) {
+                    return;
                 }
+
+                const panel = firstInvalid.closest('.settings-tabs__panel');
+                if (panel && panel.id) {
+                    showStep(panel.id);
+                }
+
+                firstInvalid.reportValidity();
+                firstInvalid.focus();
+                event.preventDefault();
             });
         }
 
