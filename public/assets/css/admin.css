@@ -267,6 +267,10 @@ a {
     transition: background-color .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease;
 }
 
+.shell-button[hidden] {
+    display: none !important;
+}
+
 .shell-button:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(24, 27, 52, 0.08);
